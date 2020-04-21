@@ -2,10 +2,10 @@ import time
 import numpy as np
 from threading import Thread
 
-from components.gpu import gpu
-from components.cpu import cpu
-from emissions.intensity import intensity as ci
-from emissions.conversion import co2eq
+from carbontracker.components.gpu import gpu
+from carbontracker.components.cpu import cpu
+from carbontracker.emissions.intensity import intensity as ci
+from carbontracker.emissions.conversion import co2eq
 
 # TODO: use thread local data instead
 # mydata = threading.local()

@@ -1,6 +1,6 @@
 import pandas as pd
 
-CONVERSION_FILE = "./emissions/conversion/co2eq.csv"
+CONVERSION_FILE = "./carbontracker/emissions/conversion/co2eq.csv"
 CONVERSION_DF = pd.read_csv(CONVERSION_FILE)
 
 def convert(g_co2eq):

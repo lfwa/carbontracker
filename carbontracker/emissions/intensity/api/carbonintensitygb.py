@@ -1,8 +1,8 @@
 import requests
 import datetime
 
-from emissions.intensity.api.intensity_api import IntensityAPI
-from emissions.intensity import intensity
+from carbontracker.emissions.intensity.api.intensity_api import IntensityAPI
+from carbontracker.emissions.intensity import intensity
 
 API_URL = "https://api.carbonintensity.org.uk"
 

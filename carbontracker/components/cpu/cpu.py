@@ -1,4 +1,4 @@
-from components.cpu import intel_rapl
+from carbontracker.components.cpu import intel_rapl
 
 class CPUError(Exception):
     pass

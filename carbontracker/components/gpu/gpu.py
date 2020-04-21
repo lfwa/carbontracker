@@ -1,5 +1,5 @@
 # TODO: This is almost identical with cpu.py. Create a super class and inherit instead?
-from components.gpu import nvidia
+from carbontracker.components.gpu import nvidia
 
 class GPUError(Exception):
     pass

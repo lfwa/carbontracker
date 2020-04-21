@@ -1,7 +1,7 @@
 import requests
 
-from emissions.intensity.api.intensity_api import IntensityAPI
-from emissions.intensity import intensity
+from carbontracker.emissions.intensity.api.intensity_api import IntensityAPI
+from carbontracker.emissions.intensity import intensity
 
 AUTH_TOKEN = "2e7f70fa1f2ef4e5"
 API_URL = "https://api.co2signal.com/v1/latest"
