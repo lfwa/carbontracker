@@ -1,0 +1,2 @@
+name,gCO2eq_per_unit,unit,lowerbound,upperbound,source
+eu_new_car_2018,120.4,km travelled by car,0,inf,https://www.eea.europa.eu/data-and-maps/indicators/average-co2-emissions-from-motor-vehicles/assessment-1
