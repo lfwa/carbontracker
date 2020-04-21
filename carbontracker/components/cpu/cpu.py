@@ -1,4 +1,4 @@
-from cpu import intel_rapl
+from components.cpu import intel_rapl
 
 class CPUError(Exception):
     pass

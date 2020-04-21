@@ -1,8 +1,7 @@
 import requests
 
-from carbontracker.emissions.intensity.api.intensity_api import IntensityAPI
-from carbontracker.emissions.intensity.intensity import UnitError
-from carbontracker.emissions.intensity.intensity import CarbonIntensity
+from emissions.intensity.api.intensity_api import IntensityAPI
+from emissions.intensity import intensity
 
 AUTH_TOKEN = "2e7f70fa1f2ef4e5"
 API_URL = "https://api.co2signal.com/v1/latest"
@@ -12,7 +11,7 @@ class CO2Signal(IntensityAPI):
         return True
 
     def carbon_intensity(self, g_location, time_len=None):
-        carbon_intensity = CarbonIntensity(g_location=g_location)
+        carbon_intensity = intensity.CarbonIntensity(g_location=g_location)
 
         try:
             ci = self._carbon_intensity_by_location(
@@ -70,7 +69,7 @@ class CO2Signal(IntensityAPI):
         unit = response["units"]["carbonIntensity"]
         expected_unit = "gCO2eq/kWh"
         if unit != expected_unit:
-            raise UnitError(expected_unit, unit,
+            raise intensity.UnitError(expected_unit, unit,
                             "Carbon intensity query returned the wrong unit.")
 
         return carbon_intensity

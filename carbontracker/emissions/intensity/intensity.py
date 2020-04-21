@@ -2,8 +2,8 @@ import geocoder
 import requests
 import datetime
 
-import api.co2signal
-import carbonintensitygb
+from emissions.intensity.api import co2signal
+from emissions.intensity.api import carbonintensitygb
 # TODO: If we get access to full API (api.electricitymap.org) then fetch forecasted carbon intensity so we can account for long training times.
 
 # TODO: There is a lot of variation between CO2_SIGNAL and CARBON_INTENSITY IN GB. Up to 50g differences for same locations. This is likely caused by CO2_SIGNAL includes only electricity consumption, while CARBON_INTENSITY includes electricity generated. CARBON_INTENSITY SHOULD BE ABLE TO PROVIDE MUCH MORE FINE DETAILS IN GB. Should we mix these?

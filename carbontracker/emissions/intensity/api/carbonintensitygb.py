@@ -1,19 +1,19 @@
 import requests
 import datetime
 
-from co2_api import CO2API
-from carbon_intensity import CarbonIntensity
+from emissions.intensity.api.intensity_api import IntensityAPI
+from emissions.intensity import intensity
 
 API_URL = "https://api.carbonintensity.org.uk"
 
-class CarbonIntensityGB(CO2API):
+class CarbonIntensityGB(IntensityAPI):
     def suitable(self, g_location):
         if g_location.country != "GB":
             return False
         return True
 
     def carbon_intensity(self, g_location, time_len=None):
-        carbon_intensity = CarbonIntensity(g_location=g_location)
+        carbon_intensity = intensity.CarbonIntensity(g_location=g_location)
 
         try:
             postcode = g_location.postal
