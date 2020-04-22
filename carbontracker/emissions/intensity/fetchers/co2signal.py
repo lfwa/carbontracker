@@ -1,16 +1,16 @@
 import requests
 
-from carbontracker.emissions.intensity.api.intensity_api import IntensityAPI
+from carbontracker.emissions.intensity.fetcher import IntensityFetcher
 from carbontracker.emissions.intensity import intensity
 
 AUTH_TOKEN = "2e7f70fa1f2ef4e5"
 API_URL = "https://api.co2signal.com/v1/latest"
 
-class CO2Signal(IntensityAPI):
+class CO2Signal(IntensityFetcher):
     def suitable(self, g_location):
         return True
 
-    def carbon_intensity(self, g_location, time_len=None):
+    def carbon_intensity(self, g_location, time_dur=None):
         carbon_intensity = intensity.CarbonIntensity(g_location=g_location)
 
         try:

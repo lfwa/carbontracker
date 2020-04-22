@@ -2,18 +2,16 @@ import time
 import numpy as np
 from threading import Thread
 
-from carbontracker.components.gpu import gpu
-from carbontracker.components.cpu import cpu
-from carbontracker.emissions.intensity import intensity as ci
+from carbontracker.components import component
+from carbontracker.emissions.intensity import intensity
 from carbontracker.emissions.conversion import co2eq
 
-# TODO: use thread local data instead
-# mydata = threading.local()
-# mydata.x = 1
-# https://docs.python.org/3/library/threading.html
+
+# TODO: LOGGING. Logging to stdout by default.
+# TODO: MONITORING MODULE
+
 # TODO: Support multiple epochs as well as logging for full training.
 # TODO: Warning for training in high carbon intensity region? This could include how much could be saved by moving the job to a low impact region?
-# TODO: Add redirect prints to different pipes.
 class CarbonTrackerThread(Thread):
     def __init__(
             self,
@@ -88,13 +86,13 @@ class CarbonTrackerThread(Thread):
     
     def co2eq(self, total_energy_usage):
         """Returns the CO2eq (g) of the total energy usage."""
-        carbon_intensity = ci.carbon_intensity()
+        carbon_intensity = intensity.carbon_intensity().carbon_intensity
         co2eq = total_energy_usage * carbon_intensity
         return co2eq
     
     def co2eq_interpretable(self, g_co2eq):
         """Converts CO2eq (g) to interpretable units."""
-        return co2eq_conversion.convert(g_co2eq)
+        return co2eq.convert(g_co2eq)
     
     def predict_total(self, epochs, epoch_energy_usage, epoch_time):
         """Predicts energy (kWh) usage and time (s) of all epochs."""
@@ -125,10 +123,9 @@ class CarbonTracker:
         # TODO: If ignore_errors print instead of letting errors through.
         self.ignore_errors = ignore_errors
 
-        comps = self._choose_components(components)
         self.tracker = CarbonTrackerThread(
             update_interval=update_interval,
-            components=comps
+            components=component.create_components(components)
         )
         
         self.deleted = False
@@ -148,24 +145,6 @@ class CarbonTracker:
         if self.stop_and_confirm:
             self._user_query()
         self._delete()
-    
-    def _choose_components(self, comp_str):
-        components_dict = {
-            "gpu": gpu.GPU(),
-            "cpu": cpu.CPU()
-        }
-        components = []
-        comp_str = comp_str.split(",")
-        for comp in comp_str:
-            if comp == "all":
-                components = list(components_dict.values())
-            else:
-                component = components_dict.get(comp)
-                if component is not None:
-                    components.append(component)
-                else:
-                    raise Exception(f"Invalid component '{comp}' specified.")
-        return components
     
     def _print_stats(self, description, time, energy, co2eq, conversions=None):
         print(description)

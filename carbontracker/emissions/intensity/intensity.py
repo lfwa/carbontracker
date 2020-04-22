@@ -2,8 +2,8 @@ import geocoder
 import requests
 import datetime
 
-from carbontracker.emissions.intensity.api import co2signal
-from carbontracker.emissions.intensity.api import carbonintensitygb
+from carbontracker.emissions.intensity.fetchers import co2signal
+from carbontracker.emissions.intensity.fetchers import carbonintensitygb
 
 # https://www.eea.europa.eu/data-and-maps/data/co2-intensity-of-electricity-generation
 EU_28_2017_CARBON_INTENSITY = 294.2060978
@@ -19,10 +19,10 @@ class CarbonIntensity:
     def _set_as_default(self):
         self.carbon_intensity = EU_28_2017_CARBON_INTENSITY
         self.g_location = None
-        self.message = f"Live carbon intensity could not be fetched. Used average carbon intensity for EU-28 in 2017 of {EU_28_2017_CARBON_INTENSITY} gCO2/kWh."
+        self.message = f"Location specific carbon intensity could not be fetched. Used average carbon intensity for EU-28 in 2017 of {EU_28_2017_CARBON_INTENSITY} gCO2/kWh."
 
 def carbon_intensity(time_len=None):
-    api_list = [co2signal.CO2Signal(), carbonintensitygb.CarbonIntensityGB()]
+    fetchers = [co2signal.CO2Signal(), carbonintensitygb.CarbonIntensityGB()]
 
     carbon_intensity = CarbonIntensity(default=True)
 
@@ -34,11 +34,12 @@ def carbon_intensity(time_len=None):
         carbon_intensity.message = f"Failed to retrieve location based on IP. {carbon_intensity.message}"
         return carbon_intensity
 
-    for api in api_list:
-        if not api.suitable(g_location):
+    for fetcher in fetchers:
+        if not fetcher.suitable(g_location):
             continue
         try:
-            carbon_intensity = api.carbon_intensity(g_location, time_len=time_len)
+            carbon_intensity = fetcher.carbon_intensity(g_location,
+                time_len=time_len)
             break
         except:
             pass

@@ -9,10 +9,9 @@ result in more than a 10x slowdown).
 """
 import pynvml
 
-class NvidiaError(Exception):
-    pass
+from carbontracker.components.handler import Handler
 
-class NvidiaGPU:
+class NvidiaGPU(Handler):
     def available(self):
         """Checks if NVML and any GPUs are available."""
         try:

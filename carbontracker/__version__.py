@@ -1,0 +1,6 @@
+__title__ = "CarbonTracker"
+__description__ = "Tracking and estimating carbon footprint of deep learning models."
+__url__ = "https://github.com/crinkey/carbontracker"
+__version__ = "0.1.0"
+__author__ = "Lasse F. Wolff Anthony & Benjamin Kanding"
+__license__ = "MIT"
