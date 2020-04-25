@@ -2,26 +2,27 @@ import time
 import numpy as np
 from threading import Thread
 
+from carbontracker import loggerutil
 from carbontracker.components import component
 from carbontracker.emissions.intensity import intensity
 from carbontracker.emissions.conversion import co2eq
 
 
-# TODO: LOGGING. Logging to stdout by default.
 # TODO: MONITORING MODULE
-
-# TODO: Support multiple epochs as well as logging for full training.
+# TODO: Support multiple epochs.
 # TODO: Warning for training in high carbon intensity region? This could include how much could be saved by moving the job to a low impact region?
 class CarbonTrackerThread(Thread):
     def __init__(
             self,
             components,
-            update_interval=10
+            update_interval=10,
+            logger=None
         ):
         super(CarbonTrackerThread, self).__init__()
         self.name = "CarbonTrackerThread"
-        self.update_interval = update_interval
         self.components = components
+        self.update_interval = update_interval
+        self.logger = logger
         self.running = True
         self.measuring = False
 
@@ -101,9 +102,6 @@ class CarbonTrackerThread(Thread):
         total_time = epochs * epoch_time
         return total_energy, total_time
 
-
-# TODO: If we call a function of our thread object is that necesarrily run in another thread or only those in the run()? Should co2eq, co2eq_interpretable and carbon_intensity and stuff be fetched in a different thread or does it not matter since we only fetch when the first epoch is done?
-
 class CarbonTracker:
     def __init__(
             self,
@@ -113,6 +111,7 @@ class CarbonTracker:
             stop_and_confirm=False,
             ignore_errors=False,
             components="all",
+            log_dir=None
             #warnings=True,
             #logger=True,
             #monitor_epochs="all"
@@ -123,9 +122,12 @@ class CarbonTracker:
         # TODO: If ignore_errors print instead of letting errors through.
         self.ignore_errors = ignore_errors
 
+        self.logger = loggerutil.Logger(log_dir=log_dir)
+
         self.tracker = CarbonTrackerThread(
             update_interval=update_interval,
-            components=component.create_components(components)
+            components=component.create_components(components),
+            logger = self.logger
         )
         
         self.deleted = False
@@ -147,16 +149,18 @@ class CarbonTracker:
         self._delete()
     
     def _print_stats(self, description, time, energy, co2eq, conversions=None):
-        print(description)
-        print(f"\tTime: {time} s")
-        print(f"\tEnergy: {energy} kWh")
-        print(f"\tCO2eq: {co2eq} g")
+        output = (f"{description}\n"
+                  f"\tTime: {time} s\n"
+                  f"\tEnergy: {energy} kWh\n"
+                  f"\tCO2eq: {co2eq} g")
 
         if conversions:
-            print(f"\tThis is equivalent to:")
-            for conversion in conversions:
-                units, unit = conversion
-                print(f"\t\t{units} {unit}")
+            conv_str = "\n\tThis is equivalent to:"
+            for units, unit in conversions:
+                conv_str += f"\n\t{units} {unit}"
+            output += conv_str
+
+        self.logger.output(output)
     
     def _print(self):
         # TODO: Print stats for each component separately?

@@ -4,6 +4,11 @@ class Handler:
     __metaclass__ = ABCMeta
 
     @abstractmethod
+    def info(self):
+        """Returns an information string about the handler."""
+        raise NotImplementedError
+
+    @abstractmethod
     def available(self):
         """Returns True if the handler is available."""
         raise NotImplementedError

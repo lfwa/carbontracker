@@ -42,6 +42,9 @@ class Component:
                 return handler
         return None
     
+    def info(self):
+        return self.handler.info()
+    
     def available(self):
         return self._handler is not None
     

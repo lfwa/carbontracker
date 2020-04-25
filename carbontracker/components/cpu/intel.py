@@ -3,6 +3,9 @@
 from carbontracker.components.handler import Handler
 
 class IntelCPU(Handler):
+    def info(self):
+        pass
+
     def available(self):
         return False
     

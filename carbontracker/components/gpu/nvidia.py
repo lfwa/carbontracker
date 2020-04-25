@@ -12,6 +12,22 @@ import pynvml
 from carbontracker.components.handler import Handler
 
 class NvidiaGPU(Handler):
+    def info(self):
+        """Retrieves the name of all GPUs in a list.
+        
+        Note:
+            Requires NVML to be initialized.
+        """
+        device_count = pynvml.nvmlDeviceGetCount()
+        info = []
+
+        for index in range(device_count):
+            handle = pynvml.nvmlDeviceGetHandleByIndex(index)
+            name = pynvml.nvmlDeviceGetName(handle)
+            info.append(name)
+        
+        return info
+
     def available(self):
         """Checks if NVML and any GPUs are available."""
         try:
