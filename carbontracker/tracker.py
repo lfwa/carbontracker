@@ -1,5 +1,6 @@
 import time
 import numpy as np
+import traceback
 from threading import Thread
 
 from carbontracker import loggerutil
@@ -53,9 +54,7 @@ class CarbonTrackerThread(Thread):
         self.running = False
 
     def components_remove_unavailable(self):
-        for component in self.components:
-            if not component.available():
-                self.components.remove(component)
+        self.components = [comp for comp in self.components if comp.available()]
     
     def components_init(self):
         for component in self.components:
@@ -136,17 +135,31 @@ class CarbonTracker:
         if self.deleted:
             return
         
-        self.tracker.epoch_start()
+        try:
+            self.tracker.epoch_start()
+        except Exception as e:
+            self._handle_error(e)
     
     def epoch_end(self):
         if self.deleted:
             return
 
-        self.tracker.epoch_end()
-        self._print()
-        if self.stop_and_confirm:
-            self._user_query()
-        self._delete()
+        try:
+            self.tracker.epoch_end()
+            self._print()
+            if self.stop_and_confirm:
+                self._user_query()
+            self._delete()
+        except Exception as e:
+            self._handle_error(e)
+    
+    def _handle_error(self, error):
+        if self.ignore_errors:
+            err_str = traceback.format_exc()
+            self.logger.critical(err_str)
+            self.logger.output(err_str)
+        else:
+            raise error
     
     def _print_stats(self, description, time, energy, co2eq, conversions=None):
         output = (f"{description}\n"
