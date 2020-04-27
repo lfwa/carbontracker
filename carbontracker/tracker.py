@@ -1,3 +1,4 @@
+import os
 import time
 import numpy as np
 import traceback
@@ -51,6 +52,9 @@ class CarbonTrackerThread(Thread):
         self.logger.info("Monitoring thread started.")
 
     def stop(self):
+        if self.running == False:
+            return
+
         self.measuring = False
         self.running = False
         self.logger.info("Monitoring thread ended.")
@@ -163,11 +167,17 @@ class CarbonTracker:
             self.tracker.epoch_end()
             if self.epoch_counter < self.epochs_before_pred:
                 return
-            self.tracker.stop()
-            self._print()
-            if self.stop_and_confirm:
-                self._user_query()
-            self._delete()
+            
+            if self.epoch_counter == self.monitor_epochs:
+                self.tracker.stop()
+
+            if self.epoch_counter == self.epochs_before_pred:
+                self._print()
+                if self.stop_and_confirm:
+                    self._user_query()
+
+            if self.epoch_counter == self.monitor_epochs:
+                self._delete()
         except Exception as e:
             self._handle_error(e)
     
@@ -222,7 +232,7 @@ class CarbonTracker:
         elif user_input == "n":
             self.logger.info("Session ended by user.")
             self.logger.output("Quitting...")
-            quit()
+            os._exit(os.EX_OK)
         else:
             self.logger.output("Input not recognized. Try again (y/n):")
             user_input = input()
