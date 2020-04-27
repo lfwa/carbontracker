@@ -1,3 +1,5 @@
+import numpy as np
+
 from carbontracker.components.gpu import nvidia
 from carbontracker.components.cpu import intel
 
@@ -43,6 +45,7 @@ class Component:
             raise ComponentNameError(f"No component found with name '{self.name}'.")
         self._handler = self._determine_handler()
         self.power_usages = []
+        self.cur_epoch = -1 # sentry
     
     @property
     def handler(self):
@@ -63,14 +66,34 @@ class Component:
     def available(self):
         return self._handler is not None
     
-    def collect_power_usage(self):
-        self.power_usages.append(self.handler.power_usage())
+    def collect_power_usage(self, epoch):
+        if epoch < 1:
+            return
+
+        if epoch != self.cur_epoch:
+            self.cur_epoch = epoch
+            self.power_usages.append([])
+
+        self.power_usages[-1].append(self.handler.power_usage())
     
+    def energy_usage(self, epoch_times):
+        """Returns energy (kWh) used by component per epoch."""
+        energy_usages = []
+        # We have to compute each epoch in a for loop since numpy cannot
+        # handle lists of uneven length.
+        for power, time in zip(self.power_usages, epoch_times):
+            avg_power_usage = np.mean(power, axis=0)
+            energy_usage = np.multiply(avg_power_usage, time).sum()
+            # Convert from J to kWh.
+            energy_usage /= 3600000
+            energy_usages.append(energy_usage)
+        return energy_usages
+
     def init(self):
         self.handler.init()
     
     def shutdown(self):
-        self.handler.shutdown()
+        self.handler.shutdown()        
 
 def create_components(comp_str):
     comp_str = comp_str.strip().replace(" ", "")
