@@ -60,8 +60,8 @@ class Component:
                 return handler
         return None
     
-    def info(self):
-        return self.handler.info()
+    def devices(self):
+        return self.handler.devices()
     
     def available(self):
         return self._handler is not None

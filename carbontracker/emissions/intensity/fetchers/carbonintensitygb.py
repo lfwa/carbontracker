@@ -19,10 +19,11 @@ class CarbonIntensityGB(IntensityFetcher):
             postcode = g_location.postal
             ci = self._carbon_intensity_gb_regional(postcode, time_dur=time_dur)
             carbon_intensity.carbon_intensity = ci
+            carbon_intensity.message = "Training location was determined to be {g_location.address}. Found a carbon intensity of {ci} gCO2/kWh."
         except:
             ci = self._carbon_intensity_gb_national(time_dur=time_dur)
             carbon_intensity.carbon_intensity = ci
-            carbon_intensity.message = f"Failed to fetch carbon intensity by regional postcode: {postcode}. Fetched by national instead."
+            carbon_intensity.message = f"Failed to fetch carbon intensity by regional postcode: {postcode}. Fetched by national instead. Found a carbon intensity of {ci} gCO2/kWh."
 
         return carbon_intensity
     

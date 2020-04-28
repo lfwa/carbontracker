@@ -21,7 +21,7 @@ class CarbonIntensity:
         self.g_location = None
         self.message = f"Location specific carbon intensity could not be fetched. Used average carbon intensity for EU-28 in 2017 of {EU_28_2017_CARBON_INTENSITY} gCO2/kWh."
 
-def carbon_intensity(time_len=None):
+def carbon_intensity(time_dur=None):
     fetchers = [co2signal.CO2Signal(), carbonintensitygb.CarbonIntensityGB()]
 
     carbon_intensity = CarbonIntensity(default=True)
@@ -39,7 +39,7 @@ def carbon_intensity(time_len=None):
             continue
         try:
             carbon_intensity = fetcher.carbon_intensity(g_location,
-                time_len=time_len)
+                time_dur=time_dur)
             break
         except:
             pass

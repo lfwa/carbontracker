@@ -48,6 +48,7 @@ class CarbonTrackerThread(Thread):
     def begin(self):
         self._components_remove_unavailable()
         self._components_init()
+        self._log_components_info()
         self.measuring = True
         self.logger.info("Monitoring thread started.")
 
@@ -67,10 +68,23 @@ class CarbonTrackerThread(Thread):
     def epoch_end(self):
         self.epoch_times.append(time.time() - self.cur_epoch_time)
         self.logger.info(f"Epoch {self.epoch_counter} ended.")
+    
+    def _log_components_info(self):
+        log = []
+        if not self.components:
+            log.append("No components were available.")
+        else:
+            log.append("The following components were found:")
+            for component in self.components:
+                name = component.name
+                devices = ", ".join(component.devices())
+                log.append(f"\n\t{name} with devices {devices}.")
+        log_str = " ".join(log)
+        self.logger.output(log_str, verbose_level=1)
+        self.logger.info(log_str)
 
     def _components_remove_unavailable(self):
         self.components = [comp for comp in self.components if comp.available()]
-        # TODO: Print which devices were found and their names.
     
     def _components_init(self):
         for component in self.components:
@@ -84,6 +98,7 @@ class CarbonTrackerThread(Thread):
         """Collect one round of measurements."""
         for component in self.components:
             component.collect_power_usage(self.epoch_counter)
+        # TODO: Log measurements for every epoch.
 
     def total_energy_per_epoch(self):
         """Retrieves the total energy (kWh) per epoch used by all components."""
@@ -95,9 +110,14 @@ class CarbonTrackerThread(Thread):
     
     def co2eq(self, total_energy_usage):
         """Returns the CO2eq (g) of the total energy usage."""
-        # TODO: Print intensity information. Location and message.
-        carbon_intensity = intensity.carbon_intensity().carbon_intensity
-        co2eq = total_energy_usage * carbon_intensity
+        carbon_intensity = intensity.carbon_intensity()
+        # TODO: add time dur
+        # Log message.
+        self.logger.output(carbon_intensity.message, verbose_level=2)
+        self.logger.info(carbon_intensity.message)
+
+        ci = carbon_intensity.carbon_intensity
+        co2eq = total_energy_usage * ci
         return co2eq
     
     def co2eq_interpretable(self, g_co2eq):
@@ -213,7 +233,7 @@ class CarbonTracker:
         epoch_conversions = self.tracker.co2eq_interpretable(epoch_co2eq) if self.interpretable else []
 
         total_energy, total_time = self.tracker.predict_total(self.epochs, epoch_energy_usages, epoch_times)
-        total_co2eq = self.tracker.co2eq(total_energy)
+        total_co2eq = 0#self.tracker.co2eq(total_energy)
         total_conversions = self.tracker.co2eq_interpretable(total_co2eq) if self.interpretable else []
 
         self._print_stats(f"First {self.epochs_before_pred} epoch(s):", epoch_time, epoch_energy_usage, epoch_co2eq, epoch_conversions)

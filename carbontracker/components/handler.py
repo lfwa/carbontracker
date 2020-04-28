@@ -4,8 +4,8 @@ class Handler:
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def info(self):
-        """Returns an information string about the handler."""
+    def devices(self):
+        """Returns a list of devices (str) associated with the component."""
         raise NotImplementedError
 
     @abstractmethod

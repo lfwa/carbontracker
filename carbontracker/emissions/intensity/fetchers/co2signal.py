@@ -3,7 +3,7 @@ import requests
 from carbontracker.emissions.intensity.fetcher import IntensityFetcher
 from carbontracker.emissions.intensity import intensity
 
-AUTH_TOKEN = "2e7f70fa1f2ef4e5"
+AUTH_TOKEN = "844e6a985338aad1"
 API_URL = "https://api.co2signal.com/v1/latest"
 
 class CO2Signal(IntensityFetcher):
@@ -19,12 +19,13 @@ class CO2Signal(IntensityFetcher):
                 lat=g_location.lat
             )
             carbon_intensity.carbon_intensity = ci
+            carbon_intensity.message = f"Training location was determined to be {g_location.address}. Found a carbon intensity of {ci} gCO2/kWh."
         except:
             ci = self._carbon_intensity_by_location(
                 country_code=g_location.country
             )
             carbon_intensity.carbon_intensity = ci
-            carbon_intensity.message = f"Failed to retrieve carbon intensity by coordinates. Fetched by country code {g_location.country} instead."
+            carbon_intensity.message = f"Failed to retrieve carbon intensity by coordinates. Fetched by country code {g_location.country} instead. Found a carbon intensity of {ci} gCO2/kWh."
 
         return carbon_intensity
 
