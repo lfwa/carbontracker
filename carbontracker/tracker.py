@@ -49,7 +49,6 @@ class CarbonTrackerThread(Thread):
         self._components_remove_unavailable()
         self._components_init()
         self._log_components_info()
-        self.measuring = True
         self.logger.info("Monitoring thread started.")
 
     def stop(self):
@@ -62,12 +61,15 @@ class CarbonTrackerThread(Thread):
     
     def epoch_start(self):
         self.epoch_counter += 1
+        self.measuring = True
         self.cur_epoch_time = time.time()
         self.logger.info(f"Epoch {self.epoch_counter} started.")
 
     def epoch_end(self):
+        self.measuring = False
         self.epoch_times.append(time.time() - self.cur_epoch_time)
         self.logger.info(f"Epoch {self.epoch_counter} ended.")
+        self._log_epoch_measurements()
     
     def _log_components_info(self):
         log = []
@@ -82,6 +84,11 @@ class CarbonTrackerThread(Thread):
         log_str = " ".join(log)
         self.logger.output(log_str, verbose_level=1)
         self.logger.info(log_str)
+    
+    def _log_epoch_measurements(self):
+        for component in self.components:
+            epoch_power_usages = component.power_usages(-1)
+            self.logger.info(f"Power usages for {component.name}: {epoch_power_usages}.")
 
     def _components_remove_unavailable(self):
         self.components = [comp for comp in self.components if comp.available()]
@@ -141,7 +148,6 @@ class CarbonTracker:
             components="all",
             log_dir=None,
             verbose=0
-            #warnings=True,
         ):
         self.epochs = epochs
         self.epochs_before_pred = epochs_before_pred if epochs_before_pred > 0 else epochs
@@ -165,7 +171,7 @@ class CarbonTracker:
                 update_interval=update_interval
             )
         except Exception as e:
-            self._handle_error(e)        
+            self._handle_error(e)     
     
     def epoch_start(self):
         if self.deleted:

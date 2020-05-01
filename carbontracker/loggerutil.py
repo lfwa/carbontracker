@@ -8,6 +8,7 @@ from datetime import datetime
 class Logger:
     def __init__(self, log_dir=None, verbose=0):
         self.logger, self.logger_output = self._setup(log_dir=log_dir)
+        self._log_initial_info()
         self.verbose = verbose
     
     def _setup(self, log_dir=None):
@@ -49,34 +50,34 @@ class Logger:
             logger.addHandler(f)
         
         return logger, logger_output
+    
+    def _log_initial_info(self):
+        here = os.path.abspath(os.path.dirname(__file__))
+        about = {}
+        with open(os.path.join(here, "__version__.py")) as f:
+            exec(f.read(), about)
+        self.logger.info(f"{about['__title__']} version {about['__version__']}")
 
     def output(self, msg, verbose_level=0):
-        """Logs output."""
         if verbose_level >= self.verbose:
             self.logger_output.info(msg)
 
     def debug(self, msg):
-        """Logs debug."""
         if self.logger is None:
             return
         self.logger.debug(msg)
 
     def info(self, msg):
-        """Logs info."""
         if self.logger is None:
             return
         self.logger.info(msg)
     
     def warn(self, msg):
-        """Logs warning."""
         if self.logger is None:
             return
         self.logger.warn(msg)
 
     def critical(self, msg):
-        """Logs critical."""
         if self.logger is None:
             return
         self.logger.critical(msg)
-
-# TODO: Gather initial info to log. System info, python info...
