@@ -10,6 +10,7 @@ class Logger:
         self.logger, self.logger_output = self._setup(log_dir=log_dir)
         self._log_initial_info()
         self.verbose = verbose
+        self.msg_prepend = "CarbonTracker: "
     
     def _setup(self, log_dir=None):
         logger = None
@@ -38,13 +39,13 @@ class Logger:
             f_formatter = logging.Formatter("{asctime} - {threadName} - {levelname} - {message}", style="{")
 
             # Add output logging to file.
-            fh = logging.FileHandler(f"{log_dir}/carbontracker_output_{date}.log")
+            fh = logging.FileHandler(f"{log_dir}/{date}_carbontracker_output.log")
             fh.setLevel(logging.INFO)
             fh.setFormatter(f_formatter)
             logger_output.addHandler(fh)
 
             # Add standard logging to file.
-            f = logging.FileHandler(f"{log_dir}/carbontracker_{date}.log")
+            f = logging.FileHandler(f"{log_dir}/{date}_carbontracker.log")
             f.setLevel(logging.DEBUG)
             f.setFormatter(f_formatter)
             logger.addHandler(f)
@@ -60,7 +61,7 @@ class Logger:
 
     def output(self, msg, verbose_level=0):
         if verbose_level >= self.verbose:
-            self.logger_output.info(msg)
+            self.logger_output.info(self.msg_prepend + msg)
 
     def debug(self, msg):
         if self.logger is None:

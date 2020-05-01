@@ -15,15 +15,23 @@ class CarbonIntensityGB(IntensityFetcher):
     def carbon_intensity(self, g_location, time_dur=None):
         carbon_intensity = intensity.CarbonIntensity(g_location=g_location)
 
+        if time_dur is not None:
+            carbon_intensity.is_prediction = True
+
         try:
             postcode = g_location.postal
             ci = self._carbon_intensity_gb_regional(postcode, time_dur=time_dur)
             carbon_intensity.carbon_intensity = ci
-            carbon_intensity.message = "Training location was determined to be {g_location.address}. Found a carbon intensity of {ci} gCO2/kWh."
+            carbon_intensity.message = f"Training location was determined to be {g_location.address}."
         except:
             ci = self._carbon_intensity_gb_national(time_dur=time_dur)
             carbon_intensity.carbon_intensity = ci
-            carbon_intensity.message = f"Failed to fetch carbon intensity by regional postcode: {postcode}. Fetched by national instead. Found a carbon intensity of {ci} gCO2/kWh."
+            carbon_intensity.message = f"Failed to fetch carbon intensity by regional postcode: {postcode}. Fetched by national instead."
+        
+        if time_dur is not None:
+            carbon_intensity.message += f" Carbon intensity for the next {time_dur} s is predicted to be {carbon_intensity.carbon_intensity} gCO2/kWh."
+        else:
+            carbon_intensity.message += f" Current carbon intensity is {carbon_intensity.carbon_intensity} gCO2/kWh."
 
         return carbon_intensity
     

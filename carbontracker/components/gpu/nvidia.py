@@ -24,7 +24,7 @@ class NvidiaGPU(Handler):
         for index in range(device_count):
             handle = pynvml.nvmlDeviceGetHandleByIndex(index)
             name = pynvml.nvmlDeviceGetName(handle)
-            devices.append(name)
+            devices.append(name.decode("utf-8"))
         
         return devices
 

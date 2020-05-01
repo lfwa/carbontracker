@@ -9,10 +9,12 @@ from carbontracker.emissions.intensity.fetchers import carbonintensitygb
 EU_28_2017_CARBON_INTENSITY = 294.2060978
 
 class CarbonIntensity:
-    def __init__(self, carbon_intensity=None, g_location=None, message=None, default=False):
+    def __init__(self, carbon_intensity=None, g_location=None, message=None, success=False, is_prediction=False, default=False):
         self.carbon_intensity = carbon_intensity
         self.g_location = g_location
         self.message = message
+        self.success = success
+        self.is_prediction = is_prediction
         if default:
             self._set_as_default()
     
@@ -22,12 +24,13 @@ class CarbonIntensity:
         self.message = f"Location specific carbon intensity could not be fetched. Used average carbon intensity for EU-28 in 2017 of {EU_28_2017_CARBON_INTENSITY} gCO2/kWh."
 
 def carbon_intensity(time_dur=None):
-    fetchers = [co2signal.CO2Signal(), carbonintensitygb.CarbonIntensityGB()]
+    # Will iterate over and find *first* suitable() api
+    fetchers = [carbonintensitygb.CarbonIntensityGB(), co2signal.CO2Signal()]
 
     carbon_intensity = CarbonIntensity(default=True)
 
     try:
-        g_location = geocoder.ip("me")
+        g_location = geocoder.ip("196.245.163.202")
         if not g_location.ok:
             raise Exception()
     except:
@@ -40,6 +43,7 @@ def carbon_intensity(time_dur=None):
         try:
             carbon_intensity = fetcher.carbon_intensity(g_location,
                 time_dur=time_dur)
+            carbon_intensity.success = True
             break
         except:
             pass

@@ -53,9 +53,8 @@ optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
 epochs = 200
 
-#co2tracker = CO2Tracker(1, stopandconfirm=True, interpretable=True, epoch=100)
-tracker = CarbonTracker(epochs=epochs, update_interval=0.1, stop_and_confirm=True, components="gpu")
-time.sleep(1)
+tracker = CarbonTracker(epochs=epochs, update_interval=0.1, stop_and_confirm=True, components="all", log_dir="./logs/", epochs_before_pred=1, monitor_epochs=1, verbose=2)
+#time.sleep(1)
 # Poll current power draw. 
 #time.sleep(20)
 
