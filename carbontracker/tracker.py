@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import numpy as np
 import traceback
@@ -10,40 +11,44 @@ from carbontracker import exceptions
 from carbontracker.components import component
 from carbontracker.emissions.intensity import intensity
 from carbontracker.emissions.conversion import co2eq
+from carbontracker.emissions.intensity.fetchers import co2signal
 
-# TODO: MONITORING MODULE
-# TODO: Warning for training in high carbon intensity region? This could include how much could be saved by moving the job to a low impact region?
 class CarbonTrackerThread(Thread):
     def __init__(
             self,
             components,
             logger,
+            ignore_errors,
             update_interval=10,
         ):
         super(CarbonTrackerThread, self).__init__()
         self.name = "CarbonTrackerThread"
         self.components = components
         self.update_interval = update_interval
+        self.ignore_errors = ignore_errors
         self.logger = logger
         self.epoch_times = []
         self.running = True
         self.measuring = False
         self.epoch_counter = 0
+        self.daemon = True
 
         self.start()
     
     def run(self):
         """Thread's activity."""
-        while self.running:
-            if not self.measuring:
-                continue
-            self._collect_measurements()
-            time.sleep(self.update_interval)
-        
-        # TODO: On unexpected exits, should we run nvmlShutdown()?
-        # Shutdown in thread's activity instead of epoch_end() to ensure that we
-        # only shutdown after last measurement.
-        self._components_shutdown()
+        try:
+            while self.running:
+                if not self.measuring:
+                    continue
+                self._collect_measurements()
+                time.sleep(self.update_interval)
+            
+            # Shutdown in thread's activity instead of epoch_end() to ensure that we
+            # only shutdown after last measurement.
+            self._components_shutdown()
+        except Exception as e:
+            self._handle_error(e)
     
     def begin(self):
         self._components_remove_unavailable()
@@ -111,6 +116,20 @@ class CarbonTrackerThread(Thread):
             energy_usage = component.energy_usage(self.epoch_times)
             total_energy += energy_usage
         return total_energy
+    
+    def _handle_error(self, error):
+        err_str = traceback.format_exc()
+        if self.ignore_errors:
+            err_str = f"Ignored error: {err_str}Continued training without monitoring..."
+
+        self.logger.critical(err_str)
+        self.logger.output(err_str)
+
+        if self.ignore_errors:
+            # Stop monitoring but continue training.
+            self._delete()
+        else:
+            os._exit(os.EX_SOFTWARE)
 
 class CarbonTracker:
     def __init__(
@@ -145,6 +164,7 @@ class CarbonTracker:
             self.tracker = CarbonTrackerThread(
                 components=component.create_components(components),
                 logger = self.logger,
+                ignore_errors=ignore_errors,
                 update_interval=update_interval
             )
         except Exception as e:
@@ -168,11 +188,9 @@ class CarbonTracker:
 
         try:
             self.tracker.epoch_end()
+
             if self.epoch_counter < self.epochs_before_pred:
                 return
-            
-            if self.epoch_counter == self.monitor_epochs:
-                self.tracker.stop()
 
             if self.epoch_counter == self.epochs_before_pred:
                 self._output()
@@ -183,7 +201,18 @@ class CarbonTracker:
                 self._delete()
         except Exception as e:
             self._handle_error(e)
-    
+
+    def set_api_keys(self, api_dict):
+        """Set API keys (given as {name:key}) for carbon intensity fetchers."""
+        try:
+            for name, key in api_dict.items():
+                if name == "co2signal":
+                    co2signal.AUTH_TOKEN = key
+                else:
+                    raise exceptions.InvalidAPIName(f"Invalid API name '{name}' given.")
+        except Exception as e:
+            self._handle_error(e)
+
     def _handle_error(self, error):
         err_str = traceback.format_exc()
         if self.ignore_errors:
@@ -196,19 +225,18 @@ class CarbonTracker:
             # Stop monitoring but continue training.
             self._delete()
         else:
-            # TODO: Maybe we should interrupt tracker thread and gracefully exit using sys.exit(os.EX_SOFTWARE) since os._exit without calling cleanup handlers, flushing stdio buffers, etc. Same for _check_input
-            os._exit(os.EX_SOFTWARE)
+            sys.exit(os.EX_SOFTWARE)
     
     def _output_energy(self, description, time, energy, co2eq, conversions):
         output = (f"\n{description}\n"
-                  f"\tTime: {time} s\n"
-                  f"\tEnergy: {energy} kWh\n"
-                  f"\tCO2eq: {co2eq} g")
+                  f"\tTime: {loggerutil.convert_to_timestring(time)} s\n"
+                  f"\tEnergy: {energy:.4f} kWh\n"
+                  f"\tCO2eq: {co2eq:.4f} g")
 
         if conversions:
             conv_str = "\n\tThis is equivalent to:"
             for units, unit in conversions:
-                conv_str += f"\n\t{units} {unit}"
+                conv_str += f"\n\t{units:.6f} {unit}"
             output += conv_str
 
         self.logger.output(output)
@@ -256,7 +284,7 @@ class CarbonTracker:
 
     def _user_query(self):
         self.logger.output("Continue training (y/n)?")
-        user_input = input()
+        user_input = input().lower()
         self._check_input(user_input)
     
     def _check_input(self, user_input):
@@ -266,13 +294,14 @@ class CarbonTracker:
         elif user_input == "n":
             self.logger.info("Session ended by user.")
             self.logger.output("Quitting...")
-            os._exit(os.EX_OK)
+            sys.exit(os.EX_OK)
         else:
             self.logger.output("Input not recognized. Try again (y/n):")
-            user_input = input()
+            user_input = input().lower()
             self._check_input(user_input)
     
     def _delete(self):
+        self.tracker.stop()
         del self.logger
         del self.tracker
         self.deleted = True

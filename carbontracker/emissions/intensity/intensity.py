@@ -4,6 +4,7 @@ import datetime
 
 from carbontracker.emissions.intensity.fetchers import co2signal
 from carbontracker.emissions.intensity.fetchers import carbonintensitygb
+from carbontracker.emissions.intensity.fetchers import energidataservice
 
 # https://www.eea.europa.eu/data-and-maps/data/co2-intensity-of-electricity-generation
 EU_28_2017_CARBON_INTENSITY = 294.2060978
@@ -21,11 +22,15 @@ class CarbonIntensity:
     def _set_as_default(self):
         self.carbon_intensity = EU_28_2017_CARBON_INTENSITY
         self.g_location = None
-        self.message = f"Location specific carbon intensity could not be fetched. Used average carbon intensity for EU-28 in 2017 of {EU_28_2017_CARBON_INTENSITY} gCO2/kWh."
+        self.message = f"Location specific carbon intensity could not be fetched. Used average carbon intensity for EU-28 in 2017 of {EU_28_2017_CARBON_INTENSITY:.2f} gCO2/kWh."
 
 def carbon_intensity(time_dur=None):
     # Will iterate over and find *first* suitable() api
-    fetchers = [carbonintensitygb.CarbonIntensityGB(), co2signal.CO2Signal()]
+    fetchers = [
+        energidataservice.EnergiDataService(),
+        carbonintensitygb.CarbonIntensityGB(),
+        co2signal.CO2Signal()
+    ]
 
     carbon_intensity = CarbonIntensity(default=True)
 

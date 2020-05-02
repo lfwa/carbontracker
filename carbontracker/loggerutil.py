@@ -2,8 +2,10 @@ import logging
 import os
 import sys
 import pathlib
+import datetime
 
-from datetime import datetime
+def convert_to_timestring(seconds):
+    return str(datetime.timedelta(seconds=seconds))
 
 class Logger:
     def __init__(self, log_dir=None, verbose=0):
@@ -32,7 +34,7 @@ class Logger:
 
             # ISO8601 format YYYY-MM-DDThh:mmZ.
             date_format = "%Y-%m-%dT%H:%MZ"
-            date = datetime.now().strftime(date_format)
+            date = datetime.datetime.now().strftime(date_format)
 
             logger = logging.getLogger("carbontracker")
             logger.setLevel(logging.DEBUG)

@@ -77,7 +77,8 @@ class Component:
             avg_power_usage = np.mean(power, axis=0)
             energy_usage = np.multiply(avg_power_usage, time).sum()
             # Convert from J to kWh.
-            energy_usage /= 3600000
+            if energy_usage != 0:
+                energy_usage /= 3600000
             energy_usages.append(energy_usage)
         return energy_usages
 
