@@ -59,7 +59,7 @@ class Logger:
         about = {}
         with open(os.path.join(here, "__version__.py")) as f:
             exec(f.read(), about)
-        self.logger.info(f"{about['__title__']} version {about['__version__']}")
+        self.info(f"{about['__title__']} version {about['__version__']}")
 
     def output(self, msg, verbose_level=0):
         if verbose_level >= self.verbose:
