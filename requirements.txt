@@ -1,5 +1,0 @@
-geocoder
-numpy
-pandas
-requests
-pynvml

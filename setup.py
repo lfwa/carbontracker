@@ -11,6 +11,10 @@ about = {}
 with open(os.path.join(here, "carbontracker", "__version__.py")) as f:
     exec(f.read(), about)
 
+install_requires = []
+with open(os.path.join(here, "requirements.txt")) as f:
+
+
 setup(
     name=about["__title__"],
     version=about["__version__"],
@@ -21,5 +25,12 @@ setup(
     url=about["__url__"],
     license=about["__license__"],
     packages=find_packages(exclude=('tests', 'docs')),
-    include_package_data=True,    
+    include_package_data=True,
+    install_requires=[
+        "geocoder",
+        "numpy",
+        "pandas",
+        "requests",
+        "pynvml",
+    ]   
 )
