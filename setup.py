@@ -16,8 +16,9 @@ setup(
     version=about["__version__"],
     description=about["__description__"],
     long_description=readme,
+    long_description_content_type='text/markdown',
     author=about["__author__"],
     url=about["__url__"],
     license=about["__license__"],
-    packages=find_packages(exclude=('tests', 'docs'))
+    packages=find_packages(exclude=('tests', 'docs')),
 )
