@@ -72,17 +72,14 @@ class CarbonTrackerThread(Thread):
         self._log_epoch_measurements()
     
     def _log_components_info(self):
-        if not self.components:
-            raise exceptions.NoComponentsAvailableError()
-        else:
-            log = ["The following components were found:"]
-            for component in self.components:
-                name = component.name
-                devices = ", ".join(component.devices())
-                log.append(f" {name} with device(s) {devices}.")
-            log_str = " ".join(log)
-            self.logger.info(log_str)
-            self.logger.output(log_str, verbose_level=1)
+        log = ["The following components were found:"]
+        for component in self.components:
+            name = component.name
+            devices = ", ".join(component.devices())
+            log.append(f" {name} with device(s) {devices}.")
+        log_str = " ".join(log)
+        self.logger.info(log_str)
+        self.logger.output(log_str, verbose_level=1)
     
     def _log_epoch_measurements(self):
         for component in self.components:
@@ -91,7 +88,9 @@ class CarbonTrackerThread(Thread):
 
     def _components_remove_unavailable(self):
         self.components = [comp for comp in self.components if comp.available()]
-    
+        if not self.components:
+            raise exceptions.NoComponentsAvailableError()
+
     def _components_init(self):
         for component in self.components:
             component.init()
@@ -187,16 +186,18 @@ class CarbonTracker:
     
     def _handle_error(self, error):
         err_str = traceback.format_exc()
+        if self.ignore_errors:
+            err_str = f"Ignored error: {err_str}Continued training without monitoring..."
+
+        self.logger.critical(err_str)
+        self.logger.output(err_str)
 
         if self.ignore_errors:
-            err_str = f"Ignored error: {err_str}Continued training..."
-            self.logger.critical(err_str)
-            self.logger.output(err_str)
+            # Stop monitoring but continue training.
             self._delete()
         else:
-            # TODO: Stop training in main thread.
-            self.logger.critical(err_str)
-            raise error
+            # TODO: Maybe we should interrupt tracker thread and gracefully exit using sys.exit(os.EX_SOFTWARE) since os._exit without calling cleanup handlers, flushing stdio buffers, etc. Same for _check_input
+            os._exit(os.EX_SOFTWARE)
     
     def _output_energy(self, description, time, energy, co2eq, conversions):
         output = (f"\n{description}\n"
