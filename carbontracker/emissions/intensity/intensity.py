@@ -30,7 +30,7 @@ def carbon_intensity(time_dur=None):
     carbon_intensity = CarbonIntensity(default=True)
 
     try:
-        g_location = geocoder.ip("196.245.163.202")
+        g_location = geocoder.ip("me")
         if not g_location.ok:
             raise Exception()
     except:
@@ -49,10 +49,3 @@ def carbon_intensity(time_dur=None):
             pass
     
     return carbon_intensity
-
-class UnitError(Exception):
-    """Raised when the expected unit does not match the received unit."""
-    def __init__(self, expected_unit, received_unit, message):
-        self.expected_unit = expected_unit
-        self.received_unit = received_unit
-        self.message = message

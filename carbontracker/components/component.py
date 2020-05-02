@@ -1,26 +1,18 @@
 import numpy as np
 
+from carbontracker import exceptions
 from carbontracker.components.gpu import nvidia
 from carbontracker.components.cpu import intel
-
-class GPUError(Exception):
-    pass
-
-class CPUError(Exception):
-    pass
-
-class ComponentNameError(Exception):
-    pass
 
 components = [
     {
         "name": "gpu",
-        "error": GPUError("No GPU(s) available."),
+        "error": exceptions.GPUError("No GPU(s) available."),
         "handlers": [nvidia.NvidiaGPU()]
     },
     {
         "name": "cpu",
-        "error": CPUError("No CPU(s) available."),
+        "error": exceptions.CPUError("No CPU(s) available."),
         "handlers": [intel.IntelCPU()]
     }
 ]
@@ -42,7 +34,7 @@ class Component:
     def __init__(self, name):
         self.name = name
         if name not in component_names():
-            raise ComponentNameError(f"No component found with name '{self.name}'.")
+            raise exceptions.ComponentNameError(f"No component found with name '{self.name}'.")
         self._handler = self._determine_handler()
         self.power_usages = []
         self.cur_epoch = -1 # sentry

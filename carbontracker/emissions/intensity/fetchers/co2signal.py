@@ -1,5 +1,6 @@
 import requests
 
+from carbontracker import exceptions
 from carbontracker.emissions.intensity.fetcher import IntensityFetcher
 from carbontracker.emissions.intensity import intensity
 
@@ -72,7 +73,7 @@ class CO2Signal(IntensityFetcher):
         unit = response["units"]["carbonIntensity"]
         expected_unit = "gCO2eq/kWh"
         if unit != expected_unit:
-            raise intensity.UnitError(expected_unit, unit,
+            raise exceptions.UnitError(expected_unit, unit,
                             "Carbon intensity query returned the wrong unit.")
 
         return carbon_intensity

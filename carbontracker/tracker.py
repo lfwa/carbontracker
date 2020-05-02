@@ -6,10 +6,10 @@ from threading import Thread
 
 from carbontracker import loggerutil
 from carbontracker import predictor
+from carbontracker import exceptions
 from carbontracker.components import component
 from carbontracker.emissions.intensity import intensity
 from carbontracker.emissions.conversion import co2eq
-
 
 # TODO: MONITORING MODULE
 # TODO: Warning for training in high carbon intensity region? This could include how much could be saved by moving the job to a low impact region?
@@ -72,18 +72,17 @@ class CarbonTrackerThread(Thread):
         self._log_epoch_measurements()
     
     def _log_components_info(self):
-        log = []
         if not self.components:
-            log.append("No components were available.")
+            raise exceptions.NoComponentsAvailableError()
         else:
-            log.append("The following components were found:")
+            log = ["The following components were found:"]
             for component in self.components:
                 name = component.name
                 devices = ", ".join(component.devices())
                 log.append(f" {name} with device(s) {devices}.")
-        log_str = " ".join(log)
-        self.logger.output(log_str, verbose_level=1)
-        self.logger.info(log_str)
+            log_str = " ".join(log)
+            self.logger.info(log_str)
+            self.logger.output(log_str, verbose_level=1)
     
     def _log_epoch_measurements(self):
         for component in self.components:
@@ -187,11 +186,16 @@ class CarbonTracker:
             self._handle_error(e)
     
     def _handle_error(self, error):
+        err_str = traceback.format_exc()
+
         if self.ignore_errors:
-            err_str = traceback.format_exc()
-            self.logger.critical(f"Ignored error: {err_str}")
-            self.logger.output(f"Ignored error: {err_str}")
+            err_str = f"Ignored error: {err_str}Continued training..."
+            self.logger.critical(err_str)
+            self.logger.output(err_str)
+            self._delete()
         else:
+            # TODO: Stop training in main thread.
+            self.logger.critical(err_str)
             raise error
     
     def _output_energy(self, description, time, energy, co2eq, conversions):
