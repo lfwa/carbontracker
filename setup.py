@@ -11,10 +11,6 @@ about = {}
 with open(os.path.join(here, "carbontracker", "__version__.py")) as f:
     exec(f.read(), about)
 
-install_requires = []
-with open(os.path.join(here, "requirements.txt")) as f:
-
-
 setup(
     name=about["__title__"],
     version=about["__version__"],
@@ -32,5 +28,5 @@ setup(
         "pandas",
         "requests",
         "pynvml",
-    ]   
+    ]
 )
