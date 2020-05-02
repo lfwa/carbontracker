@@ -63,6 +63,7 @@ class CarbonTrackerThread(Thread):
         self.measuring = False
         self.running = False
         self.logger.info("Monitoring thread ended.")
+        self.logger.output("Finished monitoring.")
     
     def epoch_start(self):
         self.epoch_counter += 1
@@ -229,9 +230,9 @@ class CarbonTracker:
     
     def _output_energy(self, description, time, energy, co2eq, conversions):
         output = (f"\n{description}\n"
-                  f"\tTime: {loggerutil.convert_to_timestring(time)} s\n"
-                  f"\tEnergy: {energy:.4f} kWh\n"
-                  f"\tCO2eq: {co2eq:.4f} g")
+                  f"\tTime:\t{loggerutil.convert_to_timestring(time)}\n"
+                  f"\tEnergy:\t{energy:.6f} kWh\n"
+                  f"\tCO2eq:\t{co2eq:.6f} g")
 
         if conversions:
             conv_str = "\n\tThis is equivalent to:"

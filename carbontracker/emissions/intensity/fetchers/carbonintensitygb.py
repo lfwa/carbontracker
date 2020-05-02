@@ -27,7 +27,7 @@ class CarbonIntensityGB(IntensityFetcher):
             carbon_intensity.message = f"Failed to fetch carbon intensity by regional postcode: {postcode}. Fetched by national instead."
         
         if time_dur is not None:
-            carbon_intensity.message = f"Carbon intensity for the next {loggerutil.convert_to_timestring(time_dur)} s is predicted to be {carbon_intensity.carbon_intensity:.2f} gCO2/kWh."
+            carbon_intensity.message = f"Carbon intensity for the next {loggerutil.convert_to_timestring(time_dur)} is predicted to be {carbon_intensity.carbon_intensity:.2f} gCO2/kWh."
         else:
             carbon_intensity.message = f"Training location was determined to be {g_location.address}. Current carbon intensity is {carbon_intensity.carbon_intensity:.2f} gCO2/kWh."
 

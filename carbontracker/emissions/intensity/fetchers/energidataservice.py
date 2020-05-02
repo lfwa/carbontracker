@@ -19,7 +19,7 @@ class EnergiDataService(IntensityFetcher):
         else:
             ci = self._emission_prognosis(time_dur=time_dur)
             carbon_intensity.is_prediction = True
-            carbon_intensity.message = f"Carbon intensity for the next {loggerutil.convert_to_timestring(time_dur)} s is predicted to be {ci:.2f} gCO2/kWh."
+            carbon_intensity.message = f"Carbon intensity for the next {loggerutil.convert_to_timestring(time_dur)} is predicted to be {ci:.2f} gCO2/kWh."
 
         carbon_intensity.carbon_intensity = ci
 
