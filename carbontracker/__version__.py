@@ -1,4 +1,4 @@
-__title__ = "CarbonTracker"
+__title__ = "carbontracker"
 __description__ = "Tracking and predicting carbon footprint of training deep learning models."
 __url__ = "https://github.com/lfwa/carbontracker"
 __version__ = "1.0.0"

@@ -4,3 +4,4 @@ __pycache__
 logs/
 dist/
 data/
+build/
