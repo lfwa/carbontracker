@@ -89,7 +89,7 @@ class Component:
         self.handler.shutdown()        
 
 def create_components(comp_str):
-    comp_str = comp_str.strip().replace(" ", "")
+    comp_str = comp_str.strip().replace(" ", "").lower()
     if comp_str == "all":
         return [Component(name=comp_name) for comp_name in component_names()]
     else:

@@ -1,14 +1,11 @@
 *__pycache__
 __pycache__
 .DS_Store
-logs/
 data/
 dist/
-
-.installed.cfg
+logs/
 bin
 develop-eggs
-dist
 downloads
 eggs
 parts

@@ -28,5 +28,6 @@ setup(
         "pandas",
         "requests",
         "pynvml",
-    ]
+    ],
+    python_requires=">=3.6"
 )

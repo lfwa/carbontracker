@@ -55,4 +55,4 @@ for epoch in range(max_epochs):
 ## Compatability
 CarbonTracker is compatible with:
 - NVIDIA GPUs that support [NVIDIA Management Library (NVML)](https://developer.nvidia.com/nvidia-management-library-nvml)
-- Intel CPUs that [support Intel RAPL](http://web.eece.maine.edu/~vweaver/projects/rapl/rapl_support.html)
+- Intel CPUs that support [Intel RAPL](http://web.eece.maine.edu/~vweaver/projects/rapl/rapl_support.html)

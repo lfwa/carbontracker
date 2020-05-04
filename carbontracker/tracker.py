@@ -80,9 +80,9 @@ class CarbonTrackerThread(Thread):
     def _log_components_info(self):
         log = ["The following components were found:"]
         for component in self.components:
-            name = component.name
+            name = component.name.upper()
             devices = ", ".join(component.devices())
-            log.append(f" {name} with device(s) {devices}.")
+            log.append(f"{name} with device(s) {devices}.")
         log_str = " ".join(log)
         self.logger.info(log_str)
         self.logger.output(log_str, verbose_level=1)
@@ -90,7 +90,7 @@ class CarbonTrackerThread(Thread):
     def _log_epoch_measurements(self):
         for component in self.components:
             epoch_power_usages = component.power_usages[-1]
-            self.logger.info(f"Power usages for {component.name}: {epoch_power_usages}.")
+            self.logger.info(f"Power usages (W) for {component.name}: {epoch_power_usages}.")
 
     def _components_remove_unavailable(self):
         self.components = [comp for comp in self.components if comp.available()]
@@ -193,8 +193,11 @@ class CarbonTracker:
             if self.epoch_counter < self.epochs_before_pred:
                 return
 
+            if self.epoch_counter == self.monitor_epochs:
+                self._output_actual()
+
             if self.epoch_counter == self.epochs_before_pred:
-                self._output()
+                self._output_pred()
                 if self.stop_and_confirm:
                     self._user_query()
 
@@ -242,46 +245,35 @@ class CarbonTracker:
 
         self.logger.output(output)
     
-    def _output(self):
-        # Measurements from before prediction epochs.
+    def _output_actual(self):
+        """Output actual usage so far."""
+        energy_usages = self.tracker.total_energy_per_epoch()
+        energy = energy_usages.sum()
+        times = self.tracker.epoch_times
+        time = np.sum(times)
+        _co2eq = self._co2eq(energy)
+        conversions = co2eq.convert(_co2eq) if self.interpretable else None
+
+        self._output_energy(f"Actual consumption for {self.epoch_counter} epoch(s):", time, energy, _co2eq, conversions)
+    
+    def _output_pred(self):
+        """Output predicted usage for full training epochs."""
         epoch_energy_usages = self.tracker.total_energy_per_epoch()
-        epoch_energy = epoch_energy_usages.sum()
         epoch_times = self.tracker.epoch_times
-        epoch_times = np.sum(epoch_times)
-        # Predictions.
         pred_energy = predictor.predict_energy(self.epochs, epoch_energy_usages)
         pred_time = predictor.predict_time(self.epochs, epoch_times)
-        
-        # CO2eq and conversions.
-        epoch_co2eq, pred_co2eq = self._co2eq(epoch_energy, pred_energy, pred_time)
-        epoch_conversions = co2eq.convert(epoch_co2eq) if self.interpretable else None
-        pred_conversions = co2eq.convert(pred_co2eq) if self.interpretable else None
+        pred_co2eq = self._co2eq(pred_energy, pred_time)
+        conversions = co2eq.convert(pred_co2eq) if self.interpretable else None
 
-        # Output measurements and predictions.
-        self._output_energy(f"First {self.epochs_before_pred} epoch(s):", epoch_times, epoch_energy, epoch_co2eq, epoch_conversions)
-        self._output_energy(f"Prediction for {self.epochs} epoch(s):", pred_time, pred_energy, pred_co2eq, pred_conversions)
+        self._output_energy(f"Predicted consumption for {self.epochs} epoch(s):", pred_time, pred_energy, pred_co2eq, conversions)
     
-    def _co2eq(self, epoch_energy_usage, pred_energy_usage, pred_time_dur=None):
-        """Returns the CO2eq (g) of the total energy usage."""
-        epoch_ci = intensity.carbon_intensity()
-        epoch_co2eq = epoch_energy_usage * epoch_ci.carbon_intensity
-
-        self.logger.output(epoch_ci.message, verbose_level=2)
-        self.logger.info(epoch_ci.message)
-
-        pred_ci = intensity.carbon_intensity(time_dur=pred_time_dur)
-        # If query is not a success or a prediction,
-        # we default to the epoch carbon intensity.
-        if pred_ci.success and pred_ci.is_prediction:
-            self.logger.output(pred_ci.message, verbose_level=2)
-            self.logger.info(pred_ci.message)
-        else:
-            self.logger.info(pred_ci.message)
-            pred_ci = epoch_ci
-            self.logger.info("Defaulted to carbon intensity for epoch in prediction of total carbon footprint.")
-        pred_co2eq = pred_energy_usage * pred_ci.carbon_intensity
-        
-        return epoch_co2eq, pred_co2eq
+    def _co2eq(self, energy_usage, pred_time_dur=None):
+        """"Returns the CO2eq (g) of the energy usage (kWh)."""
+        ci = intensity.carbon_intensity(pred_time_dur)
+        co2eq = energy_usage * ci.carbon_intensity
+        self.logger.output(ci.message, verbose_level=2)
+        self.logger.info(ci.message)
+        return co2eq
 
     def _user_query(self):
         self.logger.output("Continue training (y/n)?")

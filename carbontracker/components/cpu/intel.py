@@ -38,7 +38,7 @@ class IntelCPU(Handler):
     
     def _get_measurements(self):
         measurements = []
-        for package in self._devices:
+        for package in self._rapl_devices:
             try:
                 power_usage = self._read_energy(os.path.join(RAPL_DIR, package))
                 measurements.append(power_usage)
@@ -52,12 +52,17 @@ class IntelCPU(Handler):
                 measurements.append(total_power_usage)
 
         return measurements
+    
+    def _convert_rapl_name(self, name, pattern):
+        if re.match(pattern, name):
+            return "cpu:" + name[-1]
 
     def init(self):
         # get amount of intel-rapl folders
         packages = list(filter(lambda x: ':' in x, os.listdir(RAPL_DIR)))
         self.device_count = len(packages)
         self._devices = []
+        self._rapl_devices = []
         self.parts_pattern = re.compile("intel-rapl:(\d):(\d)")
         devices_pattern = re.compile("intel-rapl:.")
 
@@ -66,7 +71,8 @@ class IntelCPU(Handler):
                 with open(os.path.join(RAPL_DIR, package, "name"), "r") as f:
                     name = f.read().strip()
                 if name != "psys":
-                    self._devices.append(package)
+                    self._rapl_devices.append(package)
+                    self._devices.append(self._convert_rapl_name(package, devices_pattern))
 
     def shutdown(self):
         pass

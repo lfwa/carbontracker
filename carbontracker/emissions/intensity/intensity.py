@@ -2,6 +2,7 @@ import geocoder
 import requests
 import datetime
 
+from carbontracker import loggerutil
 from carbontracker.emissions.intensity.fetchers import co2signal
 from carbontracker.emissions.intensity.fetchers import carbonintensitygb
 from carbontracker.emissions.intensity.fetchers import energidataservice
@@ -48,9 +49,17 @@ def carbon_intensity(time_dur=None):
         try:
             carbon_intensity = fetcher.carbon_intensity(g_location,
                 time_dur=time_dur)
+            set_ci_msg(carbon_intensity, time_dur)
             carbon_intensity.success = True
             break
         except:
             pass
     
     return carbon_intensity
+
+def set_ci_msg(ci, time_dur):
+    if ci.is_prediction:
+        ci.message = f"Carbon intensity for the next {loggerutil.convert_to_timestring(time_dur)} is predicted to be {ci.carbon_intensity:.2f} gCO2/kWh"
+    else:
+        ci.message = f"Current carbon intensity is {ci.carbon_intensity:.2f} gCO2/kWh"
+    ci.message += f" at detected location: {ci.g_location.address}."
