@@ -1,5 +1,7 @@
 # CarbonTracker
-
+![CarbonTracker](https://img.shields.io/pypi/v/carbontracker?label=carbontracker)
+![build](https://github.com/lfwa/carbontracker/workflows/build/badge.svg)
+![Python 3.6](https://img.shields.io/pypi/pyversions/django?color=blue&logo=python)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## About
@@ -55,4 +57,4 @@ for epoch in range(max_epochs):
 ## Compatability
 CarbonTracker is compatible with:
 - NVIDIA GPUs that support [NVIDIA Management Library (NVML)](https://developer.nvidia.com/nvidia-management-library-nvml)
-- Intel CPUs that support [Intel RAPL](http://web.eece.maine.edu/~vweaver/projects/rapl/rapl_support.html)
+- Intel CPUs that [support Intel RAPL](http://web.eece.maine.edu/~vweaver/projects/rapl/rapl_support.html)
