@@ -1,7 +1,7 @@
 # CarbonTracker
-![CarbonTracker](https://img.shields.io/pypi/v/carbontracker?label=carbontracker)
-![build](https://github.com/lfwa/carbontracker/workflows/build/badge.svg)
-![Python 3.6](https://img.shields.io/pypi/pyversions/django?color=blue&logo=python)
+[![CarbonTracker](https://img.shields.io/pypi/v/carbontracker?label=carbontracker)](https://pypi.org/project/carbontracker/)
+[![build](https://github.com/lfwa/carbontracker/workflows/build/badge.svg)](https://github.com/lfwa/carbontracker/actions)
+[![Python 3.6](https://img.shields.io/pypi/pyversions/django?color=blue&logo=python)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## About
