@@ -43,7 +43,7 @@ class Component:
         self._handler = self._determine_handler()
         self.power_usages = []
         self.cur_epoch = -1  # Sentry
-    
+
     @property
     def handler(self):
         if self._handler is None:

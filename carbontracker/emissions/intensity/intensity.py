@@ -32,8 +32,8 @@ class CarbonIntensity:
         self.carbon_intensity = EU_28_2017_CARBON_INTENSITY
         self.g_location = None
         self.message = ("Location specific carbon intensity could not be "
-            "fetched. Used average carbon intensity for EU-28 in 2017 of "
-            f"{EU_28_2017_CARBON_INTENSITY:.2f} gCO2/kWh.")
+                        "fetched. Used average carbon intensity for EU-28 in "
+                        f"2017 of {EU_28_2017_CARBON_INTENSITY:.2f} gCO2/kWh.")
 
 
 def carbon_intensity(time_dur=None):
@@ -52,15 +52,17 @@ def carbon_intensity(time_dur=None):
             raise Exception()
     except:
         carbon_intensity.message = ("Failed to retrieve location based on IP. "
-            f"{carbon_intensity.message}")
+                                    f"{carbon_intensity.message}")
         return carbon_intensity
 
     for fetcher in fetchers:
         if not fetcher.suitable(g_location):
             continue
         try:
-            carbon_intensity = fetcher.carbon_intensity(g_location,
-                time_dur=time_dur)
+            carbon_intensity = fetcher.carbon_intensity(
+                g_location,
+                time_dur=time_dur
+            )
             set_ci_msg(carbon_intensity, time_dur)
             carbon_intensity.success = True
             break
@@ -73,9 +75,9 @@ def carbon_intensity(time_dur=None):
 def set_ci_msg(ci, time_dur):
     if ci.is_prediction:
         ci.message = ("Carbon intensity for the next "
-            f"{loggerutil.convert_to_timestring(time_dur)} is predicted to "
-            f"be {ci.carbon_intensity:.2f} gCO2/kWh")
+                      f"{loggerutil.convert_to_timestring(time_dur)} is "
+                      f"predicted to be {ci.carbon_intensity:.2f} gCO2/kWh")
     else:
         ci.message = (f"Current carbon intensity is {ci.carbon_intensity:.2f} "
-            "gCO2/kWh")
+                      "gCO2/kWh")
     ci.message += f" at detected location: {ci.g_location.address}."

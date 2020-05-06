@@ -22,21 +22,28 @@ class CO2Signal(IntensityFetcher):
                 lat=g_location.lat
             )
             carbon_intensity.carbon_intensity = ci
-            carbon_intensity.message = f"Training location was determined to be {g_location.address}."
+            carbon_intensity.message = ("Training location was determined to "
+                                        "be {g_location.address}.")
         except:
             ci = self._carbon_intensity_by_location(
                 country_code=g_location.country
             )
             carbon_intensity.carbon_intensity = ci
             carbon_intensity.message = ("Failed to retrieve carbon intensity "
-                "by coordinates. Fetched by country code "
-                f"{g_location.country} instead.")
+                                        "by coordinates. Fetched by country "
+                                        f"code {g_location.country} instead.")
 
-        carbon_intensity.message += f" Current carbon intensity is {carbon_intensity.carbon_intensity:.2f} gCO2/kWh."
+        carbon_intensity.message += (" Current carbon intensity is "
+                                     f"{carbon_intensity.carbon_intensity:.2f}"
+                                     " gCO2/kWh.")
 
         return carbon_intensity
 
-    def _carbon_intensity_by_location(self, lon=None, lat=None, country_code=None):
+    def _carbon_intensity_by_location(
+            self,
+            lon=None,
+            lat=None,
+            country_code=None):
         """Retrieves carbon intensity (gCO2eq/kWh) by location.
 
         Note:
@@ -77,7 +84,10 @@ class CO2Signal(IntensityFetcher):
         unit = response["units"]["carbonIntensity"]
         expected_unit = "gCO2eq/kWh"
         if unit != expected_unit:
-            raise exceptions.UnitError(expected_unit, unit,
-                "Carbon intensity query returned the wrong unit.")
+            raise exceptions.UnitError(
+                expected_unit,
+                unit,
+                "Carbon intensity query returned the wrong unit."
+            )
 
         return carbon_intensity

@@ -26,9 +26,9 @@ class EnergiDataService(IntensityFetcher):
     def _emission_current(self):
         def url_creator(area):
             return ("https://api.energidataservice.dk/datastore_search_sql?"
-                """sql=SELECT co2."CO2Emission" from "co2emis" as co2 WHERE """
-                f"""co2."PriceArea" = '{area}' ORDER BY co2."Minutes5UTC" """
-                "DESC LIMIT 1")
+                    """sql=SELECT co2."CO2Emission" from "co2emis" as co2 """
+                    f"""WHERE co2."PriceArea" = '{area}' ORDER BY """
+                    """co2."Minutes5UTC" DESC LIMIT 1""")
 
         areas = ["DK1", "DK2"]
         carbon_intensities = []
@@ -45,10 +45,10 @@ class EnergiDataService(IntensityFetcher):
     def _emission_prognosis(self, time_dur):
         from_str, to_str = self._interval(time_dur=time_dur)
         url = ("https://api.energidataservice.dk/datastore_search_sql?"
-            """sql=SELECT co2."CO2Emission" from "co2emisprog" as co2 WHERE """
-            f"""co2."Minutes5UTC" > timestamp'{from_str}' AND """
-            f"""co2."Minutes5UTC" < timestamp'{to_str}' """
-            """ORDER BY co2."Minutes5UTC" DESC""")
+               """sql=SELECT co2."CO2Emission" from "co2emisprog" as co2 """
+               f"""WHERE co2."Minutes5UTC" > timestamp'{from_str}' AND """
+               f"""co2."Minutes5UTC" < timestamp'{to_str}' """
+               """ORDER BY co2."Minutes5UTC" DESC""")
         response = requests.get(url).json()["result"]["records"]
         carbon_intensities = [record["CO2Emission"] for record in response]
         return np.mean(carbon_intensities)

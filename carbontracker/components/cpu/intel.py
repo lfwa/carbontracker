@@ -27,7 +27,7 @@ class IntelCPU(Handler):
         after_measures = self._get_measurements()
 
         return [self._compute_power(before, after) for before, after in
-            zip(before_measures, after_measures)]
+                zip(before_measures, after_measures)]
 
     def _compute_power(self, before, after):
         """Compute avg. power usage from two samples in microjoules."""
@@ -49,12 +49,12 @@ class IntelCPU(Handler):
             except FileNotFoundError:
                 # check cpu/gpu/dram
                 parts = [f for f in os.listdir(os.path.join(RAPL_DIR, package))
-                    if re.match(self.parts_pattern, f)]
+                         if re.match(self.parts_pattern, f)]
                 total_power_usage = 0
                 for part in parts:
                     total_power_usage += self._read_energy(
                         os.path.join(RAPL_DIR, package, part))
-                
+
                 measurements.append(total_power_usage)
 
         return measurements
@@ -69,7 +69,7 @@ class IntelCPU(Handler):
         self.device_count = len(packages)
         self._devices = []
         self._rapl_devices = []
-        self.parts_pattern = re.compile("intel-rapl:(\d):(\d)")
+        self.parts_pattern = re.compile(r"intel-rapl:(\d):(\d)")
         devices_pattern = re.compile("intel-rapl:.")
 
         for package in packages:

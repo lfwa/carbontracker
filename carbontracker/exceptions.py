@@ -1,5 +1,10 @@
 class NoComponentsAvailableError(Exception):
-    def __init__(self, msg="No components were available. CarbonTracker supports Intel CPUs with the RAPL interface and NVIDIA GPUs.", *args, **kwargs):
+    def __init__(
+            self,
+            msg=("No components were available. CarbonTracker supports Intel "
+                 "CPUs with the RAPL interface and NVIDIA GPUs."),
+            *args,
+            **kwargs):
         super().__init__(msg, *args, **kwargs)
 
 
