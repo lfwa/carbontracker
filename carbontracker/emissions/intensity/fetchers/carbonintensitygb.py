@@ -1,6 +1,8 @@
 import requests
 import datetime
 
+import numpy as np
+
 from carbontracker import loggerutil
 from carbontracker.emissions.intensity.fetcher import IntensityFetcher
 from carbontracker.emissions.intensity import intensity
@@ -21,23 +23,31 @@ class CarbonIntensityGB(IntensityFetcher):
 
         try:
             postcode = g_location.postal
-            ci = self._carbon_intensity_gb_regional(postcode,
-                time_dur=time_dur)
+            ci = self._carbon_intensity_gb_regional(
+                postcode,
+                time_dur=time_dur
+            )
             carbon_intensity.carbon_intensity = ci
         except:
             ci = self._carbon_intensity_gb_national(time_dur=time_dur)
             carbon_intensity.carbon_intensity = ci
-            carbon_intensity.message = ("Failed to fetch carbon intensity by "
-                f"regional postcode: {postcode}. Fetched by national instead.")
+            carbon_intensity.message = (
+                "Failed to fetch carbon intensity by regional postcode: "
+                f"{postcode}. Fetched by national instead."
+            )
 
         if time_dur is not None:
-            carbon_intensity.message = ("Carbon intensity for the next "
+            carbon_intensity.message = (
+                "Carbon intensity for the next "
                 f"{loggerutil.convert_to_timestring(time_dur)} is predicted "
-                f"to be {carbon_intensity.carbon_intensity:.2f} gCO2/kWh.")
+                f"to be {carbon_intensity.carbon_intensity:.2f} gCO2/kWh."
+            )
         else:
-            carbon_intensity.message = ("Training location was determined to "
-                f"be {g_location.address}. Current carbon intensity is "
-                f"{carbon_intensity.carbon_intensity:.2f} gCO2/kWh.")
+            carbon_intensity.message = (
+                f"Training location was determined to be {g_location.address}."
+                " Current carbon intensity is "
+                f"{carbon_intensity.carbon_intensity:.2f} gCO2/kWh."
+            )
 
         return carbon_intensity
 
@@ -51,13 +61,17 @@ class CarbonIntensityGB(IntensityFetcher):
             url += f"/intensity/{from_str}/{to_str}"
 
         url += f"/postcode/{postcode}"
-
         response = requests.get(url).json()
-        carbon_intensity = response["data"]
-        # CO2Signal has a bug, where if we query the time, no list is returned.
+        data = response["data"]
+
+        # CO2Signal has a bug s.t. if we query current then we get a list.
         if time_dur is None:
-            carbon_intensity = carbon_intensity[0]
-        carbon_intensity = carbon_intensity["data"][0]["intensity"]["forecast"]
+            data = data[0]
+
+        carbon_intensities = []
+        for ci in data["data"]:
+            carbon_intensities.append(ci["intensity"]["forecast"])
+        carbon_intensity = np.mean(carbon_intensities)
 
         return carbon_intensity
 

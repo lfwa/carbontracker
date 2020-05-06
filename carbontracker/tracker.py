@@ -126,7 +126,7 @@ class CarbonTrackerThread(Thread):
         err_str = traceback.format_exc()
         if self.ignore_errors:
             err_str = (f"Ignored error: {err_str}Continued training without "
-                        "monitoring...")
+                       "monitoring...")
 
         self.logger.critical(err_str)
         self.logger.output(err_str)
@@ -231,7 +231,7 @@ class CarbonTracker:
         err_str = traceback.format_exc()
         if self.ignore_errors:
             err_str = (f"Ignored error: {err_str}Continued training without"
-                        "monitoring...")
+                       "monitoring...")
 
         self.logger.critical(err_str)
         self.logger.output(err_str)
