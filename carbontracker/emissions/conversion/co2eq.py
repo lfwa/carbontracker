@@ -1,7 +1,6 @@
 import pandas as pd
 import os
 
-
 here = os.path.abspath(os.path.dirname(__file__))
 conversion_file = os.path.join(here, "co2eq.csv")
 CONVERSION_DF = pd.read_csv(conversion_file)

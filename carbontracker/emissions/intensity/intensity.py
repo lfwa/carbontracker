@@ -5,21 +5,19 @@ from carbontracker.emissions.intensity.fetchers import co2signal
 from carbontracker.emissions.intensity.fetchers import carbonintensitygb
 from carbontracker.emissions.intensity.fetchers import energidataservice
 
-
 # https://www.eea.europa.eu/data-and-maps/data/
 # co2-intensity-of-electricity-generation
 EU_28_2017_CARBON_INTENSITY = 294.2060978
 
 
 class CarbonIntensity:
-    def __init__(
-            self,
-            carbon_intensity=None,
-            g_location=None,
-            message=None,
-            success=False,
-            is_prediction=False,
-            default=False):
+    def __init__(self,
+                 carbon_intensity=None,
+                 g_location=None,
+                 message=None,
+                 success=False,
+                 is_prediction=False,
+                 default=False):
         self.carbon_intensity = carbon_intensity
         self.g_location = g_location
         self.message = message
@@ -59,10 +57,8 @@ def carbon_intensity(time_dur=None):
         if not fetcher.suitable(g_location):
             continue
         try:
-            carbon_intensity = fetcher.carbon_intensity(
-                g_location,
-                time_dur=time_dur
-            )
+            carbon_intensity = fetcher.carbon_intensity(g_location,
+                                                        time_dur=time_dur)
             set_ci_msg(carbon_intensity, time_dur)
             carbon_intensity.success = True
             break

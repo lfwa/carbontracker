@@ -37,8 +37,7 @@ class EnergiDataService(IntensityFetcher):
             url = url_creator(area)
             response = requests.get(url).json()
             carbon_intensities.append(
-                response["result"]["records"][0]["CO2Emission"]
-            )
+                response["result"]["records"][0]["CO2Emission"])
 
         return np.mean(carbon_intensities)
 
@@ -62,5 +61,8 @@ class EnergiDataService(IntensityFetcher):
 
     def _nearest_5_min(self, time):
         date_format = "%Y-%m-%d %H:%M"
-        nearest_5_min = time - datetime.timedelta(minutes=time.minute % 5, seconds=time.second, microseconds=time.microsecond)
+        nearest_5_min = time - datetime.timedelta(
+            minutes=time.minute % 5,
+            seconds=time.second,
+            microseconds=time.microsecond)
         return nearest_5_min.strftime(date_format)

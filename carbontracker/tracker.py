@@ -16,13 +16,7 @@ from carbontracker.emissions.intensity.fetchers import co2signal
 
 
 class CarbonTrackerThread(Thread):
-    def __init__(
-            self,
-            components,
-            logger,
-            ignore_errors,
-            update_interval=10,
-            ):
+    def __init__(self, components, logger, ignore_errors, update_interval=10):
         super(CarbonTrackerThread, self).__init__()
         self.name = "CarbonTrackerThread"
         self.components = components
@@ -139,23 +133,20 @@ class CarbonTrackerThread(Thread):
 
 
 class CarbonTracker:
-    def __init__(
-            self,
-            epochs,
-            epochs_before_pred=1,
-            monitor_epochs=1,
-            update_interval=10,
-            interpretable=True,
-            stop_and_confirm=False,
-            ignore_errors=False,
-            components="all",
-            log_dir=None,
-            verbose=0
-            ):
+    def __init__(self,
+                 epochs,
+                 epochs_before_pred=1,
+                 monitor_epochs=1,
+                 update_interval=10,
+                 interpretable=True,
+                 stop_and_confirm=False,
+                 ignore_errors=False,
+                 components="all",
+                 log_dir=None,
+                 verbose=0):
         self.epochs = epochs
         self.epochs_before_pred = (epochs_before_pred
-                                   if epochs_before_pred > 0
-                                   else epochs)
+                                   if epochs_before_pred > 0 else epochs)
         if monitor_epochs < 0:
             self.monitor_epochs = epochs
         elif monitor_epochs < self.epochs_before_pred:
@@ -174,8 +165,7 @@ class CarbonTracker:
                 components=component.create_components(components),
                 logger=self.logger,
                 ignore_errors=ignore_errors,
-                update_interval=update_interval
-            )
+                update_interval=update_interval)
         except Exception as e:
             self._handle_error(e)
 
@@ -222,8 +212,7 @@ class CarbonTracker:
                     co2signal.AUTH_TOKEN = key
                 else:
                     raise exceptions.InvalidAPIName(
-                        f"Invalid API name '{name}' given."
-                    )
+                        f"Invalid API name '{name}' given.")
         except Exception as e:
             self._handle_error(e)
 
@@ -266,25 +255,22 @@ class CarbonTracker:
         conversions = co2eq.convert(_co2eq) if self.interpretable else None
 
         self._output_energy(
-            f"Actual consumption for {self.epoch_counter} epoch(s):",
-            time, energy, _co2eq, conversions
-        )
+            f"Actual consumption for {self.epoch_counter} epoch(s):", time,
+            energy, _co2eq, conversions)
 
     def _output_pred(self):
         """Output predicted usage for full training epochs."""
         epoch_energy_usages = self.tracker.total_energy_per_epoch()
         epoch_times = self.tracker.epoch_times
-        pred_energy = predictor.predict_energy(
-            self.epochs, epoch_energy_usages
-        )
+        pred_energy = predictor.predict_energy(self.epochs,
+                                               epoch_energy_usages)
         pred_time = predictor.predict_time(self.epochs, epoch_times)
         pred_co2eq = self._co2eq(pred_energy, pred_time)
         conversions = co2eq.convert(pred_co2eq) if self.interpretable else None
 
         self._output_energy(
-            f"Predicted consumption for {self.epochs} epoch(s):",
-            pred_time, pred_energy, pred_co2eq, conversions
-        )
+            f"Predicted consumption for {self.epochs} epoch(s):", pred_time,
+            pred_energy, pred_co2eq, conversions)
 
     def _co2eq(self, energy_usage, pred_time_dur=None):
         """"Returns the CO2eq (g) of the energy usage (kWh)."""

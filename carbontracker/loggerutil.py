@@ -42,13 +42,11 @@ class Logger:
             logger.setLevel(logging.DEBUG)
             f_formatter = logging.Formatter(
                 "{asctime} - {threadName} - {levelname} - {message}",
-                style="{"
-            )
+                style="{")
 
             # Add output logging to file.
             fh = logging.FileHandler(
-                f"{log_dir}/{date}_carbontracker_output.log"
-            )
+                f"{log_dir}/{date}_carbontracker_output.log")
             fh.setLevel(logging.INFO)
             fh.setFormatter(f_formatter)
             logger_output.addHandler(fh)

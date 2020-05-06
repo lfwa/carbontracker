@@ -26,8 +26,10 @@ class IntelCPU(Handler):
         time.sleep(MEASURE_DELAY)
         after_measures = self._get_measurements()
 
-        return [self._compute_power(before, after) for before, after in
-                zip(before_measures, after_measures)]
+        return [
+            self._compute_power(before, after)
+            for before, after in zip(before_measures, after_measures)
+        ]
 
     def _compute_power(self, before, after):
         """Compute avg. power usage from two samples in microjoules."""
@@ -43,13 +45,15 @@ class IntelCPU(Handler):
         measurements = []
         for package in self._rapl_devices:
             try:
-                power_usage = self._read_energy(
-                    os.path.join(RAPL_DIR, package))
+                power_usage = self._read_energy(os.path.join(
+                    RAPL_DIR, package))
                 measurements.append(power_usage)
             except FileNotFoundError:
                 # check cpu/gpu/dram
-                parts = [f for f in os.listdir(os.path.join(RAPL_DIR, package))
-                         if re.match(self.parts_pattern, f)]
+                parts = [
+                    f for f in os.listdir(os.path.join(RAPL_DIR, package))
+                    if re.match(self.parts_pattern, f)
+                ]
                 total_power_usage = 0
                 for part in parts:
                     total_power_usage += self._read_energy(
@@ -78,7 +82,8 @@ class IntelCPU(Handler):
                     name = f.read().strip()
                 if name != "psys":
                     self._rapl_devices.append(package)
-                    self._devices.append(self._convert_rapl_name(package, devices_pattern))
+                    self._devices.append(
+                        self._convert_rapl_name(package, devices_pattern))
 
     def shutdown(self):
         pass

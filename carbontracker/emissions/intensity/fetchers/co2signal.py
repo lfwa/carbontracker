@@ -4,7 +4,6 @@ from carbontracker import exceptions
 from carbontracker.emissions.intensity.fetcher import IntensityFetcher
 from carbontracker.emissions.intensity import intensity
 
-
 AUTH_TOKEN = None
 API_URL = "https://api.co2signal.com/v1/latest"
 
@@ -17,17 +16,14 @@ class CO2Signal(IntensityFetcher):
         carbon_intensity = intensity.CarbonIntensity(g_location=g_location)
 
         try:
-            ci = self._carbon_intensity_by_location(
-                lon=g_location.lng,
-                lat=g_location.lat
-            )
+            ci = self._carbon_intensity_by_location(lon=g_location.lng,
+                                                    lat=g_location.lat)
             carbon_intensity.carbon_intensity = ci
             carbon_intensity.message = ("Training location was determined to "
                                         "be {g_location.address}.")
         except:
             ci = self._carbon_intensity_by_location(
-                country_code=g_location.country
-            )
+                country_code=g_location.country)
             carbon_intensity.carbon_intensity = ci
             carbon_intensity.message = ("Failed to retrieve carbon intensity "
                                         "by coordinates. Fetched by country "
@@ -39,11 +35,10 @@ class CO2Signal(IntensityFetcher):
 
         return carbon_intensity
 
-    def _carbon_intensity_by_location(
-            self,
-            lon=None,
-            lat=None,
-            country_code=None):
+    def _carbon_intensity_by_location(self,
+                                      lon=None,
+                                      lat=None,
+                                      country_code=None):
         """Retrieves carbon intensity (gCO2eq/kWh) by location.
 
         Note:
@@ -62,32 +57,21 @@ class CO2Signal(IntensityFetcher):
                 expected unit.
         """
         if country_code is not None:
-            params = (
-                ("countryCode", country_code),
-            )
-            assert(lon is None and lat is None)
+            params = (("countryCode", country_code), )
+            assert (lon is None and lat is None)
         elif lon is not None and lat is not None:
-            params = (
-                ("lon", lon),
-                ("lat", lat)
-            )
-            assert(country_code is None)
+            params = (("lon", lon), ("lat", lat))
+            assert (country_code is None)
 
-        headers = {
-            "auth-token": AUTH_TOKEN
-        }
+        headers = {"auth-token": AUTH_TOKEN}
 
-        response = requests.get(API_URL,
-                                headers=headers,
-                                params=params).json()
+        response = requests.get(API_URL, headers=headers, params=params).json()
         carbon_intensity = response["data"]["carbonIntensity"]
         unit = response["units"]["carbonIntensity"]
         expected_unit = "gCO2eq/kWh"
         if unit != expected_unit:
             raise exceptions.UnitError(
-                expected_unit,
-                unit,
-                "Carbon intensity query returned the wrong unit."
-            )
+                expected_unit, unit,
+                "Carbon intensity query returned the wrong unit.")
 
         return carbon_intensity

@@ -7,7 +7,6 @@ from carbontracker import loggerutil
 from carbontracker.emissions.intensity.fetcher import IntensityFetcher
 from carbontracker.emissions.intensity import intensity
 
-
 API_URL = "https://api.carbonintensity.org.uk"
 
 
@@ -23,31 +22,26 @@ class CarbonIntensityGB(IntensityFetcher):
 
         try:
             postcode = g_location.postal
-            ci = self._carbon_intensity_gb_regional(
-                postcode,
-                time_dur=time_dur
-            )
+            ci = self._carbon_intensity_gb_regional(postcode,
+                                                    time_dur=time_dur)
             carbon_intensity.carbon_intensity = ci
         except:
             ci = self._carbon_intensity_gb_national(time_dur=time_dur)
             carbon_intensity.carbon_intensity = ci
             carbon_intensity.message = (
                 "Failed to fetch carbon intensity by regional postcode: "
-                f"{postcode}. Fetched by national instead."
-            )
+                f"{postcode}. Fetched by national instead.")
 
         if time_dur is not None:
             carbon_intensity.message = (
                 "Carbon intensity for the next "
                 f"{loggerutil.convert_to_timestring(time_dur)} is predicted "
-                f"to be {carbon_intensity.carbon_intensity:.2f} gCO2/kWh."
-            )
+                f"to be {carbon_intensity.carbon_intensity:.2f} gCO2/kWh.")
         else:
             carbon_intensity.message = (
                 f"Training location was determined to be {g_location.address}."
                 " Current carbon intensity is "
-                f"{carbon_intensity.carbon_intensity:.2f} gCO2/kWh."
-            )
+                f"{carbon_intensity.carbon_intensity:.2f} gCO2/kWh.")
 
         return carbon_intensity
 
