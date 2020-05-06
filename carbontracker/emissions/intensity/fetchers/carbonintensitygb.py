@@ -3,7 +3,7 @@ import datetime
 
 import numpy as np
 
-from carbontracker import loggerutil
+from carbontracker import exceptions
 from carbontracker.emissions.intensity.fetcher import IntensityFetcher
 from carbontracker.emissions.intensity import intensity
 
@@ -24,24 +24,10 @@ class CarbonIntensityGB(IntensityFetcher):
             postcode = g_location.postal
             ci = self._carbon_intensity_gb_regional(postcode,
                                                     time_dur=time_dur)
-            carbon_intensity.carbon_intensity = ci
         except:
             ci = self._carbon_intensity_gb_national(time_dur=time_dur)
-            carbon_intensity.carbon_intensity = ci
-            carbon_intensity.message = (
-                "Failed to fetch carbon intensity by regional postcode: "
-                f"{postcode}. Fetched by national instead.")
 
-        if time_dur is not None:
-            carbon_intensity.message = (
-                "Carbon intensity for the next "
-                f"{loggerutil.convert_to_timestring(time_dur)} is predicted "
-                f"to be {carbon_intensity.carbon_intensity:.2f} gCO2/kWh.")
-        else:
-            carbon_intensity.message = (
-                f"Training location was determined to be {g_location.address}."
-                " Current carbon intensity is "
-                f"{carbon_intensity.carbon_intensity:.2f} gCO2/kWh.")
+        carbon_intensity.carbon_intensity = ci
 
         return carbon_intensity
 
@@ -55,8 +41,10 @@ class CarbonIntensityGB(IntensityFetcher):
             url += f"/intensity/{from_str}/{to_str}"
 
         url += f"/postcode/{postcode}"
-        response = requests.get(url).json()
-        data = response["data"]
+        response = requests.get(url)
+        if response.status_code != response.ok:
+            raise exceptions.CarbonIntensityFetcherError(response.json())
+        data = response.json()["data"]
 
         # CO2Signal has a bug s.t. if we query current then we get a list.
         if time_dur is None:
@@ -78,8 +66,10 @@ class CarbonIntensityGB(IntensityFetcher):
             from_str, to_str = self._time_from_to_str(time_dur)
             url += f"/{from_str}/{to_str}"
 
-        response = requests.get(url).json()
-        carbon_intensity = response["data"][0]["intensity"]["forecast"]
+        response = requests.get(url)
+        if response.status_code != response.ok:
+            raise exceptions.CarbonIntensityFetcherError(response.json())
+        carbon_intensity = response.json()["data"][0]["intensity"]["forecast"]
         return carbon_intensity
 
     def _time_from_to_str(self, time_dur):

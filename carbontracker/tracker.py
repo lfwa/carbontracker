@@ -53,7 +53,7 @@ class CarbonTrackerThread(Thread):
         self.logger.info("Monitoring thread started.")
 
     def stop(self):
-        if self.running == False:
+        if not self.running:
             return
 
         self.measuring = False
@@ -208,7 +208,7 @@ class CarbonTracker:
         """Set API keys (given as {name:key}) for carbon intensity fetchers."""
         try:
             for name, key in api_dict.items():
-                if name == "co2signal":
+                if name.lower() == "co2signal":
                     co2signal.AUTH_TOKEN = key
                 else:
                     raise exceptions.InvalidAPIName(
@@ -219,7 +219,7 @@ class CarbonTracker:
     def _handle_error(self, error):
         err_str = traceback.format_exc()
         if self.ignore_errors:
-            err_str = (f"Ignored error: {err_str}Continued training without"
+            err_str = (f"Ignored error: {err_str}Continued training without "
                        "monitoring...")
 
         self.logger.critical(err_str)
@@ -274,10 +274,8 @@ class CarbonTracker:
 
     def _co2eq(self, energy_usage, pred_time_dur=None):
         """"Returns the CO2eq (g) of the energy usage (kWh)."""
-        ci = intensity.carbon_intensity(pred_time_dur)
+        ci = intensity.carbon_intensity(self.logger, pred_time_dur)
         co2eq = energy_usage * ci.carbon_intensity
-        self.logger.output(ci.message, verbose_level=2)
-        self.logger.info(ci.message)
         return co2eq
 
     def _user_query(self):

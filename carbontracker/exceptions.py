@@ -16,6 +16,14 @@ class UnitError(Exception):
         self.message = message
 
 
+class CarbonIntensityFetcherError(Exception):
+    pass
+
+
+class IPLocationError(Exception):
+    pass
+
+
 class GPUError(Exception):
     pass
 

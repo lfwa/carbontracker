@@ -1,7 +1,9 @@
-import requests
-import numpy as np
 import datetime
 
+import requests
+import numpy as np
+
+from carbontracker import exceptions
 from carbontracker.emissions.intensity.fetcher import IntensityFetcher
 from carbontracker.emissions.intensity import intensity
 
@@ -35,9 +37,11 @@ class EnergiDataService(IntensityFetcher):
 
         for area in areas:
             url = url_creator(area)
-            response = requests.get(url).json()
+            response = requests.get(url)
+            if response.status_code != response.ok:
+                raise exceptions.CarbonIntensityFetcherError(response.json())
             carbon_intensities.append(
-                response["result"]["records"][0]["CO2Emission"])
+                response.json()["result"]["records"][0]["CO2Emission"])
 
         return np.mean(carbon_intensities)
 
@@ -48,8 +52,11 @@ class EnergiDataService(IntensityFetcher):
                f"""WHERE co2."Minutes5UTC" > timestamp'{from_str}' AND """
                f"""co2."Minutes5UTC" < timestamp'{to_str}' """
                """ORDER BY co2."Minutes5UTC" DESC""")
-        response = requests.get(url).json()["result"]["records"]
-        carbon_intensities = [record["CO2Emission"] for record in response]
+        response = requests.get(url)
+        if response.status_code != response.ok:
+            raise exceptions.CarbonIntensityFetcherError(response.json())
+        data = response.json()["result"]["records"]
+        carbon_intensities = [record["CO2Emission"] for record in data]
         return np.mean(carbon_intensities)
 
     def _interval(self, time_dur):

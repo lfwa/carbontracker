@@ -10,7 +10,7 @@ API_URL = "https://api.co2signal.com/v1/latest"
 
 class CO2Signal(IntensityFetcher):
     def suitable(self, g_location):
-        return True
+        return AUTH_TOKEN is not None
 
     def carbon_intensity(self, g_location, time_dur=None):
         carbon_intensity = intensity.CarbonIntensity(g_location=g_location)
@@ -18,20 +18,11 @@ class CO2Signal(IntensityFetcher):
         try:
             ci = self._carbon_intensity_by_location(lon=g_location.lng,
                                                     lat=g_location.lat)
-            carbon_intensity.carbon_intensity = ci
-            carbon_intensity.message = ("Training location was determined to "
-                                        "be {g_location.address}.")
         except:
             ci = self._carbon_intensity_by_location(
                 country_code=g_location.country)
-            carbon_intensity.carbon_intensity = ci
-            carbon_intensity.message = ("Failed to retrieve carbon intensity "
-                                        "by coordinates. Fetched by country "
-                                        f"code {g_location.country} instead.")
 
-        carbon_intensity.message += (" Current carbon intensity is "
-                                     f"{carbon_intensity.carbon_intensity:.2f}"
-                                     " gCO2/kWh.")
+        carbon_intensity.carbon_intensity = ci
 
         return carbon_intensity
 
@@ -65,8 +56,10 @@ class CO2Signal(IntensityFetcher):
 
         headers = {"auth-token": AUTH_TOKEN}
 
-        response = requests.get(API_URL, headers=headers, params=params).json()
-        carbon_intensity = response["data"]["carbonIntensity"]
+        response = requests.get(API_URL, headers=headers, params=params)
+        if response.status_code != response.ok:
+            raise exceptions.CarbonIntensityFetcherError(response.json())
+        carbon_intensity = response.json()["data"]["carbonIntensity"]
         unit = response["units"]["carbonIntensity"]
         expected_unit = "gCO2eq/kWh"
         if unit != expected_unit:
