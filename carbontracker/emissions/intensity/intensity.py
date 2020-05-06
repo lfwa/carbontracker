@@ -5,8 +5,7 @@ from carbontracker.emissions.intensity.fetchers import co2signal
 from carbontracker.emissions.intensity.fetchers import carbonintensitygb
 from carbontracker.emissions.intensity.fetchers import energidataservice
 
-# https://www.eea.europa.eu/data-and-maps/data/
-# co2-intensity-of-electricity-generation
+# https://www.eea.europa.eu/data-and-maps/data/co2-intensity-of-electricity-generation
 EU_28_2017_CARBON_INTENSITY = 294.2060978
 
 

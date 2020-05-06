@@ -4,8 +4,8 @@ import time
 
 from carbontracker.components.handler import Handler
 
-# RAPL Literature: https://www.researchgate.net/publication/
-# 322308215_RAPL_in_Action_Experiences_in_Using_RAPL_for_Power_Measurements
+# RAPL Literature:
+# https://www.researchgate.net/publication/322308215_RAPL_in_Action_Experiences_in_Using_RAPL_for_Power_Measurements
 
 RAPL_DIR = "/sys/class/powercap/"
 CPU = 0
