@@ -1,14 +1,14 @@
 # CarbonTracker
-[![CarbonTracker](https://img.shields.io/pypi/v/carbontracker?label=carbontracker)](https://pypi.org/project/carbontracker/)
-[![build](https://github.com/lfwa/carbontracker/workflows/build/badge.svg)](https://github.com/lfwa/carbontracker/actions)
+[![pypi](https://img.shields.io/pypi/v/carbontracker?label=pypi)](https://pypi.org/project/carbontracker/)
 [![Python 3.6](https://img.shields.io/pypi/pyversions/django?color=blue&logo=python)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![build](https://github.com/lfwa/carbontracker/workflows/build/badge.svg)](https://github.com/lfwa/carbontracker/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/lfwa/carbontracker/blob/master/LICENSE)
 
 ## About
 CarbonTracker is a tool for tracking and predicting the carbon footprint of training deep learning models.
 
 ## Installation
-### PyPi install
+### PyPi
 ```
 pip install carbontracker
 ```
@@ -20,9 +20,9 @@ pip install carbontracker
   Total epochs of your training loop.
 #### Optional arguments
 - `epochs_before_pred` (default=1):
-  Epochs to monitor before outputting prediction. Set to -1 for all epochs.
+  Epochs to monitor before outputting predicted consumption. Set to -1 for all epochs.
 - `monitor_epochs` (default=1):
-  Total number of epochs to monitor. Set to -1 for all epochs. Cannot be less than `epochs_before_pred`.
+  Total number of epochs to monitor. Outputs actual consumption when reached. Set to -1 for all epochs. Cannot be less than `epochs_before_pred`.
 - `update_interval` (default=10):
   Interval in seconds between power usage measurements are taken.
 - `interpretable` (default=True):
