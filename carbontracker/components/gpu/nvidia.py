@@ -11,10 +11,11 @@ import pynvml
 
 from carbontracker.components.handler import Handler
 
+
 class NvidiaGPU(Handler):
     def devices(self):
         """Retrieves the name of all GPUs in a list.
-        
+
         Note:
             Requires NVML to be initialized.
         """
@@ -25,7 +26,7 @@ class NvidiaGPU(Handler):
             handle = pynvml.nvmlDeviceGetHandleByIndex(index)
             name = pynvml.nvmlDeviceGetName(handle)
             devices.append(name.decode("utf-8"))
-        
+
         return devices
 
     def available(self):
@@ -39,13 +40,13 @@ class NvidiaGPU(Handler):
         except pynvml.NVMLError:
             available = False
         return available
-    
+
     def _power_usage_by_index(self, index):
-        """Retrieves power usage (W) of a GPU by index. 
-        
+        """Retrieves power usage (W) of a GPU by index.
+
         Note:
             Requires NVML to be initialized.
-        
+
         Args:
             index (int): Index of the GPU.
 
@@ -59,10 +60,10 @@ class NvidiaGPU(Handler):
         except pynvml.NVMLError:
             power_usage = None
         return power_usage
-    
+
     def power_usage(self):
         """Retrieves power usages (W) of all GPUs in a list.
-    
+
         Note:
             Requires NVML to be initialized.
         """
@@ -72,11 +73,11 @@ class NvidiaGPU(Handler):
         for index in range(device_count):
             power_usage = self._power_usage_by_index(index)
             gpu_power_usages.append(power_usage)
-        
+
         return gpu_power_usages
-    
+
     def init(self):
         pynvml.nvmlInit()
-    
+
     def shutdown(self):
         pynvml.nvmlShutdown()

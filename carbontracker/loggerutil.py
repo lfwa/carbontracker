@@ -4,8 +4,10 @@ import sys
 import pathlib
 import datetime
 
+
 def convert_to_timestring(seconds):
     return str(datetime.timedelta(seconds=seconds))
+
 
 class Logger:
     def __init__(self, log_dir=None, verbose=0):
@@ -13,7 +15,7 @@ class Logger:
         self._log_initial_info()
         self.verbose = verbose
         self.msg_prepend = "CarbonTracker: "
-    
+
     def _setup(self, log_dir=None):
         logger = None
         logger_output = logging.getLogger("carbontracker.output")
@@ -38,10 +40,12 @@ class Logger:
 
             logger = logging.getLogger("carbontracker")
             logger.setLevel(logging.DEBUG)
-            f_formatter = logging.Formatter("{asctime} - {threadName} - {levelname} - {message}", style="{")
+            f_formatter = logging.Formatter("{asctime} - {threadName} - "
+                "{levelname} - {message}", style="{")
 
             # Add output logging to file.
-            fh = logging.FileHandler(f"{log_dir}/{date}_carbontracker_output.log")
+            fh = logging.FileHandler(f"{log_dir}/{date}_carbontracker_output"
+                ".log")
             fh.setLevel(logging.INFO)
             fh.setFormatter(f_formatter)
             logger_output.addHandler(fh)
@@ -51,9 +55,9 @@ class Logger:
             f.setLevel(logging.DEBUG)
             f.setFormatter(f_formatter)
             logger.addHandler(f)
-        
+
         return logger, logger_output
-    
+
     def _log_initial_info(self):
         here = os.path.abspath(os.path.dirname(__file__))
         about = {}
@@ -74,7 +78,7 @@ class Logger:
         if self.logger is None:
             return
         self.logger.info(msg)
-    
+
     def warn(self, msg):
         if self.logger is None:
             return

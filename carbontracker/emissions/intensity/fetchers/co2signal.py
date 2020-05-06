@@ -4,8 +4,10 @@ from carbontracker import exceptions
 from carbontracker.emissions.intensity.fetcher import IntensityFetcher
 from carbontracker.emissions.intensity import intensity
 
+
 AUTH_TOKEN = None
 API_URL = "https://api.co2signal.com/v1/latest"
+
 
 class CO2Signal(IntensityFetcher):
     def suitable(self, g_location):
@@ -16,7 +18,7 @@ class CO2Signal(IntensityFetcher):
 
         try:
             ci = self._carbon_intensity_by_location(
-                lon=g_location.lng, 
+                lon=g_location.lng,
                 lat=g_location.lat
             )
             carbon_intensity.carbon_intensity = ci
@@ -26,7 +28,9 @@ class CO2Signal(IntensityFetcher):
                 country_code=g_location.country
             )
             carbon_intensity.carbon_intensity = ci
-            carbon_intensity.message = f"Failed to retrieve carbon intensity by coordinates. Fetched by country code {g_location.country} instead."
+            carbon_intensity.message = ("Failed to retrieve carbon intensity "
+                "by coordinates. Fetched by country code "
+                f"{g_location.country} instead.")
 
         carbon_intensity.message += f" Current carbon intensity is {carbon_intensity.carbon_intensity:.2f} gCO2/kWh."
 
@@ -34,10 +38,10 @@ class CO2Signal(IntensityFetcher):
 
     def _carbon_intensity_by_location(self, lon=None, lat=None, country_code=None):
         """Retrieves carbon intensity (gCO2eq/kWh) by location.
-        
+
         Note:
             Only use arguments (lon, lat) or country_code.
-        
+
         Args:
             lon (float): Longitude. Defaults to None.
             lat (float): Lattitude. Defaults to None.
@@ -45,7 +49,7 @@ class CO2Signal(IntensityFetcher):
 
         Returns:
             Carbon intensity in gCO2eq/kWh.
-        
+
         Raises:
             UnitError: The unit of the carbon intensity does not match the
                 expected unit.
@@ -61,7 +65,7 @@ class CO2Signal(IntensityFetcher):
                 ("lat", lat)
             )
             assert(country_code is None)
-        
+
         headers = {
             "auth-token": AUTH_TOKEN
         }
@@ -74,6 +78,6 @@ class CO2Signal(IntensityFetcher):
         expected_unit = "gCO2eq/kWh"
         if unit != expected_unit:
             raise exceptions.UnitError(expected_unit, unit,
-                            "Carbon intensity query returned the wrong unit.")
+                "Carbon intensity query returned the wrong unit.")
 
         return carbon_intensity

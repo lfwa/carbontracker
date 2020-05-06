@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
+
 class IntensityFetcher:
     __metaclass__ = ABCMeta
 

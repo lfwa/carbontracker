@@ -4,6 +4,7 @@ from carbontracker import exceptions
 from carbontracker.components.gpu import nvidia
 from carbontracker.components.cpu import intel
 
+
 components = [
     {
         "name": "gpu",
@@ -17,18 +18,22 @@ components = [
     }
 ]
 
+
 def component_names():
     return [comp["name"] for comp in components]
+
 
 def error_by_name(name):
     for comp in components:
         if comp["name"] == name:
             return comp["error"]
 
+
 def handlers_by_name(name):
     for comp in components:
         if comp["name"] == name:
             return comp["handlers"]
+
 
 class Component:
     def __init__(self, name):
@@ -37,27 +42,27 @@ class Component:
             raise exceptions.ComponentNameError(f"No component found with name '{self.name}'.")
         self._handler = self._determine_handler()
         self.power_usages = []
-        self.cur_epoch = -1 # sentry
+        self.cur_epoch = -1  # Sentry
     
     @property
     def handler(self):
         if self._handler is None:
             raise error_by_name(self.name)
         return self._handler
-    
+
     def _determine_handler(self):
         handlers = handlers_by_name(self.name)
         for handler in handlers:
             if handler.available():
                 return handler
         return None
-    
+
     def devices(self):
         return self.handler.devices()
-    
+
     def available(self):
         return self._handler is not None
-    
+
     def collect_power_usage(self, epoch):
         if epoch < 1:
             return
@@ -67,7 +72,7 @@ class Component:
             self.power_usages.append([])
 
         self.power_usages[-1].append(self.handler.power_usage())
-    
+
     def energy_usage(self, epoch_times):
         """Returns energy (kWh) used by component per epoch."""
         energy_usages = []
@@ -84,9 +89,10 @@ class Component:
 
     def init(self):
         self.handler.init()
-    
+
     def shutdown(self):
-        self.handler.shutdown()        
+        self.handler.shutdown()
+
 
 def create_components(comp_str):
     comp_str = comp_str.strip().replace(" ", "").lower()
