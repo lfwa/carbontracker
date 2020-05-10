@@ -36,5 +36,5 @@ class ComponentNameError(Exception):
     pass
 
 
-class InvalidAPINameError(Exception):
+class FetcherNameError(Exception):
     pass

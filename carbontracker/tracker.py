@@ -211,7 +211,7 @@ class CarbonTracker:
                 if name.lower() == "co2signal":
                     co2signal.AUTH_TOKEN = key
                 else:
-                    raise exceptions.InvalidAPINameError(
+                    raise exceptions.FetcherNameError(
                         f"Invalid API name '{name}' given.")
         except Exception as e:
             self._handle_error(e)
