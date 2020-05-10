@@ -75,20 +75,22 @@ class CarbonTrackerThread(Thread):
 
     def _log_components_info(self):
         log = ["The following components were found:"]
-        for component in self.components:
-            name = component.name.upper()
-            devices = ", ".join(component.devices())
+        for comp in self.components:
+            name = comp.name.upper()
+            devices = ", ".join(comp.devices())
             log.append(f"{name} with device(s) {devices}.")
         log_str = " ".join(log)
         self.logger.info(log_str)
         self.logger.output(log_str, verbose_level=1)
 
     def _log_epoch_measurements(self):
-        for component in self.components:
-            epoch_power_usages = component.power_usages[-1]
+        for comp in self.components:
+            duration = self.epoch_times[-1]
+            epoch_power_usages = comp.power_usages[-1]
             self.logger.info(
-                f"Power usages (W) for {component.name}: {epoch_power_usages}."
-            )
+                f"Duration: {loggerutil.convert_to_timestring(duration)}")
+            self.logger.info(
+                f"Power usages (W) for {comp.name}: {epoch_power_usages}")
 
     def _components_remove_unavailable(self):
         self.components = [cmp for cmp in self.components if cmp.available()]
@@ -96,23 +98,23 @@ class CarbonTrackerThread(Thread):
             raise exceptions.NoComponentsAvailableError()
 
     def _components_init(self):
-        for component in self.components:
-            component.init()
+        for comp in self.components:
+            comp.init()
 
     def _components_shutdown(self):
-        for component in self.components:
-            component.shutdown()
+        for comp in self.components:
+            comp.shutdown()
 
     def _collect_measurements(self):
         """Collect one round of measurements."""
-        for component in self.components:
-            component.collect_power_usage(self.epoch_counter)
+        for comp in self.components:
+            comp.collect_power_usage(self.epoch_counter)
 
     def total_energy_per_epoch(self):
         """Retrieves total energy (kWh) per epoch used by all components."""
         total_energy = np.zeros(len(self.epoch_times))
-        for component in self.components:
-            energy_usage = component.energy_usage(self.epoch_times)
+        for comp in self.components:
+            energy_usage = comp.energy_usage(self.epoch_times)
             total_energy += energy_usage
         return total_energy
 
@@ -145,14 +147,15 @@ class CarbonTracker:
                  log_dir=None,
                  verbose=0):
         self.epochs = epochs
-        self.epochs_before_pred = (epochs_before_pred
-                                   if epochs_before_pred > 0 else epochs)
-        if monitor_epochs < 0:
-            self.monitor_epochs = epochs
-        elif monitor_epochs < self.epochs_before_pred:
-            self.monitor_epochs = self.epochs_before_pred
-        else:
-            self.monitor_epochs = monitor_epochs
+        self.epochs_before_pred = (epochs if epochs_before_pred < 0 else
+                                   epochs_before_pred)
+        self.monitor_epochs = (epochs
+                               if monitor_epochs < 0 else monitor_epochs)
+        if (self.monitor_epochs == 0
+                or self.monitor_epochs < self.epochs_before_pred):
+            raise ValueError(
+                "Argument monitor_epochs expected a value in "
+                f"{{-1, >0, >=epochs_before_pred}}, got {monitor_epochs}.")
         self.interpretable = interpretable
         self.stop_and_confirm = stop_and_confirm
         self.ignore_errors = ignore_errors
@@ -188,9 +191,6 @@ class CarbonTracker:
         try:
             self.tracker.epoch_end()
 
-            if self.epoch_counter < self.epochs_before_pred:
-                return
-
             if self.epoch_counter == self.monitor_epochs:
                 self._output_actual()
 
@@ -211,7 +211,7 @@ class CarbonTracker:
                 if name.lower() == "co2signal":
                     co2signal.AUTH_TOKEN = key
                 else:
-                    raise exceptions.InvalidAPIName(
+                    raise exceptions.InvalidAPINameError(
                         f"Invalid API name '{name}' given.")
         except Exception as e:
             self._handle_error(e)

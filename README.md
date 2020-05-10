@@ -20,9 +20,9 @@ pip install carbontracker
   Total epochs of your training loop.
 #### Optional arguments
 - `epochs_before_pred` (default=1):
-  Epochs to monitor before outputting predicted consumption. Set to -1 for all epochs.
+  Epochs to monitor before outputting predicted consumption. Set to -1 for all epochs. Set to 0 for no prediction.
 - `monitor_epochs` (default=1):
-  Total number of epochs to monitor. Outputs actual consumption when reached. Set to -1 for all epochs. Cannot be less than `epochs_before_pred`.
+  Total number of epochs to monitor. Outputs actual consumption when reached. Set to -1 for all epochs. Cannot be less than `epochs_before_pred` or equal to 0.
 - `update_interval` (default=10):
   Interval in seconds between power usage measurements are taken.
 - `interpretable` (default=True):
