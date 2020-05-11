@@ -57,7 +57,7 @@ class CO2Signal(IntensityFetcher):
         headers = {"auth-token": AUTH_TOKEN}
 
         response = requests.get(API_URL, headers=headers, params=params)
-        if response.status_code != response.ok:
+        if not response.ok:
             raise exceptions.CarbonIntensityFetcherError(response.json())
         carbon_intensity = response.json()["data"]["carbonIntensity"]
         unit = response["units"]["carbonIntensity"]

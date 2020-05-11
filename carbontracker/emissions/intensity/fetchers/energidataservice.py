@@ -38,7 +38,7 @@ class EnergiDataService(IntensityFetcher):
         for area in areas:
             url = url_creator(area)
             response = requests.get(url)
-            if response.status_code != response.ok:
+            if not response.ok:
                 raise exceptions.CarbonIntensityFetcherError(response.json())
             carbon_intensities.append(
                 response.json()["result"]["records"][0]["CO2Emission"])
@@ -53,7 +53,7 @@ class EnergiDataService(IntensityFetcher):
                f"""co2."Minutes5UTC" < timestamp'{to_str}' """
                """ORDER BY co2."Minutes5UTC" DESC""")
         response = requests.get(url)
-        if response.status_code != response.ok:
+        if not response.ok:
             raise exceptions.CarbonIntensityFetcherError(response.json())
         data = response.json()["result"]["records"]
         carbon_intensities = [record["CO2Emission"] for record in data]

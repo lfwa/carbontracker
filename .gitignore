@@ -15,4 +15,5 @@ lib64
 build/
 *.pyo
 *.pyc
-
+.vscode/
+.vscode

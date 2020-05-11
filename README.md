@@ -1,11 +1,11 @@
-# CarbonTracker
+# carbontracker
 [![pypi](https://img.shields.io/pypi/v/carbontracker?label=pypi)](https://pypi.org/project/carbontracker/)
 [![Python 3.6](https://img.shields.io/pypi/pyversions/django?color=blue&logo=python)](https://www.python.org/downloads/)
 [![build](https://github.com/lfwa/carbontracker/workflows/build/badge.svg)](https://github.com/lfwa/carbontracker/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/lfwa/carbontracker/blob/master/LICENSE)
 
 ## About
-CarbonTracker is a tool for tracking and predicting the carbon footprint of training deep learning models.
+**carbontracker** is a tool for tracking and predicting the carbon footprint of training deep learning models.
 
 ## Installation
 ### PyPi
@@ -38,7 +38,7 @@ pip install carbontracker
 - `verbose` (default=0):
   Sets the level of verbosity.
 
-#### Example:
+#### Example usage
 
 ```python
 from carbontracker.tracker import CarbonTracker
@@ -49,10 +49,52 @@ tracker = CarbonTracker(epochs=max_epochs)
 for epoch in range(max_epochs):
     tracker.epoch_start()
     
-    # Your model training
+    # Your model training.
 
     tracker.epoch_end()
 ```
+
+#### Example output
+##### Default settings
+```
+CarbonTracker: 
+Actual consumption for 1 epoch(s):
+        Time:   0:00:10.342436
+        Energy: 0.000038 kWh
+        CO2eq:  0.003130 g
+        This is equivalent to:
+        0.000026 km travelled by car
+CarbonTracker: 
+Predicted consumption for 1000 epoch(s):
+        Time:   2:52:22.436314
+        Energy: 0.038168 kWh
+        CO2eq:  4.096665 g
+        This is equivalent to:
+        0.034025 km travelled by car
+CarbonTracker: Finished monitoring.
+```
+##### verbose=2
+```
+CarbonTracker: The following components were found: CPU with device(s) cpu:0.
+CarbonTracker: Current carbon intensity is 82.00 gCO2/kWh at detected location: Copenhagen, Capital Region, DK.
+CarbonTracker: 
+Actual consumption for 1 epoch(s):
+        Time:   0:00:10.746723
+        Energy: 0.000041 kWh
+        CO2eq:  0.003357 g
+        This is equivalent to:
+        0.000028 km travelled by car
+CarbonTracker: Carbon intensity for the next 2:59:06.722937 is predicted to be 107.49 gCO2/kWh at detected location: Copenhagen, Capital Region, DK.
+CarbonTracker: 
+Predicted consumption for 1000 epoch(s):
+        Time:   2:59:06.722937
+        Energy: 0.040940 kWh
+        CO2eq:  4.400445 g
+        This is equivalent to:
+        0.036549 km travelled by car
+CarbonTracker: Finished monitoring.
+```
+
 
 ## Compatability
 CarbonTracker is compatible with:

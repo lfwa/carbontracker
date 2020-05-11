@@ -67,7 +67,7 @@ class Logger:
         self.info(f"{about['__title__']} version {about['__version__']}")
 
     def output(self, msg, verbose_level=0):
-        if verbose_level >= self.verbose:
+        if self.verbose >= verbose_level:
             self.logger_output.info(self.msg_prepend + msg)
 
     def debug(self, msg):

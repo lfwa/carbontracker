@@ -163,7 +163,7 @@ class CarbonTracker:
         self.deleted = False
 
         try:
-            self.logger = loggerutil.Logger(log_dir=log_dir)
+            self.logger = loggerutil.Logger(log_dir=log_dir, verbose=verbose)
             self.tracker = CarbonTrackerThread(
                 components=component.create_components(components),
                 logger=self.logger,
