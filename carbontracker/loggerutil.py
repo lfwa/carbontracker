@@ -5,8 +5,24 @@ import pathlib
 import datetime
 
 
-def convert_to_timestring(seconds):
-    return str(datetime.timedelta(seconds=seconds))
+def convert_to_timestring(seconds, add_milliseconds=True):
+    if add_milliseconds:
+        return str(datetime.timedelta(seconds=seconds))
+    else:
+        return str(datetime.timedelta(seconds=seconds)).split(".")[0]
+
+
+class trackerFormatter(logging.Formatter):
+    converter = datetime.datetime.fromtimestamp
+
+    def formatTime(self, record, datefmt=None):
+        ct = self.converter(record.created)
+        if datefmt:
+            s = ct.strftime(datefmt)
+        else:
+            t = ct.strftime("%Y-%m-%d %H:%M:%S")
+            s = "%s" % t
+        return s
 
 
 class Logger:
@@ -40,9 +56,10 @@ class Logger:
 
             logger = logging.getLogger("carbontracker")
             logger.setLevel(logging.DEBUG)
-            f_formatter = logging.Formatter(
-                "{asctime} - {threadName} - {levelname} - {message}",
-                style="{")
+            #f_formatter = logging.Formatter(
+            #    "{asctime} - {threadName} - {levelname} - {message}",
+            #    style="{")
+            f_formatter = trackerFormatter(fmt="%(asctime)s - %(message)s")
 
             # Add output logging to file.
             fh = logging.FileHandler(

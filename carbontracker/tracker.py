@@ -65,12 +65,12 @@ class CarbonTrackerThread(Thread):
         self.epoch_counter += 1
         self.measuring = True
         self.cur_epoch_time = time.time()
-        self.logger.info(f"Epoch {self.epoch_counter} started.")
+        #self.logger.info(f"Epoch {self.epoch_counter} started.")
 
     def epoch_end(self):
         self.measuring = False
         self.epoch_times.append(time.time() - self.cur_epoch_time)
-        self.logger.info(f"Epoch {self.epoch_counter} ended.")
+        self.logger.info(f"Epoch {self.epoch_counter} ended:")
         self._log_epoch_measurements()
 
     def _log_components_info(self):
@@ -87,10 +87,13 @@ class CarbonTrackerThread(Thread):
         for comp in self.components:
             duration = self.epoch_times[-1]
             epoch_power_usages = comp.power_usages[-1]
+            epoch_power_average = sum(
+                sum(x) for x in epoch_power_usages) / len(epoch_power_usages)
             self.logger.info(
                 f"Duration: {loggerutil.convert_to_timestring(duration)}")
             self.logger.info(
-                f"Power usages (W) for {comp.name}: {epoch_power_usages}")
+                f"Average power usage (W) for {comp.name}: {epoch_power_average}"
+            )
 
     def _components_remove_unavailable(self):
         self.components = [cmp for cmp in self.components if cmp.available()]
@@ -232,10 +235,11 @@ class CarbonTracker:
             sys.exit(os.EX_SOFTWARE)
 
     def _output_energy(self, description, time, energy, co2eq, conversions):
-        output = (f"\n{description}\n"
-                  f"\tTime:\t{loggerutil.convert_to_timestring(time)}\n"
-                  f"\tEnergy:\t{energy:.6f} kWh\n"
-                  f"\tCO2eq:\t{co2eq:.6f} g")
+        output = (
+            f"\n{description}\n"
+            f"\tTime:\t{loggerutil.convert_to_timestring(time, add_milliseconds=False)}\n"
+            f"\tEnergy:\t{energy:.6f} kWh\n"
+            f"\tCO2eq:\t{co2eq:.6f} g")
 
         if conversions:
             conv_str = "\n\tThis is equivalent to:"
