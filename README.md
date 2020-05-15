@@ -59,14 +59,14 @@ for epoch in range(max_epochs):
 ```
 CarbonTracker: 
 Actual consumption for 1 epoch(s):
-        Time:   0:00:10.342436
+        Time:   0:00:10
         Energy: 0.000038 kWh
         CO2eq:  0.003130 g
         This is equivalent to:
         0.000026 km travelled by car
 CarbonTracker: 
 Predicted consumption for 1000 epoch(s):
-        Time:   2:52:22.436314
+        Time:   2:52:22
         Energy: 0.038168 kWh
         CO2eq:  4.096665 g
         This is equivalent to:
@@ -79,15 +79,15 @@ CarbonTracker: The following components were found: CPU with device(s) cpu:0.
 CarbonTracker: Current carbon intensity is 82.00 gCO2/kWh at detected location: Copenhagen, Capital Region, DK.
 CarbonTracker: 
 Actual consumption for 1 epoch(s):
-        Time:   0:00:10.746723
+        Time:   0:00:10
         Energy: 0.000041 kWh
         CO2eq:  0.003357 g
         This is equivalent to:
         0.000028 km travelled by car
-CarbonTracker: Carbon intensity for the next 2:59:06.722937 is predicted to be 107.49 gCO2/kWh at detected location: Copenhagen, Capital Region, DK.
+CarbonTracker: Carbon intensity for the next 2:59:06 is predicted to be 107.49 gCO2/kWh at detected location: Copenhagen, Capital Region, DK.
 CarbonTracker: 
 Predicted consumption for 1000 epoch(s):
-        Time:   2:59:06.722937
+        Time:   2:59:06
         Energy: 0.040940 kWh
         CO2eq:  4.400445 g
         This is equivalent to:
