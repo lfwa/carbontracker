@@ -65,12 +65,11 @@ class CarbonTrackerThread(Thread):
         self.epoch_counter += 1
         self.measuring = True
         self.cur_epoch_time = time.time()
-        #self.logger.info(f"Epoch {self.epoch_counter} started.")
 
     def epoch_end(self):
         self.measuring = False
         self.epoch_times.append(time.time() - self.cur_epoch_time)
-        self.logger.info(f"Epoch {self.epoch_counter} ended:")
+        self.logger.info(f"Epoch {self.epoch_counter}:")
         self._log_epoch_measurements()
 
     def _log_components_info(self):
@@ -86,14 +85,11 @@ class CarbonTrackerThread(Thread):
     def _log_epoch_measurements(self):
         for comp in self.components:
             duration = self.epoch_times[-1]
-            epoch_power_usages = comp.power_usages[-1]
-            epoch_power_average = sum(
-                sum(x) for x in epoch_power_usages) / len(epoch_power_usages)
+            power_avg = np.mean(comp.power_usages[-1], axis=0)
             self.logger.info(
                 f"Duration: {loggerutil.convert_to_timestring(duration)}")
             self.logger.info(
-                f"Average power usage (W) for {comp.name}: {epoch_power_average}"
-            )
+                f"Average power usage (W) for {comp.name}: {power_avg}")
 
     def _components_remove_unavailable(self):
         self.components = [cmp for cmp in self.components if cmp.available()]
@@ -127,7 +123,7 @@ class CarbonTrackerThread(Thread):
             err_str = (f"Ignored error: {err_str}Continued training without "
                        "monitoring...")
 
-        self.logger.critical(err_str)
+        self.logger.err_critical(err_str)
         self.logger.output(err_str)
 
         if self.ignore_errors:
@@ -225,7 +221,7 @@ class CarbonTracker:
             err_str = (f"Ignored error: {err_str}Continued training without "
                        "monitoring...")
 
-        self.logger.critical(err_str)
+        self.logger.err_critical(err_str)
         self.logger.output(err_str)
 
         if self.ignore_errors:
@@ -235,11 +231,10 @@ class CarbonTracker:
             sys.exit(os.EX_SOFTWARE)
 
     def _output_energy(self, description, time, energy, co2eq, conversions):
-        output = (
-            f"\n{description}\n"
-            f"\tTime:\t{loggerutil.convert_to_timestring(time, add_milliseconds=False)}\n"
-            f"\tEnergy:\t{energy:.6f} kWh\n"
-            f"\tCO2eq:\t{co2eq:.6f} g")
+        output = (f"\n{description}\n"
+                  f"\tTime:\t{loggerutil.convert_to_timestring(time)}\n"
+                  f"\tEnergy:\t{energy:.6f} kWh\n"
+                  f"\tCO2eq:\t{co2eq:.6f} g")
 
         if conversions:
             conv_str = "\n\tThis is equivalent to:"

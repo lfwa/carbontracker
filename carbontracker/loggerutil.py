@@ -6,13 +6,10 @@ import datetime
 
 
 def convert_to_timestring(seconds, add_milliseconds=True):
-    if add_milliseconds:
-        return str(datetime.timedelta(seconds=seconds))
-    else:
-        return str(datetime.timedelta(seconds=seconds)).split(".")[0]
+    return str(datetime.timedelta(seconds=seconds)).split(".")[0]
 
 
-class trackerFormatter(logging.Formatter):
+class TrackerFormatter(logging.Formatter):
     converter = datetime.datetime.fromtimestamp
 
     def formatTime(self, record, datefmt=None):
@@ -27,17 +24,23 @@ class trackerFormatter(logging.Formatter):
 
 class Logger:
     def __init__(self, log_dir=None, verbose=0):
-        self.logger, self.logger_output = self._setup(log_dir=log_dir)
+        self.logger, self.logger_output, self.logger_err = self._setup(
+            log_dir=log_dir)
         self._log_initial_info()
         self.verbose = verbose
         self.msg_prepend = "CarbonTracker: "
 
     def _setup(self, log_dir=None):
-        logger = None
+        logger = logging.getLogger("carbontracker")
+        logger_err = logging.getLogger("carbontracker.err")
         logger_output = logging.getLogger("carbontracker.output")
         # Disable output logging from propagating to parent loggers.
+        logger.propagate = False
+        logger.setLevel(logging.DEBUG)
         logger_output.propagate = False
         logger_output.setLevel(logging.DEBUG)
+        logger_err.propagate = False
+        logger_err.setLevel(logging.DEBUG)
 
         # Add output logging to console.
         ch = logging.StreamHandler(stream=sys.stdout)
@@ -54,12 +57,7 @@ class Logger:
             date_format = "%Y-%m-%dT%H:%MZ"
             date = datetime.datetime.now().strftime(date_format)
 
-            logger = logging.getLogger("carbontracker")
-            logger.setLevel(logging.DEBUG)
-            #f_formatter = logging.Formatter(
-            #    "{asctime} - {threadName} - {levelname} - {message}",
-            #    style="{")
-            f_formatter = trackerFormatter(fmt="%(asctime)s - %(message)s")
+            f_formatter = TrackerFormatter(fmt="%(asctime)s - %(message)s")
 
             # Add output logging to file.
             fh = logging.FileHandler(
@@ -74,7 +72,17 @@ class Logger:
             f.setFormatter(f_formatter)
             logger.addHandler(f)
 
-        return logger, logger_output
+            # Add error logging to file.
+            err_formatter = logging.Formatter(
+                "{asctime} - {threadName} - {levelname} - {message}",
+                style="{")
+            f_err = logging.FileHandler(
+                f"{log_dir}/{date}_carbontracker_err.log", delay=True)
+            f_err.setLevel(logging.DEBUG)
+            f_err.setFormatter(err_formatter)
+            logger_err.addHandler(f_err)
+
+        return logger, logger_output, logger_err
 
     def _log_initial_info(self):
         here = os.path.abspath(os.path.dirname(__file__))
@@ -87,22 +95,17 @@ class Logger:
         if self.verbose >= verbose_level:
             self.logger_output.info(self.msg_prepend + msg)
 
-    def debug(self, msg):
-        if self.logger is None:
-            return
-        self.logger.debug(msg)
-
     def info(self, msg):
-        if self.logger is None:
-            return
         self.logger.info(msg)
 
-    def warn(self, msg):
-        if self.logger is None:
-            return
-        self.logger.warn(msg)
+    def err_debug(self, msg):
+        self.logger_err.debug(msg)
 
-    def critical(self, msg):
-        if self.logger is None:
-            return
-        self.logger.critical(msg)
+    def err_info(self, msg):
+        self.logger_err.info(msg)
+
+    def err_warn(self, msg):
+        self.logger_err.warn(msg)
+
+    def err_critical(self, msg):
+        self.logger_err.critical(msg)

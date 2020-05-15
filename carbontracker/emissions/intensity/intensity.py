@@ -54,7 +54,9 @@ def carbon_intensity(logger, time_dur=None):
                 "Failed to retrieve location based on IP.")
     except:
         err_str = traceback.format_exc()
-        logger.info(err_str)
+        logger.err_info(err_str)
+        logger.info(carbon_intensity.message)
+        logger.output(carbon_intensity.message, verbose_level=2)
         return carbon_intensity
 
     for fetcher in fetchers:
@@ -67,7 +69,7 @@ def carbon_intensity(logger, time_dur=None):
             break
         except:
             err_str = traceback.format_exc()
-            logger.info(err_str)
+            logger.err_info(err_str)
 
     logger.info(carbon_intensity.message)
     logger.output(carbon_intensity.message, verbose_level=2)
