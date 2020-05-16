@@ -4,6 +4,9 @@ from abc import ABCMeta, abstractmethod
 class Handler:
     __metaclass__ = ABCMeta
 
+    def __init__(self, pids):
+        self.pids = pids
+
     @abstractmethod
     def devices(self):
         """Returns a list of devices (str) associated with the component."""

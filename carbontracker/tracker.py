@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import traceback
+import psutil
 from threading import Thread
 
 import numpy as np
@@ -34,6 +35,7 @@ class CarbonTrackerThread(Thread):
     def run(self):
         """Thread's activity."""
         try:
+            self.begin()
             while self.running:
                 if not self.measuring:
                     continue
@@ -162,9 +164,10 @@ class CarbonTracker:
         self.deleted = False
 
         try:
+            pids = self._get_pids()
             self.logger = loggerutil.Logger(log_dir=log_dir, verbose=verbose)
             self.tracker = CarbonTrackerThread(
-                components=component.create_components(components),
+                components=component.create_components(components, pids),
                 logger=self.logger,
                 ignore_errors=ignore_errors,
                 update_interval=update_interval)
@@ -176,8 +179,6 @@ class CarbonTracker:
             return
 
         try:
-            if self.epoch_counter == 0:
-                self.tracker.begin()
             self.tracker.epoch_start()
             self.epoch_counter += 1
         except Exception as e:
@@ -300,3 +301,10 @@ class CarbonTracker:
         del self.logger
         del self.tracker
         self.deleted = True
+
+    def _get_pids(self):
+        """Get current process id and all children process ids."""
+        process = psutil.Process()
+        pids = [process.pid
+                ] + [child.pid for child in process.children(recursive=True)]
+        return pids

@@ -100,3 +100,7 @@ CarbonTracker: Finished monitoring.
 CarbonTracker is compatible with:
 - NVIDIA GPUs that support [NVIDIA Management Library (NVML)](https://developer.nvidia.com/nvidia-management-library-nvml)
 - Intel CPUs that support [Intel RAPL](http://web.eece.maine.edu/~vweaver/projects/rapl/rapl_support.html)
+- Slurm
+- Google Colab / Jupyter Notebook
+
+On other docker containers spawned without `--pid=host` CarbonTracker will monitor all GPUs in the rack.

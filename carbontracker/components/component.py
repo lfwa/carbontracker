@@ -3,14 +3,15 @@ import numpy as np
 from carbontracker import exceptions
 from carbontracker.components.gpu import nvidia
 from carbontracker.components.cpu import intel
+
 components = [{
     "name": "gpu",
     "error": exceptions.GPUError("No GPU(s) available."),
-    "handlers": [nvidia.NvidiaGPU()]
+    "handlers": [nvidia.NvidiaGPU]
 }, {
     "name": "cpu",
     "error": exceptions.CPUError("No CPU(s) available."),
-    "handlers": [intel.IntelCPU()]
+    "handlers": [intel.IntelCPU]
 }]
 
 
@@ -31,12 +32,12 @@ def handlers_by_name(name):
 
 
 class Component:
-    def __init__(self, name):
+    def __init__(self, name, pids):
         self.name = name
         if name not in component_names():
             raise exceptions.ComponentNameError(
                 f"No component found with name '{self.name}'.")
-        self._handler = self._determine_handler()
+        self._handler = self._determine_handler(pids=pids)
         self.power_usages = []
         self.cur_epoch = -1  # Sentry
 
@@ -46,9 +47,10 @@ class Component:
             raise error_by_name(self.name)
         return self._handler
 
-    def _determine_handler(self):
+    def _determine_handler(self, pids):
         handlers = handlers_by_name(self.name)
-        for handler in handlers:
+        for h in handlers:
+            handler = h(pids=pids)
             if handler.available():
                 return handler
         return None
@@ -90,9 +92,15 @@ class Component:
         self.handler.shutdown()
 
 
-def create_components(comp_str):
+def create_components(comp_str, pids):
     comp_str = comp_str.strip().replace(" ", "").lower()
     if comp_str == "all":
-        return [Component(name=comp_name) for comp_name in component_names()]
+        return [
+            Component(name=comp_name, pids=pids)
+            for comp_name in component_names()
+        ]
     else:
-        return [Component(name=comp_name) for comp_name in comp_str.split(",")]
+        return [
+            Component(name=comp_name, pids=pids)
+            for comp_name in comp_str.split(",")
+        ]
