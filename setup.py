@@ -27,5 +27,6 @@ setup(name=about["__title__"],
           "pandas",
           "requests",
           "pynvml",
+          "psutil",
       ],
       python_requires=">=3.6")

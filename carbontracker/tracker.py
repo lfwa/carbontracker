@@ -17,9 +17,15 @@ from carbontracker.emissions.intensity.fetchers import co2signal
 
 
 class CarbonTrackerThread(Thread):
-    def __init__(self, components, logger, ignore_errors, update_interval=10):
+    def __init__(self,
+                 components,
+                 logger,
+                 ignore_errors,
+                 delete,
+                 update_interval=10):
         super(CarbonTrackerThread, self).__init__()
         self.name = "CarbonTrackerThread"
+        self.delete = delete
         self.components = components
         self.update_interval = update_interval
         self.ignore_errors = ignore_errors
@@ -71,7 +77,6 @@ class CarbonTrackerThread(Thread):
     def epoch_end(self):
         self.measuring = False
         self.epoch_times.append(time.time() - self.cur_epoch_time)
-        self.logger.info(f"Epoch {self.epoch_counter}:")
         self._log_epoch_measurements()
 
     def _log_components_info(self):
@@ -85,11 +90,12 @@ class CarbonTrackerThread(Thread):
         self.logger.output(log_str, verbose_level=1)
 
     def _log_epoch_measurements(self):
+        self.logger.info(f"Epoch {self.epoch_counter}:")
+        duration = self.epoch_times[-1]
+        self.logger.info(
+            f"Duration: {loggerutil.convert_to_timestring(duration)}")
         for comp in self.components:
-            duration = self.epoch_times[-1]
             power_avg = np.mean(comp.power_usages[-1], axis=0)
-            self.logger.info(
-                f"Duration: {loggerutil.convert_to_timestring(duration)}")
             self.logger.info(
                 f"Average power usage (W) for {comp.name}: {power_avg}")
 
@@ -130,7 +136,7 @@ class CarbonTrackerThread(Thread):
 
         if self.ignore_errors:
             # Stop monitoring but continue training.
-            self._delete()
+            self.delete()
         else:
             os._exit(os.EX_SOFTWARE)
 
@@ -145,6 +151,7 @@ class CarbonTracker:
                  stop_and_confirm=False,
                  ignore_errors=False,
                  components="all",
+                 devices_by_pid=False,
                  log_dir=None,
                  verbose=0):
         self.epochs = epochs
@@ -167,7 +174,11 @@ class CarbonTracker:
             pids = self._get_pids()
             self.logger = loggerutil.Logger(log_dir=log_dir, verbose=verbose)
             self.tracker = CarbonTrackerThread(
-                components=component.create_components(components, pids),
+                delete=self._delete,
+                components=component.create_components(
+                    components=components,
+                    pids=pids,
+                    devices_by_pid=devices_by_pid),
                 logger=self.logger,
                 ignore_errors=ignore_errors,
                 update_interval=update_interval)

@@ -8,7 +8,7 @@ by running queries in batches (initializing and shutdown after each query can
 result in more than a 10x slowdown).
 """
 import pynvml
-import traceback
+import os
 
 from carbontracker.components.handler import Handler
 
@@ -49,46 +49,70 @@ class NvidiaGPU(Handler):
             try:
                 # Retrieves power usage in mW, divide by 1000 to get in W.
                 power_usage = pynvml.nvmlDeviceGetPowerUsage(handle) / 1000
+                gpu_power_usages.append(power_usage)
             except pynvml.NVMLError:
-                power_usage = None
-            gpu_power_usages.append(power_usage)
+                pass
 
         return gpu_power_usages
 
     def init(self):
         pynvml.nvmlInit()
-        self._handles = self._get_active_devices()
+        if self.devices_by_pid:
+            self._handles = self._get_handles_by_pid()
+        else:
+            self._handles = self._get_handles()
 
     def shutdown(self):
         pynvml.nvmlShutdown()
 
-    def _get_active_devices(self):
-        """Get GPUs where at least one of the current processes are running.
-        
+    def _get_handles(self):
+        """Returns handles of GPUs in slurm job if existent otherwise all
+        available GPUs."""
+        device_indices = self._slurm_gpu_indices()
+
+        # If we cannot retrieve indices from slurm then we retrieve all GPUs.
+        if not device_indices:
+            device_count = pynvml.nvmlDeviceGetCount()
+            device_indices = range(device_count)
+
+        return [pynvml.nvmlDeviceGetHandleByIndex(i) for i in device_indices]
+
+    def _slurm_gpu_indices(self):
+        """Returns indices of GPUs for the current slurm job if existent.
+
         Note:
+            Relies on the environment variable CUDA_VISIBLE_DEVICES to not
+            overwritten. Alternative variables could be SLURM_JOB_GPUS and
+            GPU_DEVICE_ORDINAL.
+        """
+        index_str = os.environ.get("CUDA_VISIBLE_DEVICES")
+        try:
+            indices = [int(i) for i in index_str.split(",")]
+        except:
+            indices = None
+        return indices
+
+    def _get_handles_by_pid(self):
+        """Returns handles of GPU running at least one process from PIDS.
+
+        Note:
+            GPUs need to have started work before showing any processes.
             Requires NVML to be initialized.
-            If we cannot retrieve any PIDs at all on any GPUs then we assume
-            the container was not started with --pid=host, which is a known
-            NVML bug https://github.com/NVIDIA/nvidia-docker/issues/179.
+            Bug: Containers need to be started with --pid=host for NVML to show
+            processes: https://github.com/NVIDIA/nvidia-docker/issues/179.
         """
         device_count = pynvml.nvmlDeviceGetCount()
-        fallback = []
         devices = []
-        gpu_pids_available = False
 
         for index in range(device_count):
             handle = pynvml.nvmlDeviceGetHandleByIndex(index)
-            fallback.append(handle)
             gpu_pids = [
                 p.pid
                 for p in pynvml.nvmlDeviceGetComputeRunningProcesses(handle) +
                 pynvml.nvmlDeviceGetGraphicsRunningProcesses(handle)
             ]
 
-            if gpu_pids:
-                gpu_pids_available = True
-
             if set(gpu_pids).intersection(self.pids):
                 devices.append(handle)
 
-        return devices if gpu_pids_available else fallback
+        return devices

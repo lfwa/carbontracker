@@ -4,8 +4,9 @@ from abc import ABCMeta, abstractmethod
 class Handler:
     __metaclass__ = ABCMeta
 
-    def __init__(self, pids):
+    def __init__(self, pids, devices_by_pid):
         self.pids = pids
+        self.devices_by_pid = devices_by_pid
 
     @abstractmethod
     def devices(self):

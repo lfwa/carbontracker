@@ -7,6 +7,7 @@
 ## About
 **carbontracker** is a tool for tracking and predicting the carbon footprint of training deep learning models.
 
+
 ## Installation
 ### PyPi
 ```
@@ -33,6 +34,8 @@ pip install carbontracker
   If set to True then all errors will cause energy monitoring to be stopped and training will continue. Otherwise, training will be interrupted as with regular errors.
 - `components` (default="all"):
   Comma-separated string of which components to monitor. Options are: "all", "gpu", "cpu", or "gpu,cpu".
+- `devices_by_pid` (default=False):
+  If True, only devices (under the chosen components) running processes associated with the main process are measured. If False, all available devices are measured (see Section 'Notes' for jobs running on SLURM or in containers). Note that this requires your devices to have active processes before instantiating the `CarbonTracker` class.
 - `log_dir` (default=None):
   Path to the desired directory to write log files. If None, then no logging will be done.
 - `verbose` (default=0):
@@ -103,4 +106,8 @@ CarbonTracker is compatible with:
 - Slurm
 - Google Colab / Jupyter Notebook
 
-On other docker containers spawned without `--pid=host` CarbonTracker will monitor all GPUs in the rack.
+
+## Notes
+### Availability of GPUs and Slurm
+- Available GPU devices are determined by first checking the environment variable `CUDA_VISIBLE_DEVICES` (only if `devices_by_pid`=False otherwise we find devices by PID). This ensures that for Slurm we only fetch GPU devices associated with the current job and not the entire cluster. If this fails we measure all available GPUs.
+- NVML cannot find processes for containers spawned without `--pid=host`. This affects the `device_by_pids` parameter and means that it will never find any active processes for GPUs in affected containers. 

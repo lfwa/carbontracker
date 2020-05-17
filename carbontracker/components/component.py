@@ -32,12 +32,13 @@ def handlers_by_name(name):
 
 
 class Component:
-    def __init__(self, name, pids):
+    def __init__(self, name, pids, devices_by_pid):
         self.name = name
         if name not in component_names():
             raise exceptions.ComponentNameError(
                 f"No component found with name '{self.name}'.")
-        self._handler = self._determine_handler(pids=pids)
+        self._handler = self._determine_handler(pids=pids,
+                                                devices_by_pid=devices_by_pid)
         self.power_usages = []
         self.cur_epoch = -1  # Sentry
 
@@ -47,10 +48,10 @@ class Component:
             raise error_by_name(self.name)
         return self._handler
 
-    def _determine_handler(self, pids):
+    def _determine_handler(self, pids, devices_by_pid):
         handlers = handlers_by_name(self.name)
         for h in handlers:
-            handler = h(pids=pids)
+            handler = h(pids=pids, devices_by_pid=devices_by_pid)
             if handler.available():
                 return handler
         return None
@@ -92,15 +93,15 @@ class Component:
         self.handler.shutdown()
 
 
-def create_components(comp_str, pids):
-    comp_str = comp_str.strip().replace(" ", "").lower()
-    if comp_str == "all":
+def create_components(components, pids, devices_by_pid):
+    components = components.strip().replace(" ", "").lower()
+    if components == "all":
         return [
-            Component(name=comp_name, pids=pids)
+            Component(name=comp_name, pids=pids, devices_by_pid=devices_by_pid)
             for comp_name in component_names()
         ]
     else:
         return [
-            Component(name=comp_name, pids=pids)
-            for comp_name in comp_str.split(",")
+            Component(name=comp_name, pids=pids, devices_by_pid=devices_by_pid)
+            for comp_name in components.split(",")
         ]
