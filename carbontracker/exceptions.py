@@ -38,3 +38,7 @@ class ComponentNameError(Exception):
 
 class FetcherNameError(Exception):
     pass
+
+
+class MismatchedLogFilesError(Exception):
+    pass

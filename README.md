@@ -102,6 +102,18 @@ Predicted consumption for 1000 epoch(s):
 CarbonTracker: Finished monitoring.
 ```
 
+### Aggregating log files
+**carbontracker** supports aggregating all log files in a specified directory to a single estimate of the carbon footprint.
+#### Usage
+```python
+from carbontracker import parser
+
+parser.print_aggregate(log_dir="./my_log_directory/")
+```
+#### Example output
+```
+The training of models in this work is estimated to use 4.494 kWh of electricity contributing to 0.423 kg of CO2eq. This is equivalent to 3.515 km travelled by car. Measured by carbontracker (https://github.com/lfwa/carbontracker).
+```
 
 ## Compatability
 CarbonTracker is compatible with:
