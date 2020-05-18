@@ -83,7 +83,7 @@ CarbonTracker: Finished monitoring.
 ##### verbose=2
 ```
 CarbonTracker: The following components were found: CPU with device(s) cpu:0.
-CarbonTracker: Current carbon intensity is 82.00 gCO2/kWh at detected location: Copenhagen, Capital Region, DK.
+CarbonTracker: Average carbon intensity during training was 82.00 gCO2/kWh at detected location: Copenhagen, Capital Region, DK.
 CarbonTracker: 
 Actual consumption for 1 epoch(s):
         Time:   0:00:10

@@ -3,7 +3,7 @@ import sys
 import time
 import traceback
 import psutil
-from threading import Thread
+from threading import Thread, Event
 
 import numpy as np
 
@@ -16,7 +16,62 @@ from carbontracker.emissions.conversion import co2eq
 from carbontracker.emissions.intensity.fetchers import co2signal
 
 
+class CarbonIntensityThread(Thread):
+    """Sleeper thread to update Carbon Intensity every 15 minutes."""
+    def __init__(self, logger, stop_event, update_interval=900):
+        super(CarbonIntensityThread, self).__init__()
+        self.name = "CarbonIntensityThread"
+        self.logger = logger
+        self.update_interval = update_interval
+        self.daemon = True
+        self.stop_event = stop_event
+        self.carbon_intensities = []
+
+        self.start()
+
+    def run(self):
+        try:
+            self._fetch_carbon_intensity()
+            while not self.stop_event.wait(self.update_interval):
+                self._fetch_carbon_intensity()
+        except Exception:
+            err_str = traceback.format_exc()
+            self.logger.warn(err_str)
+
+    def _fetch_carbon_intensity(self):
+        ci = intensity.carbon_intensity(self.logger)
+
+        if ci.success and isinstance(
+                ci.carbon_intensity,
+            (int, float)) and not np.isnan(ci.carbon_intensity):
+            self.carbon_intensities.append(ci)
+
+    def average_carbon_intensity(self, pred_time_dur=None):
+        if pred_time_dur is not None or not self.carbon_intensities:
+            ci = intensity.carbon_intensity(self.logger,
+                                            time_dur=pred_time_dur)
+        else:
+            location = self.carbon_intensities[0].g_location.address
+            intensities = [
+                ci.carbon_intensity for ci in self.carbon_intensities
+            ]
+            avg_ci = np.mean(intensities)
+            msg = (f"Average carbon intensity during training was {avg_ci:.2f}"
+                   f" gCO2/kWh at detected location: {location}.")
+            self.logger.info(
+                "Carbon intensities (gCO2/kWh) fetched every "
+                f"{self.update_interval} s at detected location {location}: "
+                f"{intensities}")
+            ci = intensity.CarbonIntensity(carbon_intensity=avg_ci,
+                                           message=msg,
+                                           success=True)
+        self.logger.info(ci.message)
+        self.logger.output(ci.message, verbose_level=2)
+        return ci
+
+
 class CarbonTrackerThread(Thread):
+    """Thread to fetch consumptions"""
     def __init__(self,
                  components,
                  logger,
@@ -182,6 +237,9 @@ class CarbonTracker:
                 logger=self.logger,
                 ignore_errors=ignore_errors,
                 update_interval=update_interval)
+            self.intensity_stopper = Event()
+            self.intensity_updater = CarbonIntensityThread(
+                self.logger, self.intensity_stopper)
         except Exception as e:
             self._handle_error(e)
 
@@ -299,7 +357,7 @@ class CarbonTracker:
 
     def _co2eq(self, energy_usage, pred_time_dur=None):
         """"Returns the CO2eq (g) of the energy usage (kWh)."""
-        ci = intensity.carbon_intensity(self.logger, pred_time_dur)
+        ci = self.intensity_updater.average_carbon_intensity(pred_time_dur)
         co2eq = energy_usage * ci.carbon_intensity
         return co2eq
 
@@ -323,8 +381,11 @@ class CarbonTracker:
 
     def _delete(self):
         self.tracker.stop()
+        self.intensity_stopper.set()
         del self.logger
         del self.tracker
+        del self.intensity_updater
+        del self.intensity_stopper
         self.deleted = True
 
     def _get_pids(self):

@@ -55,8 +55,6 @@ def carbon_intensity(logger, time_dur=None):
     except:
         err_str = traceback.format_exc()
         logger.err_info(err_str)
-        logger.info(carbon_intensity.message)
-        logger.output(carbon_intensity.message, verbose_level=2)
         return carbon_intensity
 
     for fetcher in fetchers:
@@ -70,9 +68,6 @@ def carbon_intensity(logger, time_dur=None):
         except:
             err_str = traceback.format_exc()
             logger.err_info(err_str)
-
-    logger.info(carbon_intensity.message)
-    logger.output(carbon_intensity.message, verbose_level=2)
 
     return carbon_intensity
 
