@@ -7,6 +7,7 @@ from threading import Thread, Event
 
 import numpy as np
 
+from carbontracker import constants
 from carbontracker import loggerutil
 from carbontracker import predictor
 from carbontracker import exceptions
@@ -173,12 +174,13 @@ class CarbonTrackerThread(Thread):
             comp.collect_power_usage(self.epoch_counter)
 
     def total_energy_per_epoch(self):
-        """Retrieves total energy (kWh) per epoch used by all components."""
+        """Retrieves total energy (kWh) per epoch used by all components
+        including PUE."""
         total_energy = np.zeros(len(self.epoch_times))
         for comp in self.components:
             energy_usage = comp.energy_usage(self.epoch_times)
             total_energy += energy_usage
-        return total_energy
+        return total_energy * constants.PUE
 
     def _handle_error(self, error):
         err_str = traceback.format_exc()

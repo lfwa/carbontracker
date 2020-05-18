@@ -4,6 +4,8 @@ import sys
 import pathlib
 import datetime
 
+from carbontracker import constants
+
 
 def convert_to_timestring(seconds, add_milliseconds=True):
     return str(datetime.timedelta(seconds=seconds)).split(".")[0]
@@ -90,6 +92,10 @@ class Logger:
         with open(os.path.join(here, "__version__.py")) as f:
             exec(f.read(), about)
         self.info(f"{about['__title__']} version {about['__version__']}")
+        self.info(
+            "Only predicted and actual consumptions are multiplied by a PUE "
+            f"coefficient of {constants.PUE} (Rhonda Ascierto, 2018, Uptime "
+            "Institute Global Data Center Survey).")
 
     def output(self, msg, verbose_level=0):
         if self.verbose >= verbose_level:
