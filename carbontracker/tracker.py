@@ -215,6 +215,20 @@ class CarbonTracker:
         except Exception as e:
             self._handle_error(e)
 
+    def stop(self):
+        """Ensure that tracker is stopped and deleted. E.g. use with early
+        stopping, where not all monitor_epochs have been run."""
+        if self.deleted:
+            return
+        self.logger.info(
+            f"Training was interrupted before all {self.monitor_epochs} epochs"
+            " were monitored.")
+        # Decrement epoch_counter with 1 since measurements for ultimate epoch
+        # was interrupted and is not accounted for.
+        self.epoch_counter -= 1
+        self._output_actual()
+        self._delete()
+
     def set_api_keys(self, api_dict):
         """Set API keys (given as {name:key}) for carbon intensity fetchers."""
         try:

@@ -55,6 +55,10 @@ for epoch in range(max_epochs):
     # Your model training.
 
     tracker.epoch_end()
+
+# Optional: Add a stop in case of early termination before all monitor_epochs has
+# been monitored to ensure that actual consumption is reported.
+tracker.stop()
 ```
 
 #### Example output
