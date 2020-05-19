@@ -7,6 +7,16 @@ import numpy as np
 from carbontracker import exceptions
 
 
+def parse_all_logs(log_dir):
+    components_per_log = []
+    output_logs, std_logs = get_all_logs(log_dir)
+
+    for out, std in zip(output_logs, std_logs):
+        components_per_log.append(parse_logs(log_dir, std, out))
+
+    return components_per_log
+
+
 def parse_logs(log_dir, std_log_file=None, output_log_file=None):
     """Parse logs in log_dir (defaults to most recent logs)."""
     if std_log_file is None or output_log_file is None:
@@ -24,11 +34,11 @@ def parse_logs(log_dir, std_log_file=None, output_log_file=None):
     for comp, devices in devices.items():
         power_usages = np.array(avg_power_usages[comp])
         durations = np.array(epoch_durations)
-        energy_usages = (power_usages.T * durations).T.tolist()
+        energy_usages = (power_usages.T * durations).T
         measurements = {
-            "avg_power_usages (W)": avg_power_usages[comp],
+            "avg_power_usages (W)": power_usages,
             "avg_energy_usages (J)": energy_usages,
-            "epoch_durations (s)": epoch_durations,
+            "epoch_durations (s)": durations,
             "devices": devices
         }
         components[comp] = measurements
@@ -160,9 +170,12 @@ def get_avg_power_usages(std_log_data):
     avg_power_usages = {}
 
     for component in components:
-        powers = [
-            json.loads(power) for comp, power in matches if comp == component
-        ]
+        powers = []
+        for comp, power in matches:
+            if comp == component:
+                p_list = power.strip("[").strip("]").split(" ")
+                p_power = [float(num) for num in p_list if num != ""]
+                powers.append(p_power)
         avg_power_usages[component] = powers
 
     return avg_power_usages
