@@ -25,11 +25,18 @@ class IntelCPU(Handler):
         before_measures = self._get_measurements()
         time.sleep(MEASURE_DELAY)
         after_measures = self._get_measurements()
-
-        return [
-            self._compute_power(before, after)
-            for before, after in zip(before_measures, after_measures)
-        ]
+        # Ensure all power measurements >= 0 and retry up to 3 times.
+        attempts = 3
+        while attempts > 0:
+            attempts -= 1
+            power_usages = [
+                self._compute_power(before, after)
+                for before, after in zip(before_measures, after_measures)
+            ]
+            if all(power >= 0 for power in power_usages):
+                return power_usages
+        default = [0.0 for device in range(len(self._devices))]
+        return default
 
     def _compute_power(self, before, after):
         """Compute avg. power usage from two samples in microjoules."""
