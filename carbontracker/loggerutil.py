@@ -7,8 +7,16 @@ import datetime
 from carbontracker import constants
 
 
-def convert_to_timestring(seconds, add_milliseconds=True):
-    return str(datetime.timedelta(seconds=seconds)).split(".")[0]
+def convert_to_timestring(seconds, add_milliseconds=False):
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    h = int(h)
+    m = int(m)
+    if not add_milliseconds:
+        s = int(round(s))
+        return f"{h:d}:{m:02d}:{s:02d}"
+    else:
+        return f"{h:d}:{m:02d}:{s:02.2f}"
 
 
 class TrackerFormatter(logging.Formatter):

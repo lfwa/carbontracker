@@ -68,6 +68,14 @@ class Component:
 
         if epoch != self.cur_epoch:
             self.cur_epoch = epoch
+            # If we haven't measured for some epochs due to too slow
+            # update_interval, we copy previous epoch measurements s.t.
+            # there exists measurements for every epoch.
+            diff = self.cur_epoch - len(self.power_usages) - 1
+            if diff != 0:
+                for _ in range(diff):
+                    # Copy previous measurement lists
+                    self.power_usages.append(self.power_usages[-1])
             self.power_usages.append([])
 
         self.power_usages[-1].append(self.handler.power_usage())

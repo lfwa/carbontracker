@@ -154,10 +154,10 @@ def get_devices(std_log_data):
 
 def get_epoch_durations(std_log_data):
     """Retrieve epoch durations (s)."""
-    duration_re = re.compile(r"Duration: (\d+):(\d{2}):(\d{2})")
+    duration_re = re.compile(r"Duration: (\d+):(\d{2}):(\d{2}(?:.\d{2})?)")
     matches = re.findall(duration_re, std_log_data)
     epoch_durations = [
-        int(h) * 60 * 60 + int(m) * 60 + int(s) for h, m, s in matches
+        float(h) * 60 * 60 + float(m) * 60 + float(s) for h, m, s in matches
     ]
     return epoch_durations
 

@@ -149,9 +149,15 @@ class CarbonTrackerThread(Thread):
         self.logger.info(f"Epoch {self.epoch_counter}:")
         duration = self.epoch_times[-1]
         self.logger.info(
-            f"Duration: {loggerutil.convert_to_timestring(duration)}")
+            f"Duration: {loggerutil.convert_to_timestring(duration, True)}")
         for comp in self.components:
             power_avg = np.mean(comp.power_usages[-1], axis=0)
+            # If np.mean is calculated during a measurement, it will get an
+            # empty list and return nan, if this is the case we take the
+            #  previous measurement.
+            # TODO: Use semaphores to wait for measurement to finish.
+            if np.isnan(power_avg).all():
+                power_avg = np.mean(comp.power_usages[-2], axis=0)
             self.logger.info(
                 f"Average power usage (W) for {comp.name}: {power_avg}")
 
