@@ -92,6 +92,13 @@ class Component:
             if energy_usage != 0:
                 energy_usage /= 3600000
             energy_usages.append(energy_usage)
+
+        # Ensure energy_usages and epoch_times have same length
+        diff = len(epoch_times) - len(energy_usages)
+        if diff != 0:
+            for _ in range(0, diff):
+                energy_usages.append(energy_usages[-1])
+
         return energy_usages
 
     def init(self):
