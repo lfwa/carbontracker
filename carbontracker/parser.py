@@ -1,6 +1,5 @@
 import os
 import re
-import json
 
 import numpy as np
 
@@ -8,13 +7,29 @@ from carbontracker import exceptions
 
 
 def parse_all_logs(log_dir):
-    components_per_log = []
+    logs = []
     output_logs, std_logs = get_all_logs(log_dir)
 
     for out, std in zip(output_logs, std_logs):
-        components_per_log.append(parse_logs(log_dir, std, out))
+        with open(std, "r") as f:
+            std_log_data = f.read()
 
-    return components_per_log
+        with open(out, "r") as f:
+            output_log_data = f.read()
+
+        actual, pred = get_consumption(output_log_data)
+        early_stop = get_early_stop(std_log_data)
+        entry = {
+            "output_filename": out,
+            "standard_filename": std,
+            "components": parse_logs(log_dir, std, out),
+            "early_stop": early_stop,
+            "actual": actual,
+            "pred": pred
+        }
+        logs.append(entry)
+
+    return logs
 
 
 def parse_logs(log_dir, std_log_file=None, output_log_file=None):
@@ -30,7 +45,6 @@ def parse_logs(log_dir, std_log_file=None, output_log_file=None):
     devices = get_devices(std_log_data)
 
     components = {}
-
     for comp, devices in devices.items():
         power_usages = np.array(avg_power_usages[comp])
         durations = np.array(epoch_durations)
@@ -44,6 +58,54 @@ def parse_logs(log_dir, std_log_file=None, output_log_file=None):
         components[comp] = measurements
 
     return components
+
+
+def get_consumption(output_log_data):
+    actual_re = re.compile(
+        r"(?i)Actual consumption for (\d*) epoch\(s\):\n\s*(?i)Time:\s*(.*)\n\s*(?i)Energy:\s*(.*)\s+kWh\n\s*(?i)CO2eq:\s*(.*)\s+g\n\s*This is equivalent to:\n([\S\s]*?)\n(^\w|\d|\Z)"
+    )
+    pred_re = re.compile(
+        r"(?i)Predicted consumption for (\d*) epoch\(s\):\n\s*(?i)Time:\s*(.*)\n\s*(?i)Energy:\s*(.*)\s+kWh\n\s*(?i)CO2eq:\s*(.*)\s+g\n\s*This is equivalent to:\n([\S\s]*?)\n(^\w|\d|\Z)"
+    )
+    actual_match = re.search(actual_re, output_log_data)
+    pred_match = re.search(pred_re, output_log_data)
+    actual = extract_measurements(actual_match)
+    pred = extract_measurements(pred_match)
+    return actual, pred
+
+
+def get_early_stop(std_log_data):
+    early_stop_re = re.compile(r"(?i)Training was interrupted")
+    early_stop = re.findall(early_stop_re, std_log_data)
+    return bool(early_stop)
+
+
+def extract_measurements(match):
+    if not match:
+        return None
+    match = match.groups()
+    epochs = int(match[0])
+    duration = get_time(match[1])
+    energy, co2eq, equivalents = get_stats(match)
+    measurements = {
+        "epochs": epochs,
+        "duration (s)": duration,
+        "energy (kWh)": energy,
+        "co2eq (g)": co2eq,
+        "equivalents": equivalents
+    }
+    return measurements
+
+
+def get_time(time_str):
+    duration_re = re.compile(r"(\d+):(\d{2}):(\d\d?(?:.\d{2})?)")
+    match = re.search(duration_re, time_str)
+    if not match:
+        return None
+    match = match.groups()
+    duration = float(match[0]) * 60 * 60 + float(match[1]) * 60 + float(
+        match[2])
+    return duration
 
 
 def print_aggregate(log_dir):
@@ -64,14 +126,6 @@ def print_aggregate(log_dir):
 
 def aggregate_consumption(log_dir):
     """Aggregate consumption in all log files in specified log_dir."""
-    early_stop_re = re.compile(r"(?i)Training was interrupted")
-    actual_re = re.compile(
-        r"(?i)Actual consumption for (\d*) epoch\(s\):\n\s*(?i)Time:\s*(.*)\n\s*(?i)Energy:\s*(.*)\s+kWh\n\s*(?i)CO2eq:\s*(.*)\s+g\n\s*This is equivalent to:\n([\S\s]*?)\n\d{4}-\d{2}-\d{2}"
-    )
-    pred_re = re.compile(
-        r"(?i)Predicted consumption for (\d*) epoch\(s\):\n\s*(?i)Time:\s*(.*)\n\s*(?i)Energy:\s*(.*)\s+kWh\n\s*(?i)CO2eq:\s*(.*)\s+g\n\s*This is equivalent to:\n([\S\s]*?)\n\d{4}-\d{2}-\d{2}"
-    )
-
     output_logs, std_logs = get_all_logs(log_dir=log_dir)
 
     total_energy = 0
@@ -84,16 +138,31 @@ def aggregate_consumption(log_dir):
         with open(std_log, "r") as f:
             std_data = f.read()
 
-        early_stop = re.findall(early_stop_re, std_data)
-        actual = re.search(actual_re, output_data).groups()
-        pred = re.search(pred_re, output_data).groups()
-        actual_epochs = int(actual[0])
-        pred_epochs = int(pred[0])
+        actual, pred = get_consumption(output_data)
+        early_stop = get_early_stop(std_data)
 
-        if early_stop or actual_epochs == pred_epochs:
-            energy, co2eq, equivalents = get_stats(actual)
+        if actual is None and pred is None:
+            continue
+        elif actual is None:
+            energy = pred["energy (kWh)"]
+            co2eq = pred["co2eq (g)"]
+            equivalents = pred["equivalents"]
+        elif pred is None:
+            energy = actual["energy (kWh)"]
+            co2eq = actual["co2eq (g)"]
+            equivalents = actual["equivalents"]
+        # Both actual and pred is available
         else:
-            energy, co2eq, equivalents = get_stats(pred)
+            actual_epochs = actual["epochs"]
+            pred_epochs = pred["epochs"]
+            if early_stop or actual_epochs == pred_epochs:
+                energy = actual["energy (kWh)"]
+                co2eq = actual["co2eq (g)"]
+                equivalents = actual["equivalents"]
+            else:
+                energy = pred["energy (kWh)"]
+                co2eq = pred["co2eq (g)"]
+                equivalents = pred["equivalents"]
 
         total_energy += energy
         total_co2eq += co2eq
@@ -141,8 +210,10 @@ def get_devices(std_log_data):
     comp_re = re.compile(r"The following components were found:(.*)\n")
     device_re = re.compile(r" (.*?) with device\(s\) (.*?)\.")
     # Take first match as we only expect one.
-    match = re.findall(comp_re, std_log_data)[0]
-    device_matches = re.findall(device_re, match)
+    match = re.findall(comp_re, std_log_data)
+    if not match:
+        return {}
+    device_matches = re.findall(device_re, match[0])
     devices = {}
 
     for comp, device_str in device_matches:
@@ -154,7 +225,7 @@ def get_devices(std_log_data):
 
 def get_epoch_durations(std_log_data):
     """Retrieve epoch durations (s)."""
-    duration_re = re.compile(r"Duration: (\d+):(\d{2}):(\d{2}(?:.\d{2})?)")
+    duration_re = re.compile(r"Duration: (\d+):(\d{2}):(\d\d?(?:.\d{2})?)")
     matches = re.findall(duration_re, std_log_data)
     epoch_durations = [
         float(h) * 60 * 60 + float(m) * 60 + float(s) for h, m, s in matches

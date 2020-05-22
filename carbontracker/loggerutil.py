@@ -16,7 +16,7 @@ def convert_to_timestring(seconds, add_milliseconds=False):
         s = int(round(s))
         return f"{h:d}:{m:02d}:{s:02d}"
     else:
-        return f"{h:d}:{m:02d}:{s:02.2f}"
+        return f"{h:d}:{m:02d}:{s:05.2f}"
 
 
 class TrackerFormatter(logging.Formatter):
