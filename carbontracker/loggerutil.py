@@ -102,7 +102,7 @@ class Logger:
         self.info(f"{about['__title__']} version {about['__version__']}")
         self.info(
             "Only predicted and actual consumptions are multiplied by a PUE "
-            f"coefficient of {constants.PUE} (Rhonda Ascierto, 2018, Uptime "
+            f"coefficient of {constants.PUE} (Rhonda Ascierto, 2019, Uptime "
             "Institute Global Data Center Survey).")
 
     def output(self, msg, verbose_level=0):
