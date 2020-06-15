@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/lfwa/carbontracker/blob/master/LICENSE)
 
 ## About
-**carbontracker** is a tool for tracking and predicting the carbon footprint of training deep learning models.
+**carbontracker** is a tool for tracking and predicting the energy consumption and carbon footprint of training deep learning models.
 
 
 ## Installation
