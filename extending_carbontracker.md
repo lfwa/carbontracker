@@ -10,15 +10,15 @@ If you wish to add your own `fetcher` to retrieve accurate carbon emissions from
 
 1. Find an API which contains the Carbon intensity values for your region.
 2. Add a new `fetcher` to the [existing folder](https://github.com/lfwa/carbontracker/tree/master/carbontracker/emissions/intensity/fetchers).
-3. Implement the [fetcher](https://github.com/lfwa/carbontracker/blob/master/carbontracker/emissions/intensity/fetcher.py) interface.
+3. Implement the [fetcher](https://github.com/lfwa/carbontracker/blob/master/carbontracker/emissions/intensity/fetcher.py) abstract class.
 4. Add the class constructor to the list of working APIs in [`intensity.py`](https://github.com/lfwa/carbontracker/blob/master/carbontracker/emissions/intensity/intensity.py#L42) file. This is the `fetchers` list found in the `carbon_intensity` function.
 
-The current available `fetchers` can be found [here](https://github.com/lfwa/carbontracker/tree/master/carbontracker/emissions/intensity/fetchers) and can serve as examples on how to implement the interface.
+The current available `fetchers` can be found [here](https://github.com/lfwa/carbontracker/tree/master/carbontracker/emissions/intensity/fetchers) and can serve as examples on how to implement a `fetcher`.
 
 Help improve *carbontracker* and create a pull request with your working APIs!
 
 ## Component Energy Readings
 
-It is also possible to add new component frameworks for measuring energy usage. In the base version of *carbontracker* NVIDIA GPUs and Intel CPUs are supported. Adding more is possible by implementing the [`handler`](https://github.com/lfwa/carbontracker/blob/master/carbontracker/components/handler.py) interface.
+It is also possible to add new component frameworks for measuring energy usage. In the base version of *carbontracker* NVIDIA GPUs and Intel CPUs are supported. Adding more is possible by inheriting the [`handler`](https://github.com/lfwa/carbontracker/blob/master/carbontracker/components/handler.py) .
 
 *Work in progress*
