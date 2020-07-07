@@ -1,6 +1,9 @@
 from abc import ABCMeta, abstractmethod
 
-
+""" 
+    Information about the geocoder object g_location available
+    here: https://geocoder.readthedocs.io
+"""
 class IntensityFetcher:
     __metaclass__ = ABCMeta
 
@@ -11,5 +14,8 @@ class IntensityFetcher:
 
     @abstractmethod
     def carbon_intensity(self, g_location, time_dur=None):
-        """Returns the carbon intensity by location and duration (s)."""
+        """
+            Returns the carbon intensity by location and duration (s).
+            If the API supports predicted intensities time_dur can be used.
+        """
         raise NotImplementedError
