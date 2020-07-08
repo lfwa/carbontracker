@@ -15,10 +15,10 @@ If you wish to add your own `fetcher` to retrieve accurate carbon emissions from
 
 The current available `fetchers` can be found [here](https://github.com/lfwa/carbontracker/tree/master/carbontracker/emissions/intensity/fetchers) and can serve as examples on how to implement a `fetcher`.
 
-Help improve *carbontracker* and create a pull request with your working APIs!
+Help improve **carbontracker** and create a pull request with your working APIs!
 
 ## Component energy readings
 
-It is also possible to add new component frameworks for measuring energy usage. In the base version of *carbontracker* NVIDIA GPUs and Intel CPUs are supported. Adding more is possible by inheriting [`handler`](https://github.com/lfwa/carbontracker/blob/master/carbontracker/components/handler.py) .
+It is also possible to add new component frameworks for measuring energy usage. In the base version of **carbontracker** NVIDIA GPUs and Intel CPUs are supported. Adding more is possible by inheriting [`handler`](https://github.com/lfwa/carbontracker/blob/master/carbontracker/components/handler.py).
 
 *Work in progress*
