@@ -104,7 +104,7 @@ CarbonTracker: Finished monitoring.
 
 ### Aggregating log files
 **carbontracker** supports aggregating all log files in a specified directory to a single estimate of the carbon footprint.
-#### Usage
+#### Example usage
 ```python
 from carbontracker import parser
 
@@ -115,8 +115,8 @@ parser.print_aggregate(log_dir="./my_log_directory/")
 The training of models in this work is estimated to use 4.494 kWh of electricity contributing to 0.423 kg of CO2eq. This is equivalent to 3.515 km travelled by car. Measured by carbontracker (https://github.com/lfwa/carbontracker).
 ```
 
-## Compatability
-CarbonTracker is compatible with:
+## Compatibility
+**carbontracker** is compatible with:
 - NVIDIA GPUs that support [NVIDIA Management Library (NVML)](https://developer.nvidia.com/nvidia-management-library-nvml)
 - Intel CPUs that support [Intel RAPL](http://web.eece.maine.edu/~vweaver/projects/rapl/rapl_support.html)
 - Slurm
@@ -127,3 +127,19 @@ CarbonTracker is compatible with:
 ### Availability of GPUs and Slurm
 - Available GPU devices are determined by first checking the environment variable `CUDA_VISIBLE_DEVICES` (only if `devices_by_pid`=False otherwise we find devices by PID). This ensures that for Slurm we only fetch GPU devices associated with the current job and not the entire cluster. If this fails we measure all available GPUs.
 - NVML cannot find processes for containers spawned without `--pid=host`. This affects the `device_by_pids` parameter and means that it will never find any active processes for GPUs in affected containers. 
+
+## Extending **carbontracker**
+See [extending_carbontracker.md](extending_carbontracker.md)
+
+## Citation
+Kindly cite our publication if you use **carbontracker**:
+```
+@article{anthonykandingselvan2020carbontracker,
+    title={Carbontracker: Tracking and Predicting the Carbon Footprint of Training Deep Learning Models},
+    author={Lasse F. Wolff Anthony and Benjamin Kanding and Raghavendra Selvan},
+    year={2020},
+    eprint={2007.03051},
+    archivePrefix={arXiv},
+    primaryClass={cs.CY}
+}
+```
