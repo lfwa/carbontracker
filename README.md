@@ -134,12 +134,10 @@ See [extending_carbontracker.md](extending_carbontracker.md)
 ## Citation
 Kindly cite our publication if you use **carbontracker**:
 ```
-@article{anthonykandingselvan2020carbontracker,
-    title={Carbontracker: Tracking and Predicting the Carbon Footprint of Training Deep Learning Models},
-    author={Lasse F. Wolff Anthony and Benjamin Kanding and Raghavendra Selvan},
-    year={2020},
-    eprint={2007.03051},
-    archivePrefix={arXiv},
-    primaryClass={cs.CY}
-}
+@inproceedings{anthony2020carbontracker,
+  title={Carbontracker: Tracking and Predicting the Carbon Footprint of Training Deep Learning Models},
+  author={Lasse F. Wolff Anthony and Benjamin Kanding and Raghavendra Selvan},
+  booktitle={ICML Workshop on Challenges in Deploying and monitoring Machine Learning Systems},
+  month={July},
+  year={2020}}
 ```
