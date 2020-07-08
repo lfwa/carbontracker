@@ -261,7 +261,7 @@ class CarbonTracker:
         except Exception as e:
             self._handle_error(e)
 
-    def epoch_end(self):
+    def epoch_end(self, manual_delete=False):
         if self.deleted:
             return
 
@@ -276,7 +276,7 @@ class CarbonTracker:
                 if self.stop_and_confirm:
                     self._user_query()
 
-            if self.epoch_counter == self.monitor_epochs:
+            if self.epoch_counter == self.monitor_epochs and not manual_delete:
                 self._delete()
         except Exception as e:
             self._handle_error(e)
