@@ -219,7 +219,8 @@ class CarbonTracker:
                  components="all",
                  devices_by_pid=False,
                  log_dir=None,
-                 verbose=1):
+                 verbose=1,
+                 decimal_precision=6):
         self.epochs = epochs
         self.epochs_before_pred = (epochs if epochs_before_pred < 0 else
                                    epochs_before_pred)
@@ -234,6 +235,7 @@ class CarbonTracker:
         self.stop_and_confirm = stop_and_confirm
         self.ignore_errors = ignore_errors
         self.epoch_counter = 0
+        self.decimal_precision = decimal_precision
         self.deleted = False
 
         try:
@@ -326,10 +328,11 @@ class CarbonTracker:
             sys.exit(os.EX_SOFTWARE)
 
     def _output_energy(self, description, time, energy, co2eq, conversions):
+        precision = self.decimal_precision
         output = (f"\n{description}\n"
                   f"\tTime:\t{loggerutil.convert_to_timestring(time)}\n"
-                  f"\tEnergy:\t{energy:.6f} kWh\n"
-                  f"\tCO2eq:\t{co2eq:.6f} g")
+                  f"\tEnergy:\t{energy:.{precision}f} kWh\n"
+                  f"\tCO2eq:\t{co2eq:.{precision}f} g")
 
         if conversions:
             conv_str = "\n\tThis is equivalent to:"

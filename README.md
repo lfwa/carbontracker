@@ -40,6 +40,8 @@ pip install carbontracker
   Path to the desired directory to write log files. If None, then no logging will be done.
 - `verbose` (default=1):
   Sets the level of verbosity.
+- `decimal_precision` (default=6)
+  Specify the desired decimal precision of reported Energy and CO2eq.
 
 #### Example usage
 
