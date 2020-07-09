@@ -64,7 +64,8 @@ class Logger:
             pathlib.Path(log_dir).mkdir(parents=True, exist_ok=True)
 
             # ISO8601 format YYYY-MM-DDThh:mmZ.
-            date_format = "%Y-%m-%dT%H:%MZ"
+            # : does not work in file naming on Windows
+            date_format = "%Y-%m-%dT%H-%MZ"
             date = datetime.datetime.now().strftime(date_format)
 
             f_formatter = TrackerFormatter(fmt="%(asctime)s - %(message)s")
