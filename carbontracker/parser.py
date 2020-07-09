@@ -195,7 +195,6 @@ def get_all_logs(log_dir):
         if os.path.isfile(os.path.join(log_dir, f)) 
         and os.path.getsize(os.path.join(log_dir, f)) > 0
     ]
-    print(files)
     output_re = re.compile(r".*carbontracker_output.log")
     std_re = re.compile(r".*carbontracker.log")
     output_logs = sorted(list(filter(output_re.match, files)))
