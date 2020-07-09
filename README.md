@@ -38,7 +38,7 @@ pip install carbontracker
   If True, only devices (under the chosen components) running processes associated with the main process are measured. If False, all available devices are measured (see Section 'Notes' for jobs running on SLURM or in containers). Note that this requires your devices to have active processes before instantiating the `CarbonTracker` class.
 - `log_dir` (default=None):
   Path to the desired directory to write log files. If None, then no logging will be done.
-- `verbose` (default=0):
+- `verbose` (default=1):
   Sets the level of verbosity.
 
 #### Example usage

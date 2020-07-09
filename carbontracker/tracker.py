@@ -123,7 +123,7 @@ class CarbonTrackerThread(Thread):
         self.measuring = False
         self.running = False
         self.logger.info("Monitoring thread ended.")
-        self.logger.output("Finished monitoring.")
+        self.logger.output("Finished monitoring.", verbose_level=1)
 
     def epoch_start(self):
         self.epoch_counter += 1
@@ -216,7 +216,7 @@ class CarbonTracker:
                  components="all",
                  devices_by_pid=False,
                  log_dir=None,
-                 verbose=0):
+                 verbose=1):
         self.epochs = epochs
         self.epochs_before_pred = (epochs if epochs_before_pred < 0 else
                                    epochs_before_pred)
@@ -334,7 +334,7 @@ class CarbonTracker:
                 conv_str += f"\n\t{units:.6f} {unit}"
             output += conv_str
 
-        self.logger.output(output)
+        self.logger.output(output, verbose_level=1)
 
     def _output_actual(self):
         """Output actual usage so far."""
