@@ -46,9 +46,9 @@ def parse_logs(log_dir, std_log_file=None, output_log_file=None):
 
     components = {}
     for comp, devices in devices.items():
-        power_usages = np.array(avg_power_usages[comp])
-        durations = np.array(epoch_durations)
-        energy_usages = (power_usages.T * durations).T
+        power_usages = np.array(avg_power_usages[comp]) if len(avg_power_usages) != 0 else None
+        durations = np.array(epoch_durations) if len(epoch_durations) != 0 else None
+        energy_usages = (power_usages.T * durations).T if power_usages and durations else None
         measurements = {
             "avg_power_usages (W)": power_usages,
             "avg_energy_usages (J)": energy_usages,
@@ -192,8 +192,10 @@ def get_all_logs(log_dir):
     """Get all output and standard logs in log_dir."""
     files = [
         os.path.join(log_dir, f) for f in os.listdir(log_dir)
-        if os.path.isfile(os.path.join(log_dir, f))
+        if os.path.isfile(os.path.join(log_dir, f)) 
+        and os.path.getsize(os.path.join(log_dir, f)) > 0
     ]
+    print(files)
     output_re = re.compile(r".*carbontracker_output.log")
     std_re = re.compile(r".*carbontracker.log")
     output_logs = sorted(list(filter(output_re.match, files)))
