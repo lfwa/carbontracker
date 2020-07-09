@@ -2,6 +2,8 @@ import traceback
 
 import geocoder
 
+import numpy as np
+
 from carbontracker import loggerutil
 from carbontracker import exceptions
 from carbontracker.emissions.intensity.fetchers import co2signal
@@ -62,8 +64,9 @@ def carbon_intensity(logger, time_dur=None):
             continue
         try:
             carbon_intensity = fetcher.carbon_intensity(g_location, time_dur)
+            if not np.isnan(carbon_intensity.carbon_intensity):
+                carbon_intensity.success = True
             set_carbon_intensity_message(carbon_intensity, time_dur)
-            carbon_intensity.success = True
             break
         except:
             err_str = traceback.format_exc()
@@ -74,9 +77,14 @@ def carbon_intensity(logger, time_dur=None):
 
 def set_carbon_intensity_message(ci, time_dur):
     if ci.is_prediction:
-        ci.message = ("Carbon intensity for the next "
-                      f"{loggerutil.convert_to_timestring(time_dur)} is "
-                      f"predicted to be {ci.carbon_intensity:.2f} gCO2/kWh")
+        if ci.success:
+            ci.message = ("Carbon intensity for the next "
+                        f"{loggerutil.convert_to_timestring(time_dur)} is "
+                        f"predicted to be {ci.carbon_intensity:.2f} gCO2/kWh")
+        else:
+            ci.message = ("Failed to predict carbon intensity for the next "
+                        f"{loggerutil.convert_to_timestring(time_dur)}, "
+                        f"fallback on current intensity")
     else:
         ci.message = (f"Current carbon intensity is {ci.carbon_intensity:.2f} "
                       "gCO2/kWh")

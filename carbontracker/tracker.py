@@ -41,7 +41,6 @@ class CarbonIntensityThread(Thread):
 
     def _fetch_carbon_intensity(self):
         ci = intensity.carbon_intensity(self.logger)
-
         if ci.success and isinstance(
                 ci.carbon_intensity,
             (int, float)) and not np.isnan(ci.carbon_intensity):
@@ -50,7 +49,10 @@ class CarbonIntensityThread(Thread):
     def average_carbon_intensity(self, pred_time_dur=None):
         if pred_time_dur is not None or not self.carbon_intensities:
             ci = intensity.carbon_intensity(self.logger,
-                                            time_dur=pred_time_dur)
+                                                time_dur=pred_time_dur)
+            if not ci.success:
+                # Unable to retrieve forecasted CO2, fallback on current.
+                ci.carbon_intensity = self.carbon_intensities[-1].carbon_intensity
         else:
             location = self.carbon_intensities[0].g_location.address
             intensities = [
@@ -66,6 +68,7 @@ class CarbonIntensityThread(Thread):
             ci = intensity.CarbonIntensity(carbon_intensity=avg_ci,
                                            message=msg,
                                            success=True)
+
         self.logger.info(ci.message)
         self.logger.output(ci.message, verbose_level=2)
         return ci
