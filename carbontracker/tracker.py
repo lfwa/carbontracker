@@ -46,13 +46,13 @@ class CarbonIntensityThread(Thread):
             (int, float)) and not np.isnan(ci.carbon_intensity):
             self.carbon_intensities.append(ci)
 
-    def average_carbon_intensity(self, pred_time_dur=None):
-        if pred_time_dur is not None or not self.carbon_intensities:
-            ci = intensity.carbon_intensity(self.logger,
-                                                time_dur=pred_time_dur)
-            if not ci.success:
-                # Unable to retrieve forecasted CO2, fallback on current.
-                ci.carbon_intensity = self.carbon_intensities[-1].carbon_intensity
+    def predict_carbon_intensity(self, pred_time_dur):
+        ci = intensity.carbon_intensity(self.logger, time_dur=pred_time_dur)
+        return ci
+
+    def average_carbon_intensity(self):
+        if not self.carbon_intensities:
+            ci = intensity.carbon_intensity(self.logger)
         else:
             location = self.carbon_intensities[0].g_location.address
             intensities = [
@@ -371,7 +371,10 @@ class CarbonTracker:
 
     def _co2eq(self, energy_usage, pred_time_dur=None):
         """"Returns the CO2eq (g) of the energy usage (kWh)."""
-        ci = self.intensity_updater.average_carbon_intensity(pred_time_dur)
+        if pred_time_dur:
+            ci = self.intensity_updater.predict_carbon_intensity(pred_time_dur)
+        else:
+            ci = self.intensity_updater.average_carbon_intensity()
         co2eq = energy_usage * ci.carbon_intensity
         return co2eq
 
