@@ -6,12 +6,10 @@ import numpy as np
 
 from carbontracker import loggerutil
 from carbontracker import exceptions
+from carbontracker import constants
 from carbontracker.emissions.intensity.fetchers import co2signal
 from carbontracker.emissions.intensity.fetchers import carbonintensitygb
 from carbontracker.emissions.intensity.fetchers import energidataservice
-
-# https://www.eea.europa.eu/data-and-maps/data/co2-intensity-of-electricity-generation
-EU_28_2017_CARBON_INTENSITY = 294.2060978
 
 
 class CarbonIntensity:
@@ -33,7 +31,7 @@ class CarbonIntensity:
             self._set_as_default()
 
     def _set_as_default(self):
-        self.carbon_intensity = EU_28_2017_CARBON_INTENSITY
+        self.carbon_intensity = constants.EU_28_2017_CARBON_INTENSITY
 
 
 def carbon_intensity(logger, time_dur=None):
@@ -94,6 +92,6 @@ def set_carbon_intensity_message(ci, time_dur):
             ci.message = (
                 f"Live carbon intensity could not be fetched at detected location: {ci.address}. "
                 "Defaulted to average carbon intensity for EU-28 in 2017 of "
-                f"{EU_28_2017_CARBON_INTENSITY:.2f} gCO2/kWh.")
+                f"{constants.EU_28_2017_CARBON_INTENSITY:.2f} gCO2/kWh.")
             return
     ci.message += f" at detected location: {ci.address}."
