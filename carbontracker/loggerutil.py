@@ -9,11 +9,20 @@ from carbontracker import constants
 
 def convert_to_timestring(seconds, add_milliseconds=False):
     m, s = divmod(seconds, 60)
+    # Ensure we do not print 60.
+    if not add_milliseconds:
+        s = int(round(s))
+        if s == 60:
+            m += 1
+            s = 0
+    else:
+        if f"{s:05.2f}"[0:2] == "60":
+            m += 1
+            s = 0
     h, m = divmod(m, 60)
     h = int(h)
     m = int(m)
     if not add_milliseconds:
-        s = int(round(s))
         return f"{h:d}:{m:02d}:{s:02d}"
     else:
         return f"{h:d}:{m:02d}:{s:05.2f}"
