@@ -63,9 +63,9 @@ class Logger:
             # Create logging directory if it does not exist.
             pathlib.Path(log_dir).mkdir(parents=True, exist_ok=True)
 
-            # ISO8601 format YYYY-MM-DDThh:mmZ.
-            # : does not work in file naming on Windows
-            date_format = "%Y-%m-%dT%H-%MZ"
+            # Modified ISO8601 format YYYY-MM-DDThhmmssZ.
+            # : does not work in file naming on Windows.
+            date_format = "%Y-%m-%dT%H%M%SZ"
             date = datetime.datetime.now().strftime(date_format)
 
             f_formatter = TrackerFormatter(fmt="%(asctime)s - %(message)s")
