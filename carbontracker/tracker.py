@@ -3,6 +3,7 @@ import sys
 import time
 import traceback
 import psutil
+import math
 from threading import Thread, Event
 
 import numpy as np
@@ -48,30 +49,52 @@ class CarbonIntensityThread(Thread):
 
     def predict_carbon_intensity(self, pred_time_dur):
         ci = intensity.carbon_intensity(self.logger, time_dur=pred_time_dur)
+        weighted_intensities = [
+            ci.carbon_intensity for ci in self.carbon_intensities
+        ] + [ci.carbon_intensity]
+
+        # Account for measured intensities by taking weighted average.
+        weight = math.floor(pred_time_dur / self.update_interval)
+
+        for _ in range(weight):
+            weighted_intensities.append(ci.carbon_intensity)
+
+        ci.carbon_intensity = np.mean(weighted_intensities)
+        intensity.set_carbon_intensity_message(ci, pred_time_dur)
+
+        self.logger.info(ci.message)
+        self.logger.output(ci.message, verbose_level=2)
+
         return ci
 
     def average_carbon_intensity(self):
         if not self.carbon_intensities:
             ci = intensity.carbon_intensity(self.logger)
-        else:
-            location = self.carbon_intensities[0].g_location.address
-            intensities = [
-                ci.carbon_intensity for ci in self.carbon_intensities
-            ]
-            avg_ci = np.mean(intensities)
-            msg = (f"Average carbon intensity during training was {avg_ci:.2f}"
-                   f" gCO2/kWh at detected location: {location}.")
-            self.logger.info(
-                "Carbon intensities (gCO2/kWh) fetched every "
-                f"{self.update_interval} s at detected location {location}: "
-                f"{intensities}")
-            ci = intensity.CarbonIntensity(carbon_intensity=avg_ci,
+            self.carbon_intensities.append(ci)
+
+        # Ensure that we have some carbon intensities.
+        assert (self.carbon_intensities)
+
+        location = self.carbon_intensities[
+            -1].g_location.address if self.carbon_intensities[
+                -1].g_location else "UNDISCLOSED"
+        intensities = [ci.carbon_intensity for ci in self.carbon_intensities]
+        avg_intensity = np.mean(intensities)
+        msg = (
+            f"Average carbon intensity during training was {avg_intensity:.2f}"
+            f" gCO2/kWh at detected location: {location}.")
+        avg_ci = intensity.CarbonIntensity(carbon_intensity=avg_intensity,
                                            message=msg,
                                            success=True)
 
-        self.logger.info(ci.message)
-        self.logger.output(ci.message, verbose_level=2)
-        return ci
+        self.logger.info(
+            "Carbon intensities (gCO2/kWh) fetched every "
+            f"{self.update_interval} s at detected location {location}: "
+            f"{intensities}")
+        self.logger.info(avg_ci.message)
+        self.logger.output(avg_ci.message, verbose_level=2)
+
+        return avg_ci
 
 
 class CarbonTrackerThread(Thread):
