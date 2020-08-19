@@ -75,9 +75,7 @@ class CarbonIntensityThread(Thread):
         # Ensure that we have some carbon intensities.
         assert (self.carbon_intensities)
 
-        location = self.carbon_intensities[
-            -1].g_location.address if self.carbon_intensities[
-                -1].g_location else "UNDISCLOSED"
+        location = self.carbon_intensities[-1].address
         intensities = [ci.carbon_intensity for ci in self.carbon_intensities]
         avg_intensity = np.mean(intensities)
         msg = (

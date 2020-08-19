@@ -18,12 +18,14 @@ class CarbonIntensity:
     def __init__(self,
                  carbon_intensity=None,
                  g_location=None,
+                 address="UNDETECTED",
                  message=None,
                  success=False,
                  is_prediction=False,
                  default=False):
         self.carbon_intensity = carbon_intensity
-        self.g_location = g_location
+        self.g_location = g_location,
+        self.address = address,
         self.message = message
         self.success = success
         self.is_prediction = is_prediction
@@ -32,11 +34,6 @@ class CarbonIntensity:
 
     def _set_as_default(self):
         self.carbon_intensity = EU_28_2017_CARBON_INTENSITY
-        self.g_location = None
-        self.message = (
-            "Live carbon intensity could not be fetched for your location. "
-            "Defaulted to average carbon intensity for EU-28 in 2017 of "
-            f"{EU_28_2017_CARBON_INTENSITY:.2f} gCO2/kWh.")
 
 
 def carbon_intensity(logger, time_dur=None):
@@ -54,6 +51,7 @@ def carbon_intensity(logger, time_dur=None):
         if not g_location.ok:
             raise exceptions.IPLocationError(
                 "Failed to retrieve location based on IP.")
+        carbon_intensity.address = g_location.address
     except:
         err_str = traceback.format_exc()
         logger.err_info(err_str)
@@ -67,6 +65,7 @@ def carbon_intensity(logger, time_dur=None):
             if not np.isnan(carbon_intensity.carbon_intensity):
                 carbon_intensity.success = True
             set_carbon_intensity_message(carbon_intensity, time_dur)
+            carbon_intensity.address = g_location.address
             break
         except:
             err_str = traceback.format_exc()
@@ -78,14 +77,23 @@ def carbon_intensity(logger, time_dur=None):
 def set_carbon_intensity_message(ci, time_dur):
     if ci.is_prediction:
         if ci.success:
-            ci.message = ("Carbon intensity for the next "
-                        f"{loggerutil.convert_to_timestring(time_dur)} is "
-                        f"predicted to be {ci.carbon_intensity:.2f} gCO2/kWh")
+            ci.message = (
+                "Carbon intensity for the next "
+                f"{loggerutil.convert_to_timestring(time_dur)} is "
+                f"predicted to be {ci.carbon_intensity:.2f} gCO2/kWh")
         else:
             ci.message = ("Failed to predict carbon intensity for the next "
-                        f"{loggerutil.convert_to_timestring(time_dur)}, "
-                        f"fallback on current intensity")
+                          f"{loggerutil.convert_to_timestring(time_dur)}, "
+                          f"fallback on average measured intensity")
     else:
-        ci.message = (f"Current carbon intensity is {ci.carbon_intensity:.2f} "
-                      "gCO2/kWh")
-    ci.message += f" at detected location: {ci.g_location.address}."
+        if ci.success:
+            ci.message = (
+                f"Current carbon intensity is {ci.carbon_intensity:.2f} gCO2/kWh"
+            )
+        else:
+            ci.message = (
+                f"Live carbon intensity could not be fetched at detected location: {ci.address}. "
+                "Defaulted to average carbon intensity for EU-28 in 2017 of "
+                f"{EU_28_2017_CARBON_INTENSITY:.2f} gCO2/kWh.")
+            return
+    ci.message += f" at detected location: {ci.address}."
