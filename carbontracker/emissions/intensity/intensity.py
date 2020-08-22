@@ -22,8 +22,8 @@ class CarbonIntensity:
                  is_prediction=False,
                  default=False):
         self.carbon_intensity = carbon_intensity
-        self.g_location = g_location,
-        self.address = address,
+        self.g_location = g_location
+        self.address = address
         self.message = message
         self.success = success
         self.is_prediction = is_prediction
