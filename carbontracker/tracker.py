@@ -38,7 +38,7 @@ class CarbonIntensityThread(Thread):
                 self._fetch_carbon_intensity()
         except Exception:
             err_str = traceback.format_exc()
-            self.logger.warn(err_str)
+            self.logger.err_warn(err_str)
 
     def _fetch_carbon_intensity(self):
         ci = intensity.carbon_intensity(self.logger)
@@ -175,13 +175,20 @@ class CarbonTrackerThread(Thread):
         self.logger.info(
             f"Duration: {loggerutil.convert_to_timestring(duration, True)}")
         for comp in self.components:
-            power_avg = np.mean(comp.power_usages[-1], axis=0)
-            # If np.mean is calculated during a measurement, it will get an
-            # empty list and return nan, if this is the case we take the
-            #  previous measurement.
-            # TODO: Use semaphores to wait for measurement to finish.
-            if np.isnan(power_avg).all():
-                power_avg = np.mean(comp.power_usages[-2], axis=0)
+            if comp.power_usages and comp.power_usages[-1]:
+                power_avg = np.mean(comp.power_usages[-1], axis=0)
+                # If np.mean is calculated during a measurement, it will get an
+                # empty list and return nan, if this is the case we take the
+                #  previous measurement.
+                # TODO: Use semaphores to wait for measurement to finish.
+                if np.isnan(power_avg).all():
+                    power_avg = np.mean(comp.power_usages[-2], axis=0)
+            else:
+                self.logger.err_warn(
+                    "Epoch duration is too short for a measurement to be "
+                    "collected.")
+                power_avg = None
+
             self.logger.info(
                 f"Average power usage (W) for {comp.name}: {power_avg}")
 

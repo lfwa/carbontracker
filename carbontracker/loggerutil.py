@@ -71,7 +71,7 @@ class Logger:
         # Add error logging to console.
         ce = logging.StreamHandler(stream=sys.stdout)
         ce_formatter = logging.Formatter(
-            "CarbonTracker: ERROR {levelname} - {message}", style="{")
+            "CarbonTracker: {levelname} - {message}", style="{")
         ce.setLevel(logging.INFO)
         ce.setFormatter(ce_formatter)
         logger_err.addHandler(ce)

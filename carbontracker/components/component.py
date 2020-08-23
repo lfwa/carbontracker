@@ -74,8 +74,10 @@ class Component:
             diff = self.cur_epoch - len(self.power_usages) - 1
             if diff != 0:
                 for _ in range(diff):
-                    # Copy previous measurement lists
-                    self.power_usages.append(self.power_usages[-1])
+                    # Copy previous measurement lists.
+                    latest_measurements = self.power_usages[
+                        -1] if self.power_usages else []
+                    self.power_usages.append(latest_measurements)
             self.power_usages.append([])
 
         self.power_usages[-1].append(self.handler.power_usage())
@@ -85,7 +87,15 @@ class Component:
         energy_usages = []
         # We have to compute each epoch in a for loop since numpy cannot
         # handle lists of uneven length.
-        for power, time in zip(self.power_usages, epoch_times):
+        for idx, (power, time) in enumerate(zip(self.power_usages,
+                                                epoch_times)):
+            # If no power measurement exists, try to use measurements from
+            # later epochs.
+            while not power and idx != len(self.power_usages) - 1:
+                idx += 1
+                power = self.power_usages[idx]
+            if not power:
+                power = [[0]]
             avg_power_usage = np.mean(power, axis=0)
             energy_usage = np.multiply(avg_power_usage, time).sum()
             # Convert from J to kWh.
@@ -93,11 +103,14 @@ class Component:
                 energy_usage /= 3600000
             energy_usages.append(energy_usage)
 
-        # Ensure energy_usages and epoch_times have same length
+        # Ensure energy_usages and epoch_times have same length by
+        # copying latest measurement if it exists.
         diff = len(epoch_times) - len(energy_usages)
         if diff != 0:
             for _ in range(0, diff):
-                energy_usages.append(energy_usages[-1])
+                # TODO: Warn that no measurements have been fetched.
+                latest_energy = energy_usages[-1] if energy_usages else 0
+                energy_usages.append(latest_energy)
 
         return energy_usages
 
