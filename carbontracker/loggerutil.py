@@ -68,6 +68,14 @@ class Logger:
         ch.setFormatter(c_formatter)
         logger_output.addHandler(ch)
 
+        # Add error logging to console.
+        ce = logging.StreamHandler(stream=sys.stdout)
+        ce_formatter = logging.Formatter(
+            "CarbonTracker: ERROR {levelname} - {message}", style="{")
+        ce.setLevel(logging.INFO)
+        ce.setFormatter(ce_formatter)
+        logger_err.addHandler(ce)
+
         if log_dir is not None:
             # Create logging directory if it does not exist.
             pathlib.Path(log_dir).mkdir(parents=True, exist_ok=True)
