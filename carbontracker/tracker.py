@@ -232,7 +232,7 @@ class CarbonTrackerThread(Thread):
             # Stop monitoring but continue training.
             self.delete()
         else:
-            os._exit(os.EX_SOFTWARE)
+            os._exit(70)
 
 
 class CarbonTracker:
@@ -353,7 +353,7 @@ class CarbonTracker:
             # Stop monitoring but continue training.
             self._delete()
         else:
-            sys.exit(os.EX_SOFTWARE)
+            sys.exit(70)
 
     def _output_energy(self, description, time, energy, co2eq, conversions):
         precision = self.decimal_precision
@@ -418,7 +418,7 @@ class CarbonTracker:
         elif user_input == "n":
             self.logger.info("Session ended by user.")
             self.logger.output("Quitting...")
-            sys.exit(os.EX_OK)
+            sys.exit(0)
         else:
             self.logger.output("Input not recognized. Try again (y/n):")
             user_input = input().lower()
