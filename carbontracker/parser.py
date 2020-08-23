@@ -67,10 +67,10 @@ def parse_logs(log_dir, std_log_file=None, output_log_file=None):
 
 def get_consumption(output_log_data):
     actual_re = re.compile(
-        r"(?i)Actual consumption for (\d*) epoch\(s\):\n\s*(?i)Time:\s*(.*)\n\s*(?i)Energy:\s*(.*)\s+kWh\n\s*(?i)CO2eq:\s*(.*)\s+g\n\s*This is equivalent to:\n([\S\s]*?)\n(^\w|\d|\Z)"
+        r"(?i)Actual consumption for (\d*) epoch\(s\):\n\s*(?i)Time:\s*(.*)\n\s*(?i)Energy:\s*(.*)\s+kWh\n\s*(?i)CO2eq:\s*(.*)\s+g\n\s*(This is equivalent to:\n([\S\s]*?)\n(^\w|\d|\Z))?"
     )
     pred_re = re.compile(
-        r"(?i)Predicted consumption for (\d*) epoch\(s\):\n\s*(?i)Time:\s*(.*)\n\s*(?i)Energy:\s*(.*)\s+kWh\n\s*(?i)CO2eq:\s*(.*)\s+g\n\s*This is equivalent to:\n([\S\s]*?)\n(^\w|\d|\Z)"
+        r"(?i)Predicted consumption for (\d*) epoch\(s\):\n\s*(?i)Time:\s*(.*)\n\s*(?i)Energy:\s*(.*)\s+kWh\n\s*(?i)CO2eq:\s*(.*)\s+g\n\s*(This is equivalent to:\n([\S\s]*?)\n(^\w|\d|\Z))?"
     )
     actual_match = re.search(actual_re, output_log_data)
     pred_match = re.search(pred_re, output_log_data)
@@ -180,7 +180,10 @@ def aggregate_consumption(log_dir):
 def get_stats(groups):
     energy = float(groups[2])
     co2eq = float(groups[3])
-    equivalents = parse_equivalents(groups[4])
+    if len(groups) >= 6 and groups[5] is not None:
+        equivalents = parse_equivalents(groups[5])
+    else:
+        equivalents = None
     return energy, co2eq, equivalents
 
 
