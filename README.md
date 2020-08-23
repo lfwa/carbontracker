@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/lfwa/carbontracker/blob/master/LICENSE)
 
 ## About
-**carbontracker** is a tool for tracking and predicting the energy consumption and carbon footprint of training deep learning models as described in [Anthony et al.(2020)](https://arxiv.org/abs/2007.03051).
+**carbontracker** is a tool for tracking and predicting the energy consumption and carbon footprint of training deep learning models as described in [Anthony et al. (2020)](https://arxiv.org/abs/2007.03051).
 
 
 ## Installation
@@ -40,8 +40,8 @@ pip install carbontracker
   Path to the desired directory to write log files. If None, then no logging will be done.
 - `verbose` (default=1):
   Sets the level of verbosity.
-- `decimal_precision` (default=6)
-  Specify the desired decimal precision of reported Energy and CO2eq.
+- `decimal_precision` (default=6):
+  Desired decimal precision of reported values.
 
 #### Example usage
 
