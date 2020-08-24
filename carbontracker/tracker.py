@@ -182,7 +182,9 @@ class CarbonTrackerThread(Thread):
                 #  previous measurement.
                 # TODO: Use semaphores to wait for measurement to finish.
                 if np.isnan(power_avg).all():
-                    power_avg = np.mean(comp.power_usages[-2], axis=0)
+                    power_avg = np.mean(
+                        comp.power_usages[-2],
+                        axis=0) if len(comp.power_usages) >= 2 else None
             else:
                 self.logger.err_warn(
                     "Epoch duration is too short for a measurement to be "
