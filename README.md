@@ -171,5 +171,6 @@ Kindly cite our publication if you use **carbontracker**:
   author={Lasse F. Wolff Anthony and Benjamin Kanding and Raghavendra Selvan},
   howpublished={ICML Workshop on Challenges in Deploying and monitoring Machine Learning Systems},
   month={July},
+  note={arXiv:2007.03051},
   year={2020}}
 ```
