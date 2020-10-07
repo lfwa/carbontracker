@@ -172,8 +172,9 @@ def aggregate_consumption(log_dir):
         total_energy += energy
 		if not np.isnan(co2eq):
         	total_co2eq += co2eq
-        for key, value in equivalents.items():
-            total_equivalents[key] = total_equivalents.get(key, 0) + value
+		if equivalents is not None:
+	        for key, value in equivalents.items():
+    	        total_equivalents[key] = total_equivalents.get(key, 0) + value
 
     return total_energy, total_co2eq, total_equivalents
 
