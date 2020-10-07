@@ -161,10 +161,10 @@ Measured GPU devices: ['Tesla T4']
 - NVML cannot find processes for containers spawned without `--pid=host`. This affects the `device_by_pids` parameter and means that it will never find any active processes for GPUs in affected containers. 
 
 ## Extending **carbontracker**
-See [extending_carbontracker.md](extending_carbontracker.md)
+See [extending_carbontracker.md](extending_carbontracker.md).
 
 ## Citation
-Kindly cite our publication if you use **carbontracker**:
+Kindly cite our work if you use **carbontracker** in a scientific publication:
 ```
 @misc{anthony2020carbontracker,
   title={Carbontracker: Tracking and Predicting the Carbon Footprint of Training Deep Learning Models},
