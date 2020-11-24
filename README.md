@@ -178,7 +178,7 @@ See [extending_carbontracker.md](extending_carbontracker.md).
 ## carbontracker in media
 * Official press release from University of Copenhagen can be obtained here: [en](https://news.ku.dk/all_news/2020/11/students-develop-tool-to-predict-the-carbon-footprint-of-algorithms/) [da](https://nyheder.ku.dk/alle_nyheder/2020/11/studerende-opfinder-vaerktoej-der-forudsiger-algoritmers-co2-aftryk/)
 
-* Carbontracker has recieved some attention in several popular science forums within, and outside of, Denmark [[1](https://videnskab.dk/teknologi-innovation/kunstig-intelligens-er-en-kaempe-klimasynder-men-unge-danskeres-nye-vaerktoej)][[2](https://www.anthropocenemagazine.org/2020/11/time-to-talk-about-carbon-footprint-artificial-intelligence/)][[3](https://www.theregister.com/2020/11/04/gpt3_carbon_footprint_estimate/)][[4](https://jyllands-posten.dk/nyviden/ECE12533278/kunstig-intelligens-er-en-kaempe-klimasynder-men-nyt-dansk-vaerktoej-skal-hjaelpe/)]]. 
+* Carbontracker has recieved some attention in popular science forums within, and outside of, Denmark [[1](https://videnskab.dk/teknologi-innovation/kunstig-intelligens-er-en-kaempe-klimasynder-men-unge-danskeres-nye-vaerktoej)][[2](https://www.anthropocenemagazine.org/2020/11/time-to-talk-about-carbon-footprint-artificial-intelligence/)][[3](https://www.theregister.com/2020/11/04/gpt3_carbon_footprint_estimate/)][[4](https://jyllands-posten.dk/nyviden/ECE12533278/kunstig-intelligens-er-en-kaempe-klimasynder-men-nyt-dansk-vaerktoej-skal-hjaelpe/)] 
 
 
 
