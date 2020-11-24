@@ -7,6 +7,17 @@
 ## About
 **carbontracker** is a tool for tracking and predicting the energy consumption and carbon footprint of training deep learning models as described in [Anthony et al. (2020)](https://arxiv.org/abs/2007.03051).
 
+## Citation
+Kindly cite our work if you use **carbontracker** in a scientific publication:
+```
+@misc{anthony2020carbontracker,
+  title={Carbontracker: Tracking and Predicting the Carbon Footprint of Training Deep Learning Models},
+  author={Lasse F. Wolff Anthony and Benjamin Kanding and Raghavendra Selvan},
+  howpublished={ICML Workshop on Challenges in Deploying and monitoring Machine Learning Systems},
+  month={July},
+  note={arXiv:2007.03051},
+  year={2020}}
+```
 
 ## Installation
 ### PyPi
@@ -163,22 +174,11 @@ Measured GPU devices: ['Tesla T4']
 ## Extending **carbontracker**
 See [extending_carbontracker.md](extending_carbontracker.md).
 
-## Citation
-Kindly cite our work if you use **carbontracker** in a scientific publication:
-```
-@misc{anthony2020carbontracker,
-  title={Carbontracker: Tracking and Predicting the Carbon Footprint of Training Deep Learning Models},
-  author={Lasse F. Wolff Anthony and Benjamin Kanding and Raghavendra Selvan},
-  howpublished={ICML Workshop on Challenges in Deploying and monitoring Machine Learning Systems},
-  month={July},
-  note={arXiv:2007.03051},
-  year={2020}}
-```
 
 ## carbontracker in media
 * Official press release from University of Copenhagen can be obtained here: [en](https://news.ku.dk/all_news/2020/11/students-develop-tool-to-predict-the-carbon-footprint-of-algorithms/) [da](https://nyheder.ku.dk/alle_nyheder/2020/11/studerende-opfinder-vaerktoej-der-forudsiger-algoritmers-co2-aftryk/)
 
-* Carbontracker has recieved some attention in several popular science forums within, and outside of, Denmark [[1](https://videnskab.dk/teknologi-innovation/kunstig-intelligens-er-en-kaempe-klimasynder-men-unge-danskeres-nye-vaerktoej)[2](https://www.anthropocenemagazine.org/2020/11/time-to-talk-about-carbon-footprint-artificial-intelligence/)[3](https://www.theregister.com/2020/11/04/gpt3_carbon_footprint_estimate/)[4](https://jyllands-posten.dk/nyviden/ECE12533278/kunstig-intelligens-er-en-kaempe-klimasynder-men-nyt-dansk-vaerktoej-skal-hjaelpe/)]. 
+* Carbontracker has recieved some attention in several popular science forums within, and outside of, Denmark [[1](https://videnskab.dk/teknologi-innovation/kunstig-intelligens-er-en-kaempe-klimasynder-men-unge-danskeres-nye-vaerktoej)][[2](https://www.anthropocenemagazine.org/2020/11/time-to-talk-about-carbon-footprint-artificial-intelligence/)][[3](https://www.theregister.com/2020/11/04/gpt3_carbon_footprint_estimate/)][[4](https://jyllands-posten.dk/nyviden/ECE12533278/kunstig-intelligens-er-en-kaempe-klimasynder-men-nyt-dansk-vaerktoej-skal-hjaelpe/)]]. 
 
 
 
