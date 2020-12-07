@@ -210,9 +210,20 @@ def get_all_logs(log_dir):
     output_logs = sorted(list(filter(output_re.match, files)))
     std_logs = sorted(list(filter(std_re.match, files)))
     if len(output_logs) != len(std_logs):
-        raise exceptions.MismatchedLogFilesError(
-            f"Found {len(output_logs)} output logs and {len(std_logs)} "
-            "standard logs. Expected equal number of logs.")
+        # Try to remove the files with no matching output/std logs
+        op_fn = [f.split('_')[0] for f in output_logs]
+        std_fn = [f.split('_')[0] for f in std_logs]
+        if len(std_logs) > len(output_logs):
+            missing_logs = list(set(std_fn) - set(op_fn))
+            [std_logs.remove(f+'_carbontracker.log') for  f in missing_logs]
+        else:
+            missing_logs = list(set(op_fn) - set(std_fn))
+            [output_logs.remove(f+'carbontracker_output.log') for f in missing_logs]
+        ### Even after removel if then there is a mismatch, then throw the error
+        if len(output_logs) != len(std_logs):
+            raise exceptions.MismatchedLogFilesError(
+                f"Found {len(output_logs)} output logs and {len(std_logs)} "
+                "standard logs. Expected equal number of logs.")
     return output_logs, std_logs
 
 
