@@ -172,13 +172,13 @@ Measured GPU devices: ['Tesla T4']
 - NVML cannot find processes for containers spawned without `--pid=host`. This affects the `device_by_pids` parameter and means that it will never find any active processes for GPUs in affected containers. 
 
 ## Extending **carbontracker**
-See [extending_carbontracker.md](extending_carbontracker.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 
 ## carbontracker in media
 * Official press release from University of Copenhagen can be obtained here: [en](https://news.ku.dk/all_news/2020/11/students-develop-tool-to-predict-the-carbon-footprint-of-algorithms/) [da](https://nyheder.ku.dk/alle_nyheder/2020/11/studerende-opfinder-vaerktoej-der-forudsiger-algoritmers-co2-aftryk/)
 
-* Carbontracker has recieved some attention in popular science forums within, and outside of, Denmark [[1](https://videnskab.dk/teknologi-innovation/kunstig-intelligens-er-en-kaempe-klimasynder-men-unge-danskeres-nye-vaerktoej)][[2](https://www.anthropocenemagazine.org/2020/11/time-to-talk-about-carbon-footprint-artificial-intelligence/)][[3](https://www.theregister.com/2020/11/04/gpt3_carbon_footprint_estimate/)][[4](https://jyllands-posten.dk/nyviden/ECE12533278/kunstig-intelligens-er-en-kaempe-klimasynder-men-nyt-dansk-vaerktoej-skal-hjaelpe/)] 
+* Carbontracker has recieved some attention in popular science forums within, and outside of, Denmark [[1](https://videnskab.dk/teknologi-innovation/kunstig-intelligens-er-en-kaempe-klimasynder-men-unge-danskeres-nye-vaerktoej)][[2](https://www.anthropocenemagazine.org/2020/11/time-to-talk-about-carbon-footprint-artificial-intelligence/)][[3](https://www.theregister.com/2020/11/04/gpt3_carbon_footprint_estimate/)][[4](https://jyllands-posten.dk/nyviden/ECE12533278/kunstig-intelligens-er-en-kaempe-klimasynder-men-nyt-dansk-vaerktoej-skal-hjaelpe/)][[5](https://www.sciencenewsforstudents.org/article/training-ai-energy-emissions-climate-risk)][[6](https://www.digitaltrends.com/news/carbontracker-deep-learning-sustainability/)][[7](https://www.prosa.dk/artikel/detail/news/effektivt-vaaben-mod-klimaforandringer/)][[8](https://medium.com/techtalkers/artificial-intelligence-contributes-to-climate-change-heres-how-405ff919186e)]
 
 
 
