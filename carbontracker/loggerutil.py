@@ -3,6 +3,7 @@ import os
 import sys
 import pathlib
 import datetime
+import importlib_metadata as metadata
 
 from carbontracker import constants
 
@@ -113,14 +114,10 @@ class Logger:
         return logger, logger_output, logger_err
 
     def _log_initial_info(self):
-        here = os.path.abspath(os.path.dirname(__file__))
-        about = {}
-        with open(os.path.join(here, "__version__.py")) as f:
-            exec(f.read(), about)
-        self.info(f"{about['__title__']} version {about['__version__']}")
+        self.info(f"{__package__} version {metadata.version(__package__)}")
         self.info(
             "Only predicted and actual consumptions are multiplied by a PUE "
-            f"coefficient of {constants.PUE} (Rhonda Ascierto, 2019, Uptime "
+            f"coefficient of {constants.PUE} (Rhonda Ascierto, 2020, Uptime "
             "Institute Global Data Center Survey).")
 
     def output(self, msg, verbose_level=0):
