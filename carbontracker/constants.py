@@ -2,6 +2,6 @@
 # Rhonda Ascierto. 2020. Uptime Institute Annual Data Center Survey.
 PUE = 1.59
 
-# Average carbon intensity for EU-28 in 2017.
-# https://www.eea.europa.eu/data-and-maps/data/co2-intensity-of-electricity-generation
-EU_28_2017_CARBON_INTENSITY = 294.2060978
+# World-wide average carbon intensity of electricity production in 2019.
+# https://www.iea.org/reports/global-energy-co2-status-report-2019/emissions
+WORLD_2019_CARBON_INTENSITY = 475
