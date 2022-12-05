@@ -1,7 +1,14 @@
 # Power Usage Effectiveness Coefficient.
-# Rhonda Ascierto. 2020. Uptime Institute Annual Data Center Survey.
-PUE = 1.59
+# Rhonda Ascierto. 2020-2021. Uptime Institute Annual Data Center Survey.
+# https://www.missioncriticalmagazine.com/ext/resources/whitepapers/2020/2020AnnualSurvey_EndUser_v4s.pdf
+PUE_2020 = 1.59
 
-# Average carbon intensity for EU-28 in 2017.
-# https://www.eea.europa.eu/data-and-maps/data/co2-intensity-of-electricity-generation
-EU_28_2017_CARBON_INTENSITY = 294.2060978
+# https://uptimeinstitute.com/2021-data-center-industry-survey-results
+PUE_2021 = 1.57
+
+# https://uptimeinstitute.com/uptime_assets/6768eca6a75d792c8eeede827d76de0d0380dee6b5ced20fde45787dd3688bfe-2022-data-center-industry-survey-en.pdf
+PUE_2022 = 1.55
+
+# World-wide average carbon intensity of electricity production in 2019.
+# https://www.iea.org/reports/global-energy-co2-status-report-2019/emissions
+WORLD_2019_CARBON_INTENSITY = 475

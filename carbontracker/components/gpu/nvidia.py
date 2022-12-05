@@ -10,6 +10,7 @@ result in more than a 10x slowdown).
 import pynvml
 import os
 
+from carbontracker import exceptions
 from carbontracker.components.handler import Handler
 
 
@@ -51,8 +52,7 @@ class NvidiaGPU(Handler):
                 power_usage = pynvml.nvmlDeviceGetPowerUsage(handle) / 1000
                 gpu_power_usages.append(power_usage)
             except pynvml.NVMLError:
-                pass
-
+                raise exceptions.GPUPowerUsageRetrievalError()
         return gpu_power_usages
 
     def init(self):
@@ -108,8 +108,8 @@ class NvidiaGPU(Handler):
             handle = pynvml.nvmlDeviceGetHandleByIndex(index)
             gpu_pids = [
                 p.pid
-                for p in pynvml.nvmlDeviceGetComputeRunningProcesses(handle) +
-                pynvml.nvmlDeviceGetGraphicsRunningProcesses(handle)
+                for p in pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
+                + pynvml.nvmlDeviceGetGraphicsRunningProcesses(handle)
             ]
 
             if set(gpu_pids).intersection(self.pids):

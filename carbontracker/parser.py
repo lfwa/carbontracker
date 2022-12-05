@@ -25,7 +25,7 @@ def parse_all_logs(log_dir):
             "components": parse_logs(log_dir, std, out),
             "early_stop": early_stop,
             "actual": actual,
-            "pred": pred
+            "pred": pred,
         }
         logs.append(entry)
 
@@ -46,10 +46,8 @@ def parse_logs(log_dir, std_log_file=None, output_log_file=None):
 
     components = {}
     for comp, devices in devices.items():
-        power_usages = np.array(
-            avg_power_usages[comp]) if len(avg_power_usages) != 0 else None
-        durations = np.array(
-            epoch_durations) if len(epoch_durations) != 0 else None
+        power_usages = np.array(avg_power_usages[comp]) if len(avg_power_usages) != 0 else None
+        durations = np.array(epoch_durations) if len(epoch_durations) != 0 else None
         if power_usages is None or durations is None:
             energy_usages = None
         else:
@@ -58,7 +56,7 @@ def parse_logs(log_dir, std_log_file=None, output_log_file=None):
             "avg_power_usages (W)": power_usages,
             "avg_energy_usages (J)": energy_usages,
             "epoch_durations (s)": durations,
-            "devices": devices
+            "devices": devices,
         }
         components[comp] = measurements
 
@@ -97,7 +95,7 @@ def extract_measurements(match):
         "duration (s)": duration,
         "energy (kWh)": energy,
         "co2eq (g)": co2eq,
-        "equivalents": equivalents
+        "equivalents": equivalents,
     }
     return measurements
 
@@ -108,8 +106,7 @@ def get_time(time_str):
     if not match:
         return None
     match = match.groups()
-    duration = float(match[0]) * 60 * 60 + float(match[1]) * 60 + float(
-        match[2])
+    duration = float(match[0]) * 60 * 60 + float(match[1]) * 60 + float(match[2])
     return duration
 
 
@@ -117,8 +114,7 @@ def print_aggregate(log_dir):
     """Prints the aggregate consumption in all log files in log_dir."""
     energy, co2eq, equivalents = aggregate_consumption(log_dir)
 
-    equivalents_p = " or ".join(
-        [f"{v:.3f} {k}" for k, v in equivalents.items()])
+    equivalents_p = " or ".join([f"{v:.3f} {k}" for k, v in equivalents.items()])
 
     printable = f"The training of models in this work is estimated to use {energy:.3f} kWh of electricity contributing to {co2eq / 1000:.3f} kg of CO2eq. "
     if equivalents_p:
@@ -201,9 +197,9 @@ def parse_equivalents(lines):
 def get_all_logs(log_dir):
     """Get all output and standard logs in log_dir."""
     files = [
-        os.path.join(log_dir, f) for f in os.listdir(log_dir)
-        if os.path.isfile(os.path.join(log_dir, f))
-        and os.path.getsize(os.path.join(log_dir, f)) > 0
+        os.path.join(log_dir, f)
+        for f in os.listdir(log_dir)
+        if os.path.isfile(os.path.join(log_dir, f)) and os.path.getsize(os.path.join(log_dir, f)) > 0
     ]
     output_re = re.compile(r".*carbontracker_output.log")
     std_re = re.compile(r".*carbontracker.log")
@@ -211,19 +207,20 @@ def get_all_logs(log_dir):
     std_logs = sorted(list(filter(std_re.match, files)))
     if len(output_logs) != len(std_logs):
         # Try to remove the files with no matching output/std logs
-        op_fn = [f.split('_')[0] for f in output_logs]
-        std_fn = [f.split('_')[0] for f in std_logs]
+        op_fn = [f.split("_")[0] for f in output_logs]
+        std_fn = [f.split("_")[0] for f in std_logs]
         if len(std_logs) > len(output_logs):
             missing_logs = list(set(std_fn) - set(op_fn))
-            [std_logs.remove(f+'_carbontracker.log') for  f in missing_logs]
+            [std_logs.remove(f + "_carbontracker.log") for f in missing_logs]
         else:
             missing_logs = list(set(op_fn) - set(std_fn))
-            [output_logs.remove(f+'carbontracker_output.log') for f in missing_logs]
+            [output_logs.remove(f + "carbontracker_output.log") for f in missing_logs]
         ### Even after removel if then there is a mismatch, then throw the error
         if len(output_logs) != len(std_logs):
             raise exceptions.MismatchedLogFilesError(
                 f"Found {len(output_logs)} output logs and {len(std_logs)} "
-                "standard logs. Expected equal number of logs.")
+                "standard logs. Expected equal number of logs."
+            )
     return output_logs, std_logs
 
 
@@ -239,7 +236,7 @@ def get_devices(std_log_data):
     devices = {}
 
     for comp, device_str in device_matches:
-        dev = device_str.split(',')
+        dev = device_str.split(",")
         devices[comp.lower()] = dev
 
     return devices
@@ -249,9 +246,7 @@ def get_epoch_durations(std_log_data):
     """Retrieve epoch durations (s)."""
     duration_re = re.compile(r"Duration: (\d+):(\d{2}):(\d\d?(?:.\d{2})?)")
     matches = re.findall(duration_re, std_log_data)
-    epoch_durations = [
-        float(h) * 60 * 60 + float(m) * 60 + float(s) for h, m, s in matches
-    ]
+    epoch_durations = [float(h) * 60 * 60 + float(m) * 60 + float(s) for h, m, s in matches]
     return epoch_durations
 
 
@@ -280,10 +275,7 @@ def get_avg_power_usages(std_log_data):
 def get_most_recent_logs(log_dir):
     """Retrieve the file names of the most recent standard and output logs."""
     # Get all files in log_dir.
-    files = [
-        os.path.join(log_dir, f) for f in os.listdir(log_dir)
-        if os.path.isfile(os.path.join(log_dir, f))
-    ]
+    files = [os.path.join(log_dir, f) for f in os.listdir(log_dir) if os.path.isfile(os.path.join(log_dir, f))]
     # Find output and standard logs and sort by modified date.
     output_re = re.compile(r".*carbontracker_output.log")
     std_re = re.compile(r".*carbontracker.log")

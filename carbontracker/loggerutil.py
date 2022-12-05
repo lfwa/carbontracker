@@ -3,6 +3,7 @@ import os
 import sys
 import pathlib
 import datetime
+import importlib_metadata as metadata
 
 from carbontracker import constants
 
@@ -42,15 +43,22 @@ class TrackerFormatter(logging.Formatter):
 
 
 class Logger:
-    def __init__(self, log_dir=None, verbose=0):
-        self.logger, self.logger_output, self.logger_err = self._setup(
-            log_dir=log_dir)
+    def __init__(self, log_dir=None, verbose=0, log_prefix=""):
+        self.logger, self.logger_output, self.logger_err = self._setup(log_dir=log_dir, log_prefix=log_prefix)
         self._log_initial_info()
         self.verbose = verbose
         self.msg_prepend = "CarbonTracker: "
 
-    def _setup(self, log_dir=None):
-        logger = logging.getLogger("carbontracker")
+    def _setup(self, log_dir=None, log_prefix=""):
+        # Set up logging such that we don't get duplicate messages.
+        # Get unique logger name. This is needed because we might have multiple instances of carbontracker running.
+        # Add log_prefix if provided.
+        if log_prefix:
+            log_prefix += "_"
+
+        logger_name = f"{log_prefix}{os.getpid()}"
+        logger = logging.getLogger(logger_name)
+
         logger_err = logging.getLogger("carbontracker.err")
         logger_output = logging.getLogger("carbontracker.output")
         # Disable output logging from propagating to parent loggers.
@@ -70,8 +78,7 @@ class Logger:
 
         # Add error logging to console.
         ce = logging.StreamHandler(stream=sys.stdout)
-        ce_formatter = logging.Formatter(
-            "CarbonTracker: {levelname} - {message}", style="{")
+        ce_formatter = logging.Formatter("CarbonTracker: {levelname} - {message}", style="{")
         ce.setLevel(logging.INFO)
         ce.setFormatter(ce_formatter)
         logger_err.addHandler(ce)
@@ -88,24 +95,20 @@ class Logger:
             f_formatter = TrackerFormatter(fmt="%(asctime)s - %(message)s")
 
             # Add output logging to file.
-            fh = logging.FileHandler(
-                f"{log_dir}/{date}_carbontracker_output.log")
+            fh = logging.FileHandler(f"{log_dir}/{logger_name}_{date}_carbontracker_output.log")
             fh.setLevel(logging.INFO)
             fh.setFormatter(f_formatter)
             logger_output.addHandler(fh)
 
             # Add standard logging to file.
-            f = logging.FileHandler(f"{log_dir}/{date}_carbontracker.log")
+            f = logging.FileHandler(f"{log_dir}/{logger_name}_{date}_carbontracker.log")
             f.setLevel(logging.DEBUG)
             f.setFormatter(f_formatter)
             logger.addHandler(f)
 
             # Add error logging to file.
-            err_formatter = logging.Formatter(
-                "{asctime} - {threadName} - {levelname} - {message}",
-                style="{")
-            f_err = logging.FileHandler(
-                f"{log_dir}/{date}_carbontracker_err.log", delay=True)
+            err_formatter = logging.Formatter("{asctime} - {threadName} - {levelname} - {message}", style="{")
+            f_err = logging.FileHandler(f"{log_dir}/{logger_name}_{date}_carbontracker_err.log", delay=True)
             f_err.setLevel(logging.DEBUG)
             f_err.setFormatter(err_formatter)
             logger_err.addHandler(f_err)
@@ -113,15 +116,12 @@ class Logger:
         return logger, logger_output, logger_err
 
     def _log_initial_info(self):
-        here = os.path.abspath(os.path.dirname(__file__))
-        about = {}
-        with open(os.path.join(here, "__version__.py")) as f:
-            exec(f.read(), about)
-        self.info(f"{about['__title__']} version {about['__version__']}")
+        self.info(f"{__package__} version {metadata.version(__package__)}")
         self.info(
             "Only predicted and actual consumptions are multiplied by a PUE "
-            f"coefficient of {constants.PUE} (Rhonda Ascierto, 2019, Uptime "
-            "Institute Global Data Center Survey).")
+            f"coefficient of {constants.PUE_2022} (Rhonda Ascierto, 2022, Uptime "
+            "Institute Global Data Center Survey)."
+        )
 
     def output(self, msg, verbose_level=0):
         if self.verbose >= verbose_level:

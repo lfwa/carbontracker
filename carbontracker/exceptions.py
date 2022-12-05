@@ -1,19 +1,35 @@
 class NoComponentsAvailableError(Exception):
     def __init__(
-            self,
-            msg=("No components were available. CarbonTracker supports Intel "
-                 "CPUs with the RAPL interface and NVIDIA GPUs."),
-            *args,
-            **kwargs):
+        self,
+        msg=(
+            "No components were available. CarbonTracker supports Intel "
+            "CPUs with the RAPL interface and NVIDIA GPUs."
+        ),
+        *args,
+        **kwargs
+    ):
         super().__init__(msg, *args, **kwargs)
 
 
 class UnitError(Exception):
     """Raised when the expected unit does not match the received unit."""
+
     def __init__(self, expected_unit, received_unit, message):
         self.expected_unit = expected_unit
         self.received_unit = received_unit
         self.message = message
+
+
+class IntelRaplPermissionError(Exception):
+    """Raised when an Intel RAPL permission error occurs."""
+
+    pass
+
+
+class GPUPowerUsageRetrievalError(Exception):
+    """Raised when a GPU power usage retrieval error occurs."""
+
+    pass
 
 
 class CarbonIntensityFetcherError(Exception):

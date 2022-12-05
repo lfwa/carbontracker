@@ -4,15 +4,10 @@ from carbontracker import exceptions
 from carbontracker.components.gpu import nvidia
 from carbontracker.components.cpu import intel
 
-components = [{
-    "name": "gpu",
-    "error": exceptions.GPUError("No GPU(s) available."),
-    "handlers": [nvidia.NvidiaGPU]
-}, {
-    "name": "cpu",
-    "error": exceptions.CPUError("No CPU(s) available."),
-    "handlers": [intel.IntelCPU]
-}]
+components = [
+    {"name": "gpu", "error": exceptions.GPUError("No GPU(s) available."), "handlers": [nvidia.NvidiaGPU]},
+    {"name": "cpu", "error": exceptions.CPUError("No CPU(s) available."), "handlers": [intel.IntelCPU]},
+]
 
 
 def component_names():
@@ -35,10 +30,8 @@ class Component:
     def __init__(self, name, pids, devices_by_pid):
         self.name = name
         if name not in component_names():
-            raise exceptions.ComponentNameError(
-                f"No component found with name '{self.name}'.")
-        self._handler = self._determine_handler(pids=pids,
-                                                devices_by_pid=devices_by_pid)
+            raise exceptions.ComponentNameError(f"No component found with name '{self.name}'.")
+        self._handler = self._determine_handler(pids=pids, devices_by_pid=devices_by_pid)
         self.power_usages = []
         self.cur_epoch = -1  # Sentry
 
@@ -75,20 +68,35 @@ class Component:
             if diff != 0:
                 for _ in range(diff):
                     # Copy previous measurement lists.
-                    latest_measurements = self.power_usages[
-                        -1] if self.power_usages else []
+                    latest_measurements = self.power_usages[-1] if self.power_usages else []
                     self.power_usages.append(latest_measurements)
             self.power_usages.append([])
-
-        self.power_usages[-1].append(self.handler.power_usage())
+        try:
+            self.power_usages[-1].append(self.handler.power_usage())
+        except exceptions.IntelRaplPermissionError:
+            # Only raise error if no measurements have been collected.
+            if not self.power_usages[-1]:
+                print(
+                    "No sudo access to read Intel's RAPL measurements from the energy_uj file."
+                    "\nSee issue: https://github.com/lfwa/carbontracker/issues/40"
+                )
+            # Append zero measurement to avoid further errors.
+            self.power_usages.append([0])
+        except exceptions.GPUPowerUsageRetrievalError:
+            if not self.power_usages[-1]:
+                print(
+                    "GPU model does not support retrieval of power usages in NVML."
+                    "\nSee issue: https://github.com/lfwa/carbontracker/issues/36"
+                )
+                # Append zero measurement to avoid further errors.
+                self.power_usages.append([0])
 
     def energy_usage(self, epoch_times):
         """Returns energy (kWh) used by component per epoch."""
         energy_usages = []
         # We have to compute each epoch in a for loop since numpy cannot
         # handle lists of uneven length.
-        for idx, (power, time) in enumerate(zip(self.power_usages,
-                                                epoch_times)):
+        for idx, (power, time) in enumerate(zip(self.power_usages, epoch_times)):
             # If no power measurement exists, try to use measurements from
             # later epochs.
             while not power and idx != len(self.power_usages) - 1:
@@ -124,12 +132,8 @@ class Component:
 def create_components(components, pids, devices_by_pid):
     components = components.strip().replace(" ", "").lower()
     if components == "all":
-        return [
-            Component(name=comp_name, pids=pids, devices_by_pid=devices_by_pid)
-            for comp_name in component_names()
-        ]
+        return [Component(name=comp_name, pids=pids, devices_by_pid=devices_by_pid) for comp_name in component_names()]
     else:
         return [
-            Component(name=comp_name, pids=pids, devices_by_pid=devices_by_pid)
-            for comp_name in components.split(",")
+            Component(name=comp_name, pids=pids, devices_by_pid=devices_by_pid) for comp_name in components.split(",")
         ]
