@@ -22,8 +22,7 @@ class CarbonIntensityGB(IntensityFetcher):
 
         try:
             postcode = g_location.postal
-            ci = self._carbon_intensity_gb_regional(postcode,
-                                                    time_dur=time_dur)
+            ci = self._carbon_intensity_gb_regional(postcode, time_dur=time_dur)
         except:
             ci = self._carbon_intensity_gb_national(time_dur=time_dur)
 
@@ -32,7 +31,7 @@ class CarbonIntensityGB(IntensityFetcher):
         return carbon_intensity
 
     def _carbon_intensity_gb_regional(self, postcode, time_dur=None):
-        """"Retrieves forecasted carbon intensity (gCO2eq/kWh) in GB by
+        """ "Retrieves forecasted carbon intensity (gCO2eq/kWh) in GB by
         postcode."""
         url = f"{API_URL}/regional"
 
@@ -58,8 +57,7 @@ class CarbonIntensityGB(IntensityFetcher):
         return carbon_intensity
 
     def _carbon_intensity_gb_national(self, time_dur=None):
-        """Retrieves forecasted national carbon intensity (gCO2eq/kWh) in GB.
-        """
+        """Retrieves forecasted national carbon intensity (gCO2eq/kWh) in GB."""
         url = f"{API_URL}/intensity"
 
         if time_dur is not None:

@@ -1,8 +1,8 @@
 # **carbontracker**
 [![pypi](https://img.shields.io/pypi/v/carbontracker?label=pypi)](https://pypi.org/project/carbontracker/)
-[![Python 3.6](https://img.shields.io/pypi/pyversions/django?color=blue&logo=python)](https://www.python.org/downloads/)
+[![Python](https://img.shields.io/badge/python-%3E%3D3.7-blue)](https://www.python.org/downloads/)
 [![build](https://github.com/lfwa/carbontracker/workflows/build/badge.svg)](https://github.com/lfwa/carbontracker/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/lfwa/carbontracker/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/lfwa/carbontracker)](https://github.com/lfwa/carbontracker/blob/master/LICENSE)
 
 ## About
 **carbontracker** is a tool for tracking and predicting the energy consumption and carbon footprint of training deep learning models as described in [Anthony et al. (2020)](https://arxiv.org/abs/2007.03051).
@@ -49,6 +49,8 @@ pip install carbontracker
   If True, only devices (under the chosen components) running processes associated with the main process are measured. If False, all available devices are measured (see Section 'Notes' for jobs running on SLURM or in containers). Note that this requires your devices to have active processes before instantiating the `CarbonTracker` class.
 - `log_dir` (default=None):
   Path to the desired directory to write log files. If None, then no logging will be done.
+- `log_file_prefix` (default=""):
+  Prefix to add to the log file name.
 - `verbose` (default=1):
   Sets the level of verbosity.
 - `decimal_precision` (default=6):

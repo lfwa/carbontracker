@@ -2,6 +2,7 @@ import os
 import re
 import time
 
+from carbontracker import exceptions
 from carbontracker.components.handler import Handler
 
 # RAPL Literature:
@@ -30,8 +31,7 @@ class IntelCPU(Handler):
         while attempts > 0:
             attempts -= 1
             power_usages = [
-                self._compute_power(before, after)
-                for before, after in zip(before_measures, after_measures)
+                self._compute_power(before, after) for before, after in zip(before_measures, after_measures)
             ]
             if all(power >= 0 for power in power_usages):
                 return power_usages
@@ -45,26 +45,26 @@ class IntelCPU(Handler):
         return watt
 
     def _read_energy(self, path):
-        with open(os.path.join(path, "energy_uj"), 'r') as f:
+        with open(os.path.join(path, "energy_uj"), "r") as f:
             return int(f.read())
 
     def _get_measurements(self):
         measurements = []
         for package in self._rapl_devices:
             try:
-                power_usage = self._read_energy(os.path.join(
-                    RAPL_DIR, package))
+                power_usage = self._read_energy(os.path.join(RAPL_DIR, package))
                 measurements.append(power_usage)
+            # If there is no sudo access, we cannot read the energy_uj file.
+            # Permission denied error is raised.
+            except PermissionError:
+                raise exceptions.IntelRaplPermissionError()
+
             except FileNotFoundError:
                 # check cpu/gpu/dram
-                parts = [
-                    f for f in os.listdir(os.path.join(RAPL_DIR, package))
-                    if re.match(self.parts_pattern, f)
-                ]
+                parts = [f for f in os.listdir(os.path.join(RAPL_DIR, package)) if re.match(self.parts_pattern, f)]
                 total_power_usage = 0
                 for part in parts:
-                    total_power_usage += self._read_energy(
-                        os.path.join(RAPL_DIR, package, part))
+                    total_power_usage += self._read_energy(os.path.join(RAPL_DIR, package, part))
 
                 measurements.append(total_power_usage)
 
@@ -76,7 +76,7 @@ class IntelCPU(Handler):
 
     def init(self):
         # Get amount of intel-rapl folders
-        packages = list(filter(lambda x: ':' in x, os.listdir(RAPL_DIR)))
+        packages = list(filter(lambda x: ":" in x, os.listdir(RAPL_DIR)))
         self.device_count = len(packages)
         self._devices = []
         self._rapl_devices = []
@@ -89,8 +89,7 @@ class IntelCPU(Handler):
                     name = f.read().strip()
                 if name != "psys":
                     self._rapl_devices.append(package)
-                    self._devices.append(
-                        self._convert_rapl_name(package, devices_pattern))
+                    self._devices.append(self._convert_rapl_name(package, devices_pattern))
 
     def shutdown(self):
         pass
