@@ -3,25 +3,26 @@ import numpy as np
 from carbontracker import exceptions
 from carbontracker.components.gpu import nvidia
 from carbontracker.components.cpu import intel
+from carbontracker.components.apple_silicon.powermetrics import AppleSiliconCPU, AppleSiliconGPU
 
-components = [
-    {"name": "gpu", "error": exceptions.GPUError("No GPU(s) available."), "handlers": [nvidia.NvidiaGPU]},
-    {"name": "cpu", "error": exceptions.CPUError("No CPU(s) available."), "handlers": [intel.IntelCPU]},
+COMPONENTS = [
+    {"name": "gpu", "error": exceptions.GPUError("No GPU(s) available."), "handlers": [nvidia.NvidiaGPU, AppleSiliconGPU]},
+    {"name": "cpu", "error": exceptions.CPUError("No CPU(s) available."), "handlers": [intel.IntelCPU, AppleSiliconCPU]},
 ]
 
 
 def component_names():
-    return [comp["name"] for comp in components]
+    return [comp["name"] for comp in COMPONENTS]
 
 
 def error_by_name(name):
-    for comp in components:
+    for comp in COMPONENTS:
         if comp["name"] == name:
             return comp["error"]
 
 
 def handlers_by_name(name):
-    for comp in components:
+    for comp in COMPONENTS:
         if comp["name"] == name:
             return comp["handlers"]
 
@@ -92,7 +93,7 @@ class Component:
                 self.power_usages.append([0])
 
     def energy_usage(self, epoch_times):
-        """Returns energy (kWh) used by component per epoch."""
+        """Returns energy (mWh) used by component per epoch."""
         energy_usages = []
         # We have to compute each epoch in a for loop since numpy cannot
         # handle lists of uneven length.

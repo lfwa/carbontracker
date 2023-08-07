@@ -238,7 +238,8 @@ class CarbonTracker:
         log_dir=None,
         log_file_prefix="",
         verbose=1,
-        decimal_precision=6,
+        # TODO: Just increase decimal_precision to 16
+        decimal_precision=16,
     ):
         self.epochs = epochs
         self.epochs_before_pred = epochs if epochs_before_pred < 0 else epochs_before_pred
