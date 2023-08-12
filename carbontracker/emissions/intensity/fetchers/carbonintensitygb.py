@@ -45,7 +45,7 @@ class CarbonIntensityGB(IntensityFetcher):
             raise exceptions.CarbonIntensityFetcherError(response.json())
         data = response.json()["data"]
 
-        # CO2Signal has a bug s.t. if we query current then we get a list.
+        # API has a bug s.t. if we query current then we get a list.
         if time_dur is None:
             data = data[0]
 

@@ -15,7 +15,6 @@ from carbontracker import exceptions
 from carbontracker.components import component
 from carbontracker.emissions.intensity import intensity
 from carbontracker.emissions.conversion import co2eq
-from carbontracker.emissions.intensity.fetchers import co2signal
 from carbontracker.emissions.intensity.fetchers import electricitymaps
 
 
@@ -321,9 +320,6 @@ class CarbonTracker:
             for name, key in api_dict.items():
                 if name.lower() == "electricitymaps":
                     electricitymaps.ElectricityMap.set_api_key(key)
-                elif name.lower() == "co2signal":
-                    # TODO: Remove this when co2signal is updated (removed)
-                    co2signal.CO2Signal.set_api_key(key)
                 else:
                     raise exceptions.FetcherNameError(f"Invalid API name '{name}' given.")
         except Exception as e:

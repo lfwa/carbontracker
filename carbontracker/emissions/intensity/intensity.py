@@ -8,7 +8,6 @@ import pandas as pd
 from carbontracker import loggerutil
 from carbontracker import exceptions
 from carbontracker import constants
-from carbontracker.emissions.intensity.fetchers import co2signal
 from carbontracker.emissions.intensity.fetchers import carbonintensitygb
 from carbontracker.emissions.intensity.fetchers import energidataservice
 from carbontracker.emissions.intensity.fetchers import electricitymaps
@@ -95,8 +94,6 @@ def carbon_intensity(logger, time_dur=None):
         electricitymaps.ElectricityMap(),
         energidataservice.EnergiDataService(),
         carbonintensitygb.CarbonIntensityGB(),
-        # TODO: Remove CO2Signal as it is integrated into ElectricityMap
-        co2signal.CO2Signal(),
     ]
 
     carbon_intensity = CarbonIntensity(default=True)
