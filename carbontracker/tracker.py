@@ -241,7 +241,9 @@ class CarbonTracker:
         decimal_precision=12,
         api_keys=None
     ):
-        self.set_api_keys(api_keys)
+        if api_keys is not None:
+            self.set_api_keys(api_keys)
+
         self.epochs = epochs
         self.epochs_before_pred = epochs if epochs_before_pred < 0 else epochs_before_pred
         self.monitor_epochs = epochs if monitor_epochs < 0 else monitor_epochs

@@ -4,13 +4,11 @@ import sys
 import pathlib
 import datetime
 import importlib_metadata as metadata
-
 from carbontracker import constants
 
 
 def convert_to_timestring(seconds, add_milliseconds=False):
     m, s = divmod(seconds, 60)
-    # Ensure we do not print 60.
     if not add_milliseconds:
         s = int(round(s))
         if s == 60:
@@ -42,17 +40,23 @@ class TrackerFormatter(logging.Formatter):
         return s
 
 
+class VerboseFilter(logging.Filter):
+    def __init__(self, verbose):
+        super().__init__()
+        self.verbose = verbose
+
+    def filter(self, record):
+        return self.verbose > 0
+
+
 class Logger:
     def __init__(self, log_dir=None, verbose=0, log_prefix=""):
+        self.verbose = verbose
         self.logger, self.logger_output, self.logger_err = self._setup(log_dir=log_dir, log_prefix=log_prefix)
         self._log_initial_info()
-        self.verbose = verbose
         self.msg_prepend = "CarbonTracker: "
 
     def _setup(self, log_dir=None, log_prefix=""):
-        # Set up logging such that we don't get duplicate messages.
-        # Get unique logger name. This is needed because we might have multiple instances of carbontracker running.
-        # Add log_prefix if provided.
         if log_prefix:
             log_prefix += "_"
 
@@ -61,7 +65,6 @@ class Logger:
 
         logger_err = logging.getLogger("carbontracker.err")
         logger_output = logging.getLogger("carbontracker.output")
-        # Disable output logging from propagating to parent loggers.
         logger.propagate = False
         logger.setLevel(logging.DEBUG)
         logger_output.propagate = False
@@ -69,11 +72,11 @@ class Logger:
         logger_err.propagate = False
         logger_err.setLevel(logging.DEBUG)
 
-        # Add output logging to console.
         ch = logging.StreamHandler(stream=sys.stdout)
         c_formatter = logging.Formatter("{message}", style="{")
         ch.setLevel(logging.INFO)
         ch.setFormatter(c_formatter)
+        ch.addFilter(VerboseFilter(self.verbose))
         logger_output.addHandler(ch)
 
         # Add error logging to console.
@@ -124,8 +127,7 @@ class Logger:
         )
 
     def output(self, msg, verbose_level=0):
-        if self.verbose >= verbose_level:
-            self.logger_output.info(self.msg_prepend + msg)
+        self.logger_output.info(self.msg_prepend + msg)
 
     def info(self, msg):
         self.logger.info(msg)
