@@ -16,6 +16,7 @@ from carbontracker.components import component
 from carbontracker.emissions.intensity import intensity
 from carbontracker.emissions.conversion import co2eq
 from carbontracker.emissions.intensity.fetchers import co2signal
+from carbontracker.emissions.intensity.fetchers import electricitymaps
 
 
 class CarbonIntensityThread(Thread):
@@ -239,7 +240,9 @@ class CarbonTracker:
         log_file_prefix="",
         verbose=1,
         decimal_precision=12,
+        api_keys=None
     ):
+        self.set_api_keys(api_keys)
         self.epochs = epochs
         self.epochs_before_pred = epochs if epochs_before_pred < 0 else epochs_before_pred
         self.monitor_epochs = epochs if monitor_epochs < 0 else monitor_epochs
@@ -316,8 +319,11 @@ class CarbonTracker:
         """Set API keys (given as {name:key}) for carbon intensity fetchers."""
         try:
             for name, key in api_dict.items():
-                if name.lower() == "co2signal":
-                    co2signal.AUTH_TOKEN = key
+                if name.lower() == "electricitymaps":
+                    electricitymaps.ElectricityMap.set_api_key(key)
+                elif name.lower() == "co2signal":
+                    # TODO: Remove this when co2signal is updated (removed)
+                    co2signal.CO2Signal.set_api_key(key)
                 else:
                     raise exceptions.FetcherNameError(f"Invalid API name '{name}' given.")
         except Exception as e:

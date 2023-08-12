@@ -4,9 +4,9 @@ from carbontracker import exceptions
 from carbontracker.emissions.intensity.fetcher import IntensityFetcher
 from carbontracker.emissions.intensity import intensity
 
-API_URL = "https://api.co2signal.com/v1/latest"
+API_URL = "https://api-access.electricitymaps.com/free-tier/carbon-intensity/latest"
 
-class CO2Signal(IntensityFetcher):
+class ElectricityMap(IntensityFetcher):
     _api_key = None
 
     @classmethod
@@ -22,13 +22,13 @@ class CO2Signal(IntensityFetcher):
         try:
             ci = self._carbon_intensity_by_location(lon=g_location.lng, lat=g_location.lat)
         except:
-            ci = self._carbon_intensity_by_location(country_code=g_location.country)
+            ci = self._carbon_intensity_by_location(zone=g_location.country)
 
         carbon_intensity.carbon_intensity = ci
 
         return carbon_intensity
 
-    def _carbon_intensity_by_location(self, lon=None, lat=None, country_code=None):
+    def _carbon_intensity_by_location(self, lon=None, lat=None, zone=None):
         """Retrieves carbon intensity (gCO2eq/kWh) by location.
 
         Note:
@@ -37,31 +37,23 @@ class CO2Signal(IntensityFetcher):
         Args:
             lon (float): Longitude. Defaults to None.
             lat (float): Lattitude. Defaults to None.
-            country_code (str): Alpha-2 country code. Defaults to None.
+            zone (str): Alpha-2 country code. Defaults to None.
 
         Returns:
             Carbon intensity in gCO2eq/kWh.
-
-        Raises:
-            UnitError: The unit of the carbon intensity does not match the
-                expected unit.
         """
-        if country_code is not None:
-            params = (("countryCode", country_code),)
+        if zone is not None:
+            params = (("zone", zone),)
             assert lon is None and lat is None
         elif lon is not None and lat is not None:
             params = (("lon", lon), ("lat", lat))
-            assert country_code is None
+            assert zone is None
 
         headers = {"auth-token": self._api_key}
 
         response = requests.get(API_URL, headers=headers, params=params)
         if not response.ok:
             raise exceptions.CarbonIntensityFetcherError(response.json())
-        carbon_intensity = response.json()["data"]["carbonIntensity"]
-        unit = response["units"]["carbonIntensity"]
-        expected_unit = "gCO2eq/kWh"
-        if unit != expected_unit:
-            raise exceptions.UnitError(expected_unit, unit, "Carbon intensity query returned the wrong unit.")
+        carbon_intensity = response.json()["carbonIntensity"]
 
         return carbon_intensity

@@ -11,6 +11,7 @@ from carbontracker import constants
 from carbontracker.emissions.intensity.fetchers import co2signal
 from carbontracker.emissions.intensity.fetchers import carbonintensitygb
 from carbontracker.emissions.intensity.fetchers import energidataservice
+from carbontracker.emissions.intensity.fetchers import electricitymaps
 
 
 def get_default_intensity():
@@ -91,8 +92,10 @@ class CarbonIntensity:
 def carbon_intensity(logger, time_dur=None):
     # Will iterate over and find *first* suitable() api
     fetchers = [
+        electricitymaps.ElectricityMap(),
         energidataservice.EnergiDataService(),
         carbonintensitygb.CarbonIntensityGB(),
+        # TODO: Remove CO2Signal as it is integrated into ElectricityMap
         co2signal.CO2Signal(),
     ]
 
