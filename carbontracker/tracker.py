@@ -351,7 +351,7 @@ class CarbonTracker:
         if conversions:
             conv_str = "\n\tThis is equivalent to:"
             for units, unit in conversions:
-                conv_str += f"\n\t{units:.6f} {unit}"
+                conv_str += f"\n\t{units:.{precision}f} {unit}"
             output += conv_str
 
         self.logger.output(output, verbose_level=1)

@@ -65,16 +65,23 @@ def parse_logs(log_dir, std_log_file=None, output_log_file=None):
 
 def get_consumption(output_log_data):
     actual_re = re.compile(
-        r"(?i)Actual consumption for (\d*) epoch\(s\):\n\s*(?i)Time:\s*(.*)\n\s*(?i)Energy:\s*(.*)\s+kWh\n\s*(?i)CO2eq:\s*(.*)\s+g\n\s*(This is equivalent to:\n([\S\s]*?)\n(^\w|\d|\Z))?"
+        r"(?i)Actual consumption for (\d*) epoch\(s\):"
+        r"[\s\S]*?Time:\s*(.*)\n\s*Energy:\s*(.*)\s+kWh"
+        r"[\s\S]*?CO2eq:\s*(.*)\s+g"
+        r"(?:\s*This is equivalent to:\s*([\s\S]*?))?(?=\d{4}-\d{2}-\d{2}|\Z)"
     )
     pred_re = re.compile(
-        r"(?i)Predicted consumption for (\d*) epoch\(s\):\n\s*(?i)Time:\s*(.*)\n\s*(?i)Energy:\s*(.*)\s+kWh\n\s*(?i)CO2eq:\s*(.*)\s+g\n\s*(This is equivalent to:\n([\S\s]*?)\n(^\w|\d|\Z))?"
+        r"(?i)Predicted consumption for (\d*) epoch\(s\):"
+        r"[\s\S]*?Time:\s*(.*)\n\s*Energy:\s*(.*)\s+kWh"
+        r"[\s\S]*?CO2eq:\s*(.*)\s+g"
+        r"(?:\s*This is equivalent to:\s*([\s\S]*?))?(?=\d{4}-\d{2}-\d{2}|\Z)"
     )
     actual_match = re.search(actual_re, output_log_data)
     pred_match = re.search(pred_re, output_log_data)
     actual = extract_measurements(actual_match)
     pred = extract_measurements(pred_match)
     return actual, pred
+
 
 
 def get_early_stop(std_log_data):
@@ -178,8 +185,8 @@ def aggregate_consumption(log_dir):
 def get_stats(groups):
     energy = float(groups[2])
     co2eq = float(groups[3])
-    if len(groups) >= 6 and groups[5] is not None:
-        equivalents = parse_equivalents(groups[5])
+    if len(groups) >= 5 and groups[4] is not None:
+        equivalents = parse_equivalents(groups[4])
     else:
         equivalents = None
     return energy, co2eq, equivalents
@@ -190,7 +197,12 @@ def parse_equivalents(lines):
     lines = lines.split("\n")
     for line in lines:
         tup = line.split(" ", 1)
-        equivalents[tup[1]] = float(tup[0])
+        if tup[0] and tup[1]:
+            try:
+                equivalents[tup[1].strip()] = float(tup[0].strip())
+            except ValueError as e:
+                print(f"Warning: Unable to convert '{tup[0]}' to float. Skipping this equivalent.")
+                continue
     return equivalents
 
 
