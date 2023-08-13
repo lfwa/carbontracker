@@ -89,7 +89,6 @@ class CarbonIntensity:
 
 
 def carbon_intensity(logger, time_dur=None):
-    # Will iterate over and find *first* suitable() api
     fetchers = [
         electricitymaps.ElectricityMap(),
         energidataservice.EnergiDataService(),
@@ -117,13 +116,14 @@ def carbon_intensity(logger, time_dur=None):
             carbon_intensity = fetcher.carbon_intensity(g_location, time_dur)
             if not np.isnan(carbon_intensity.carbon_intensity):
                 carbon_intensity.success = True
-            set_carbon_intensity_message(carbon_intensity, time_dur)
+                set_carbon_intensity_message(carbon_intensity, time_dur)
             carbon_intensity.address = g_location.address
-            break
         except:
             err_str = traceback.format_exc()
             logger.err_info(err_str)
 
+    if not carbon_intensity.success:
+        logger.err_warn("Failed to retrieve carbon intensity: Defaulting to average carbon intensity {} gCO2/kWh.".format(default_intensity["carbon_intensity"]))
     return carbon_intensity
 
 
@@ -146,5 +146,4 @@ def set_carbon_intensity_message(ci, time_dur):
             ci.message = f"Current carbon intensity is {ci.carbon_intensity:.2f} gCO2/kWh"
         else:
             ci.set_default_message()
-            return
     ci.message += f" at detected location: {ci.address}."
