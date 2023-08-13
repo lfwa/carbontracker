@@ -97,6 +97,7 @@ class CarbonTrackerThread(Thread):
 
     def __init__(self, components, logger, ignore_errors, delete, update_interval=10):
         super(CarbonTrackerThread, self).__init__()
+        self.cur_epoch_time = time.time()
         self.name = "CarbonTrackerThread"
         self.delete = delete
         self.components = components
@@ -105,7 +106,7 @@ class CarbonTrackerThread(Thread):
         self.logger = logger
         self.epoch_times = []
         self.running = True
-        self.measuring = False
+        self.measuring_event = Event()
         self.epoch_counter = 0
         self.daemon = True
 
@@ -116,8 +117,8 @@ class CarbonTrackerThread(Thread):
         try:
             self.begin()
             while self.running:
-                if not self.measuring:
-                    continue
+                # Wait for the measuring_event to be set
+                self.measuring_event.wait()
                 self._collect_measurements()
                 time.sleep(self.update_interval)
 
@@ -144,11 +145,11 @@ class CarbonTrackerThread(Thread):
 
     def epoch_start(self):
         self.epoch_counter += 1
-        self.measuring = True
         self.cur_epoch_time = time.time()
+        self.measuring_event.set()  # Set the event to start measuring
 
     def epoch_end(self):
-        self.measuring = False
+        self.measuring_event.clear()  # Clear the event to stop measuring
         self.epoch_times.append(time.time() - self.cur_epoch_time)
         self._log_epoch_measurements()
 
