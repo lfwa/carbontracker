@@ -6,6 +6,7 @@ from carbontracker.emissions.intensity import intensity
 
 API_URL = "https://api-access.electricitymaps.com/free-tier/carbon-intensity/latest"
 
+
 class ElectricityMap(IntensityFetcher):
     _api_key = None
 

@@ -18,9 +18,7 @@ def get_default_intensity():
     try:
         g_location = geocoder.ip("me")
         if not g_location.ok:
-            raise exceptions.IPLocationError(
-                "Failed to retrieve location based on IP."
-            )
+            raise exceptions.IPLocationError("Failed to retrieve location based on IP.")
         address = g_location.address
         country = g_location.country
     except Exception as err:
@@ -29,13 +27,9 @@ def get_default_intensity():
 
     try:
         carbon_intensities_df = pd.read_csv(
-            pkg_resources.resource_filename(
-                "carbontracker", "data/carbon-intensities.csv"
-            )
+            pkg_resources.resource_filename("carbontracker", "data/carbon-intensities.csv")
         )
-        intensity_row = carbon_intensities_df[
-            carbon_intensities_df["alpha-2"] == country
-        ].iloc[0]
+        intensity_row = carbon_intensities_df[carbon_intensities_df["alpha-2"] == country].iloc[0]
         intensity = intensity_row["Carbon intensity of electricity (gCO2/kWh)"]
         year = intensity_row["Year"]
         description = f"Defaulted to average carbon intensity for {country} in {year} of {intensity:.2f} gCO2/kWh."
@@ -43,10 +37,7 @@ def get_default_intensity():
         intensity = constants.WORLD_2019_CARBON_INTENSITY
         description = f"Defaulted to average carbon intensity for world in 2019 of {intensity:.2f} gCO2/kWh."
 
-    description = (
-        f"Live carbon intensity could not be fetched at detected location: {address}. "
-        + description
-    )
+    description = f"Live carbon intensity could not be fetched at detected location: {address}. " + description
     default_intensity = {
         "carbon_intensity": intensity,
         "description": description,
@@ -100,9 +91,7 @@ def carbon_intensity(logger, time_dur=None):
     try:
         g_location = geocoder.ip("me")
         if not g_location.ok:
-            raise exceptions.IPLocationError(
-                "Failed to retrieve location based on IP."
-            )
+            raise exceptions.IPLocationError("Failed to retrieve location based on IP.")
         carbon_intensity.address = g_location.address
     except:
         err_str = traceback.format_exc()
@@ -123,7 +112,11 @@ def carbon_intensity(logger, time_dur=None):
             logger.err_info(err_str)
 
     if not carbon_intensity.success:
-        logger.err_warn("Failed to retrieve carbon intensity: Defaulting to average carbon intensity {} gCO2/kWh.".format(default_intensity["carbon_intensity"]))
+        logger.err_warn(
+            "Failed to retrieve carbon intensity: Defaulting to average carbon intensity {} gCO2/kWh.".format(
+                default_intensity["carbon_intensity"]
+            )
+        )
     return carbon_intensity
 
 

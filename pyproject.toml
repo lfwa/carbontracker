@@ -24,3 +24,7 @@ homepage = "https://github.com/lfwa/carbontracker"
 repository = "https://github.com/lfwa/carbontracker"
 
 [tool.setuptools_scm]
+
+[project.scripts]
+carbontracker = "carbontracker.cli:main"
+

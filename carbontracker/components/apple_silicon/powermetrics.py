@@ -4,14 +4,17 @@ import re
 import time
 from carbontracker.components.handler import Handler
 
-class PowerMetricsUnified():
+
+class PowerMetricsUnified:
     _output = None
     _last_updated = None
 
     @staticmethod
     def get_output():
         if PowerMetricsUnified._output is None or time.time() - PowerMetricsUnified._last_updated > 1:
-            PowerMetricsUnified._output = subprocess.check_output(["sudo", "powermetrics", "-n", "1", "-i", "1000", "--samplers", "all"], universal_newlines=True)
+            PowerMetricsUnified._output = subprocess.check_output(
+                ["sudo", "powermetrics", "-n", "1", "-i", "1000", "--samplers", "all"], universal_newlines=True
+            )
             PowerMetricsUnified._last_updated = time.time()
         return PowerMetricsUnified._output
 

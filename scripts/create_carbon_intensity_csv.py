@@ -35,11 +35,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--input_csv", help="Path to input csv.", required=True
-    )
-    parser.add_argument(
-        "--output_csv", help="Path to output csv.", required=True
-    )
+    parser.add_argument("--input_csv", help="Path to input csv.", required=True)
+    parser.add_argument("--output_csv", help="Path to output csv.", required=True)
     args = parser.parse_args()
     main(args)

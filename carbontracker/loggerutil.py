@@ -8,6 +8,11 @@ from carbontracker import constants
 
 
 def convert_to_timestring(seconds, add_milliseconds=False):
+    negative = False
+    if seconds < 0:
+        negative = True
+        seconds = abs(seconds)
+
     m, s = divmod(seconds, 60)
     if not add_milliseconds:
         s = int(round(s))
@@ -22,9 +27,9 @@ def convert_to_timestring(seconds, add_milliseconds=False):
     h = int(h)
     m = int(m)
     if not add_milliseconds:
-        return f"{h:d}:{m:02d}:{s:02d}"
+        return f"-{h:d}:{m:02d}:{s:02d}" if negative else f"{h:d}:{m:02d}:{s:02d}"
     else:
-        return f"{h:d}:{m:02d}:{s:05.2f}"
+        return f"-{h:d}:{m:02d}:{s:05.2f}" if negative else f"{h:d}:{m:02d}:{s:05.2f}"
 
 
 class TrackerFormatter(logging.Formatter):

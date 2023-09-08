@@ -83,7 +83,6 @@ def get_consumption(output_log_data):
     return actual, pred
 
 
-
 def get_early_stop(std_log_data):
     early_stop_re = re.compile(r"(?i)Training was interrupted")
     early_stop = re.findall(early_stop_re, std_log_data)

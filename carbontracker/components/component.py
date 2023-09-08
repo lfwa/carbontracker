@@ -6,8 +6,16 @@ from carbontracker.components.cpu import intel
 from carbontracker.components.apple_silicon.powermetrics import AppleSiliconCPU, AppleSiliconGPU
 
 COMPONENTS = [
-    {"name": "gpu", "error": exceptions.GPUError("No GPU(s) available."), "handlers": [nvidia.NvidiaGPU, AppleSiliconGPU]},
-    {"name": "cpu", "error": exceptions.CPUError("No CPU(s) available."), "handlers": [intel.IntelCPU, AppleSiliconCPU]},
+    {
+        "name": "gpu",
+        "error": exceptions.GPUError("No GPU(s) available."),
+        "handlers": [nvidia.NvidiaGPU, AppleSiliconGPU],
+    },
+    {
+        "name": "cpu",
+        "error": exceptions.CPUError("No CPU(s) available."),
+        "handlers": [intel.IntelCPU, AppleSiliconCPU],
+    },
 ]
 
 

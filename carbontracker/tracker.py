@@ -240,7 +240,7 @@ class CarbonTracker:
         log_file_prefix="",
         verbose=1,
         decimal_precision=12,
-        api_keys=None
+        api_keys=None,
     ):
         if api_keys is not None:
             self.set_api_keys(api_keys)

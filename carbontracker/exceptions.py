@@ -6,7 +6,7 @@ class NoComponentsAvailableError(Exception):
             "CPUs with the RAPL interface and NVIDIA GPUs."
         ),
         *args,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(msg, *args, **kwargs)
 
