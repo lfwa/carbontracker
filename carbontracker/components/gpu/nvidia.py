@@ -7,6 +7,8 @@ recommended to run nvmlInit() and nvmlShutdown() as few times as possible, e.g.
 by running queries in batches (initializing and shutdown after each query can
 result in more than a 10x slowdown).
 """
+import sys
+
 import pynvml
 import os
 
@@ -16,13 +18,17 @@ from carbontracker.components.handler import Handler
 
 class NvidiaGPU(Handler):
     def devices(self):
-        """Retrieves the name of all GPUs in a list.
-
+        """
         Note:
             Requires NVML to be initialized.
         """
-        devices = [pynvml.nvmlDeviceGetName(handle) for handle in self._handles]
-        return devices
+        names = [pynvml.nvmlDeviceGetName(handle) for handle in self._handles]
+
+        # Decode names if Python version is less than 3.10
+        if sys.version_info < (3, 10):
+            names = [name.decode("utf-8") for name in names]
+
+        return names
 
     def available(self):
         """Checks if NVML and any GPUs are available."""
