@@ -1,17 +1,21 @@
 import argparse
 import subprocess
 from carbontracker.tracker import CarbonTracker
+import ast
 
 
 def main():
     parser = argparse.ArgumentParser(description="CarbonTracker CLI")
     parser.add_argument("--script", type=str, required=True, help="Python file to execute")
     parser.add_argument("--log_dir", type=str, help="Log directory", default="./logs")
-    # Add more arguments as needed
-
+    parser.add_argument("--api_keys", type=str, help="API keys in a dictionary-like format, e.g., "
+                                                     "'{\"electricitymaps\": \"YOUR_KEY\"}'", default=None)
     args = parser.parse_args()
 
-    tracker = CarbonTracker(epochs=1, log_dir=args.log_dir, epochs_before_pred=0)
+    # Parse the API keys string into a dictionary
+    api_keys = ast.literal_eval(args.api_keys) if args.api_keys else None
+
+    tracker = CarbonTracker(epochs=1, log_dir=args.log_dir, epochs_before_pred=0, api_keys=api_keys)
     tracker.epoch_start()
 
     # Execute script with python

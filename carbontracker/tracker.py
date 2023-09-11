@@ -367,8 +367,10 @@ class CarbonTracker:
         time = np.sum(times)
         _co2eq = self._co2eq(energy)
         conversions = co2eq.convert(_co2eq) if self.interpretable else None
-
-        self._output_energy(f"Actual consumption for {self.epoch_counter} epoch(s):", time, energy, _co2eq, conversions)
+        if self.epochs_before_pred == 0:
+            self._output_energy("Actual consumption:", time, energy, _co2eq, conversions)
+        else:
+            self._output_energy(f"Actual consumption for {self.epoch_counter} epoch(s):", time, energy, _co2eq, conversions)
 
     def _output_pred(self):
         """Output predicted usage for full training epochs."""
