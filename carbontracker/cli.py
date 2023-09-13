@@ -1,4 +1,5 @@
 import argparse
+import shlex
 import subprocess
 from carbontracker.tracker import CarbonTracker
 import ast
@@ -25,7 +26,7 @@ def main():
     try:
         subprocess.run(args.command, check=True)
     except subprocess.CalledProcessError:
-        print(f"Error executing command: {' '.join(args.command)}")
+        print(f"Error executing command: {' '.join(map(shlex.quote, args.command))}")
         # Handle errors or exceptions if needed
 
     tracker.epoch_end()
