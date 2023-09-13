@@ -6,7 +6,10 @@ import ast
 
 def main():
     parser = argparse.ArgumentParser(description="CarbonTracker CLI")
-    parser.add_argument("--script", type=str, required=True, help="Python file to execute")
+
+    # Accept a list of arguments
+    parser.add_argument("command", type=str, nargs='+',
+                        help="Command and arguments to execute. E.g., 'python myscript.py arg1 arg2'")
     parser.add_argument("--log_dir", type=str, help="Log directory", default="./logs")
     parser.add_argument("--api_keys", type=str, help="API keys in a dictionary-like format, e.g., "
                                                      "'{\"electricitymaps\": \"YOUR_KEY\"}'", default=None)
@@ -18,11 +21,11 @@ def main():
     tracker = CarbonTracker(epochs=1, log_dir=args.log_dir, epochs_before_pred=0, api_keys=api_keys)
     tracker.epoch_start()
 
-    # Execute script with python
+    # Execute the provided command with its arguments
     try:
-        subprocess.run(["python", args.script], check=True)
+        subprocess.run(args.command, check=True)
     except subprocess.CalledProcessError:
-        print(f"Error executing script: {args.script}")
+        print(f"Error executing command: {' '.join(args.command)}")
         # Handle errors or exceptions if needed
 
     tracker.epoch_end()
