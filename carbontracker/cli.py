@@ -1,38 +1,32 @@
 import argparse
 import subprocess
-import ast
 from carbontracker.tracker import CarbonTracker
-import shlex
+import ast
+import sys
 
 def main():
-    # Create the parser for the script's own arguments
-    parser = argparse.ArgumentParser(description="CarbonTracker CLI")
-    parser.add_argument("--log_dir", type=str, help="Log directory", default="./logs")
-    parser.add_argument("--api_keys", type=str, help="API keys in a dictionary-like format, e.g., "
-                                                     "'{\"electricitymaps\": \"YOUR_KEY\"}'", default=None)
+    # Create a parser for the known arguments
+    parser = argparse.ArgumentParser(description="CarbonTracker CLI", add_help=False)
+    parser.add_argument("--log_dir", type=str, default="./logs")
+    parser.add_argument("--api_keys", type=str, default=None)
 
-    # Parse known arguments and remaining arguments
-    args, remaining_args = parser.parse_known_args()
+    # Parse known arguments only
+    known_args, remaining_args = parser.parse_known_args()
 
     # Parse the API keys string into a dictionary
-    api_keys = ast.literal_eval(args.api_keys) if args.api_keys else None
+    api_keys = ast.literal_eval(known_args.api_keys) if known_args.api_keys else None
 
-    tracker = CarbonTracker(epochs=1, log_dir=args.log_dir, epochs_before_pred=0, api_keys=api_keys)
+    tracker = CarbonTracker(epochs=1, log_dir=known_args.log_dir, epochs_before_pred=0, api_keys=api_keys)
     tracker.epoch_start()
 
-    # Handle the command
+    # The remaining_args are considered as the command to execute
     if remaining_args:
-        if '--cmd' in remaining_args:
-            cmd_index = remaining_args.index('--cmd')
-            command_args = remaining_args[cmd_index + 1:]
-        else:
-            command_args = remaining_args
-
-        # Execute the command
         try:
-            subprocess.run(command_args, check=True)
-        except subprocess.CalledProcessError:
-            print(f"Error executing command: {' '.join(map(shlex.quote, command_args))}")
+            # Execute the command
+            subprocess.run(remaining_args, check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error executing command: {' '.join(remaining_args)}")
+            print(f"Subprocess error: {e}")
 
     tracker.epoch_end()
     tracker.stop()
