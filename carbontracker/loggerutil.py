@@ -144,7 +144,7 @@ class Logger:
         self.logger_err.info(msg)
 
     def err_warn(self, msg):
-        self.logger_err.warn(msg)
+        self.logger_err.warning(msg)
 
     def err_critical(self, msg):
         self.logger_err.critical(msg)

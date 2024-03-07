@@ -2,7 +2,6 @@ import datetime
 
 import requests
 import numpy as np
-import time
 
 from carbontracker import exceptions
 from carbontracker.emissions.intensity.fetcher import IntensityFetcher

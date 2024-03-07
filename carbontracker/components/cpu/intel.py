@@ -15,6 +15,10 @@ MEASURE_DELAY = 1
 
 
 class IntelCPU(Handler):
+    def __init__(self, pids, devices_by_pid):
+        super().__init__(pids, devices_by_pid)
+        self._handler = None
+
     def devices(self):
         """Returns the name of all RAPL Domains"""
         return self._devices

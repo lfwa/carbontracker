@@ -17,6 +17,10 @@ from carbontracker.components.handler import Handler
 
 
 class NvidiaGPU(Handler):
+    def __init__(self, pids, devices_by_pid):
+        super().__init__(pids, devices_by_pid)
+        self._handles = None
+
     def devices(self):
         """
         Note:
@@ -69,6 +73,7 @@ class NvidiaGPU(Handler):
 
     def shutdown(self):
         pynvml.nvmlShutdown()
+        self._handles = None
 
     def _get_handles(self):
         """Returns handles of GPUs in slurm job if existent otherwise all
@@ -114,7 +119,7 @@ class NvidiaGPU(Handler):
             gpu_pids = [
                 p.pid
                 for p in pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
-                + pynvml.nvmlDeviceGetGraphicsRunningProcesses(handle)
+                         + pynvml.nvmlDeviceGetGraphicsRunningProcesses(handle)
             ]
 
             if set(gpu_pids).intersection(self.pids):

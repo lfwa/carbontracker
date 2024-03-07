@@ -138,10 +138,10 @@ class CarbonTrackerThread(Thread):
         if not self.running:
             return
 
-        self.measuring = False
         self.running = False
         self.logger.info("Monitoring thread ended.")
         self.logger.output("Finished monitoring.", verbose_level=1)
+
 
     def epoch_start(self):
         self.epoch_counter += 1

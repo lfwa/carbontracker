@@ -1,7 +1,8 @@
+import os.path
 import traceback
 
 import geocoder
-import pkg_resources
+import importlib.resources
 import numpy as np
 import pandas as pd
 
@@ -11,7 +12,6 @@ from carbontracker import constants
 from carbontracker.emissions.intensity.fetchers import carbonintensitygb
 from carbontracker.emissions.intensity.fetchers import energidataservice
 from carbontracker.emissions.intensity.fetchers import electricitymaps
-
 
 def get_default_intensity():
     """Retrieve static default carbon intensity value based on location."""
@@ -27,8 +27,7 @@ def get_default_intensity():
 
     try:
         carbon_intensities_df = pd.read_csv(
-            pkg_resources.resource_filename("carbontracker", "data/carbon-intensities.csv")
-        )
+            str(importlib.resources.files("carbontracker").joinpath("data", "carbon-intensities.csv")))
         intensity_row = carbon_intensities_df[carbon_intensities_df["alpha-2"] == country].iloc[0]
         intensity = intensity_row["Carbon intensity of electricity (gCO2/kWh)"]
         year = intensity_row["Year"]

@@ -2,8 +2,6 @@ import argparse
 import subprocess
 from carbontracker.tracker import CarbonTracker
 import ast
-import sys
-
 
 def main():
     # Create a parser for the known arguments
@@ -36,4 +34,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

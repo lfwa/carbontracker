@@ -1,8 +1,10 @@
 # **carbontracker**
-[![pypi](https://img.shields.io/pypi/v/carbontracker?label=pypi)](https://pypi.org/project/carbontracker/)
+[![Build](https://github.com/lfwa/carbontracker/actions/workflows/publish.yml/badge.svg)](https://github.com/lfwa/carbontracker/actions)
+[![PyPI](https://img.shields.io/pypi/v/carbontracker?label=PyPI)](https://pypi.org/project/carbontracker/)
 [![Python](https://img.shields.io/badge/python-%3E%3D3.7-blue)](https://www.python.org/downloads/)
-[![build](https://github.com/lfwa/carbontracker/workflows/build/badge.svg)](https://github.com/lfwa/carbontracker/actions)
+[![Unit Tests](https://github.com/lfwa/carbontracker/actions/workflows/test.yml/badge.svg)](https://github.com/lfwa/carbontracker/actions)
 [![License](https://img.shields.io/github/license/lfwa/carbontracker)](https://github.com/lfwa/carbontracker/blob/master/LICENSE)
+
 
 ## About
 **carbontracker** is a tool for tracking and predicting the energy consumption and carbon footprint of training deep learning models as described in [Anthony et al. (2020)](https://arxiv.org/abs/2007.03051).
