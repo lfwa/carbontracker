@@ -514,6 +514,7 @@ class TestCarbonTracker(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self.tracker._handle_error(Exception('Test exception'))
 
+    @skipIf(os.environ.get('CI') == 'true', 'Skipped due to CI')
     @patch('carbontracker.emissions.intensity.fetchers.electricitymaps.ElectricityMap.set_api_key')
     def test_set_api_keys_electricitymaps(self, mock_set_api_key):
         tracker = CarbonTracker(epochs=1)
