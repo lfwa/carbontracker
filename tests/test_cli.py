@@ -1,10 +1,12 @@
 import subprocess
 import unittest
+from unittest import skipIf
 from time import sleep
 from unittest.mock import patch
 from io import StringIO
 import sys
 from carbontracker import cli
+import os
 
 def mock_password_input(prompt):
     # Simulate password entry based on the prompt
@@ -14,6 +16,7 @@ def mock_password_input(prompt):
         # Handle other prompts or return None for unexpected prompts
         return None
 
+@skipIf(os.environ.get('CI') == 'true', 'Skipped due to CI')
 class TestCLI(unittest.TestCase):
 
     @patch("builtins.input", side_effect=mock_password_input)

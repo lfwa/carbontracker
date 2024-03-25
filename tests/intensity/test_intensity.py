@@ -1,13 +1,14 @@
+import geocoder
 import unittest
 from unittest.mock import patch, MagicMock
 import numpy as np
 import pandas as pd
-import pkg_resources
+import importlib.resources
 
 from carbontracker import constants
 from carbontracker.emissions.intensity import intensity
 
-from carbontracker.emissions.intensity.intensity import carbon_intensity, default_intensity
+from carbontracker.emissions.intensity.intensity import carbon_intensity
 
 
 class TestIntensity(unittest.TestCase):
@@ -20,9 +21,9 @@ class TestIntensity(unittest.TestCase):
         mock_geocoder_ip.return_value = mock_location
 
         result = intensity.get_default_intensity()
-
-        carbon_intensities_df = pd.read_csv(
-            pkg_resources.resource_filename("carbontracker", "data/carbon-intensities.csv"))
+        ref = importlib.resources.files("carbontracker") / "data/carbon-intensities.csv"
+        with importlib.resources.as_file(ref) as path:
+            carbon_intensities_df = pd.read_csv(path)
         intensity_row = carbon_intensities_df[carbon_intensities_df["alpha-2"] == mock_location.country].iloc[0]
         expected_intensity = intensity_row["Carbon intensity of electricity (gCO2/kWh)"]
 
@@ -106,27 +107,26 @@ class TestIntensity(unittest.TestCase):
 
         logger = MagicMock()
 
-        result = intensity.carbon_intensity(logger)
+        with patch('carbontracker.emissions.intensity.intensity.default_intensity', intensity.get_default_intensity()) as C:
+            result = intensity.carbon_intensity(logger)
+            default_intensity = intensity.get_default_intensity()
 
-        self.assertEqual(result.carbon_intensity, default_intensity["carbon_intensity"])
-        self.assertEqual(result.address, "UNDETECTED")
-        self.assertEqual(result.success, False)
-        self.assertIn("Live carbon intensity could not be fetched at detected location", result.message)
+            self.assertEqual(result.carbon_intensity, default_intensity["carbon_intensity"])
+            self.assertEqual(result.address, "UNDETECTED")
+            self.assertEqual(result.success, False)
+            self.assertIn("Live carbon intensity could not be fetched at detected location", result.message)
 
     @patch("carbontracker.emissions.intensity.intensity.geocoder.ip")
-    def test_set_carbon_intensity_message(self, mock_geocoder):
-        ci = intensity.CarbonIntensity()
+    def test_set_carbon_intensity_message(self, mock_geocoder_ip):
         time_dur = 3600
-
         mock_location = MagicMock()
         # Assuming the actual function logic uses a specific fallback or detected location
-        detected_address = "Zürich, Zurich, CH"  # The detected location that appears in the error
+        detected_address = "Aarhus, Capital Region, DK"  # The detected location that appears in the error
         fallback_address = "Generic Location, Country"  # The fallback or generic location
         mock_location.address = detected_address
-        mock_geocoder.ip.return_value = mock_location
-
-        ci.address = fallback_address  # Set to the fallback or generic address for the test case
-
+        mock_location.country = 'DK'
+        mock_geocoder_ip.ok = True
+        mock_geocoder_ip.return_value = mock_location
         # Adjust the set_expected_message function to match the error details
         def set_expected_message(is_prediction, success, carbon_intensity):
             if is_prediction:
@@ -139,10 +139,9 @@ class TestIntensity(unittest.TestCase):
                     message = f"Current carbon intensity is {carbon_intensity:.2f} gCO2/kWh at detected location: {fallback_address}."
                 else:
                     message = (f"Live carbon intensity could not be fetched at detected location: {detected_address}. "
-                               f"Defaulted to average carbon intensity for CH in 2021 of 57.77 gCO2/kWh. "
+                               f"Defaulted to average carbon intensity for DK in 2021 of 149.75 gCO2/kWh. "
                                f"at detected location: {fallback_address}.")
             return message
-
         # Test scenarios
         scenarios = [
             (True, True, 100.0),
@@ -151,13 +150,16 @@ class TestIntensity(unittest.TestCase):
             (False, False, None)  # The scenario corresponding to the failure message
         ]
 
-        for is_prediction, success, carbon_intensity in scenarios:
-            ci.is_prediction = is_prediction
-            ci.success = success
-            ci.carbon_intensity = carbon_intensity if carbon_intensity is not None else 0.0
-            intensity.set_carbon_intensity_message(ci, time_dur)
-            expected_message = set_expected_message(is_prediction, success, carbon_intensity)
-            self.assertEqual(ci.message, expected_message)
+        with patch('carbontracker.emissions.intensity.intensity.default_intensity', intensity.get_default_intensity()) as C:
+            ci = intensity.CarbonIntensity()
+            ci.address = fallback_address  # Set to the fallback or generic address for the test case
+            for is_prediction, success, carbon_intensity in scenarios:
+                ci.is_prediction = is_prediction
+                ci.success = success
+                ci.carbon_intensity = carbon_intensity if carbon_intensity is not None else 0.0
+                intensity.set_carbon_intensity_message(ci, time_dur)
+                expected_message = set_expected_message(is_prediction, success, carbon_intensity)
+                self.assertEqual(ci.message, expected_message)
 
     @patch("geocoder.ip")
     @patch("carbontracker.emissions.intensity.fetchers.electricitymaps.ElectricityMap.suitable")

@@ -46,7 +46,6 @@ def get_default_intensity():
 
 default_intensity = get_default_intensity()
 
-
 class CarbonIntensity:
     def __init__(
         self,
