@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 import numpy as np
 import pandas as pd
-import pkg_resources
+import importlib.resources
 
 from carbontracker import constants
 from carbontracker.emissions.intensity import intensity
@@ -21,8 +21,9 @@ class TestIntensity(unittest.TestCase):
 
         result = intensity.get_default_intensity()
 
-        carbon_intensities_df = pd.read_csv(
-            pkg_resources.resource_filename("carbontracker", "data/carbon-intensities.csv"))
+        ref = importlib.resources.files("carbontracker") / "data/carbon-intensities.csv"
+        with importlib.resources.as_file(ref) as path:
+            carbon_intensities_df = pd.read_csv(path)
         intensity_row = carbon_intensities_df[carbon_intensities_df["alpha-2"] == mock_location.country].iloc[0]
         expected_intensity = intensity_row["Carbon intensity of electricity (gCO2/kWh)"]
 

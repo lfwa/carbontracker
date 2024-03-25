@@ -25,6 +25,9 @@ repository = "https://github.com/lfwa/carbontracker"
 
 [tool.setuptools_scm]
 
+[project.optional-dependencies]
+TEST = ["pyfakefs"]
+
 [project.scripts]
 carbontracker = "carbontracker.cli:main"
 
