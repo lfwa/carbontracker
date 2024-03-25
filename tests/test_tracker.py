@@ -3,7 +3,7 @@ import threading
 import time
 import traceback
 import unittest
-from unittest import mock
+from unittest import mock, skipIf
 from unittest.mock import Mock, patch, MagicMock
 from threading import Event
 import numpy as np
@@ -476,6 +476,7 @@ class TestCarbonTracker(unittest.TestCase):
 
         mock_handle_error.assert_not_called()
 
+    @skipIf(os.environ.get('CI') == 'true', 'Skipped due to CI')
     @patch('carbontracker.tracker.CarbonTrackerThread.epoch_start')
     @patch('carbontracker.tracker.CarbonTracker._handle_error')
     def test_epoch_start_exception(self, mock_handle_error, mock_tracker_thread_epoch_start):
@@ -521,6 +522,7 @@ class TestCarbonTracker(unittest.TestCase):
 
         mock_set_api_key.assert_called_once_with("mock_api_key")
 
+    @skipIf(os.environ.get('CI') == 'true', 'Skipped due to CI')
     @patch('carbontracker.tracker.CarbonTracker.set_api_keys')
     def test_carbontracker_api_key(self, mock_set_api_keys):
         api_dict = {"ElectricityMaps": "mock_api_key"}

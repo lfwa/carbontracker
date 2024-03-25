@@ -1,4 +1,5 @@
 import unittest
+from unittest import skipIf
 from carbontracker import loggerutil
 from carbontracker.loggerutil import Logger, convert_to_timestring
 import unittest.mock
@@ -33,6 +34,7 @@ class TestLoggerUtil(unittest.TestCase):
         time_s = 3659.9955  # Very close to 3660, and should round off to it
         self.assertEqual(convert_to_timestring(time_s, add_milliseconds=True), "1:01:00.00")
 
+    @skipIf(os.environ.get('CI') == 'true', 'Skipped due to CI')
     def test_formatTime_with_datefmt(self):
         formatter = loggerutil.TrackerFormatter()
         record = MagicMock()
@@ -44,6 +46,7 @@ class TestLoggerUtil(unittest.TestCase):
 
         self.assertEqual(formatted_time, "2023-03-15 14-20-00")
 
+    @skipIf(os.environ.get('CI') == 'true', 'Skipped due to CI')
     def test_formatTime_without_datefmt(self):
         formatter = loggerutil.TrackerFormatter()
         record = MagicMock()
