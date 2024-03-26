@@ -1,0 +1,2 @@
+# CLI
+::: carbontracker.cli.main

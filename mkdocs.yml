@@ -1,0 +1,5 @@
+site_name: Carbontracker
+theme: readthedocs
+plugins: 
+  - mkdocstrings
+

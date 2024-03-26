@@ -30,6 +30,7 @@ packages = ['carbontracker']
 
 [project.optional-dependencies]
 test = ["pyfakefs"]
+docs = ["mkdocs", "mkdocstrings[python]"]
 
 [project.scripts]
 carbontracker = "carbontracker.cli:main"
