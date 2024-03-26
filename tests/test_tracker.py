@@ -147,6 +147,8 @@ class TestCarbonTrackerThread(unittest.TestCase):
         self.thread.stop()
 
         self.assertFalse(self.thread.running)
+
+        # assert_any_call because different log statements races in Python 3.11 in Github Actions
         self.mock_logger.info.assert_any_call("Monitoring thread ended.")
         self.mock_logger.output.assert_called_with("Finished monitoring.", verbose_level=1)
 
