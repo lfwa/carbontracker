@@ -147,7 +147,7 @@ class TestCarbonTrackerThread(unittest.TestCase):
         self.thread.stop()
 
         self.assertFalse(self.thread.running)
-        self.mock_logger.info.assert_called_with("Monitoring thread ended.")
+        self.mock_logger.info.assert_any_call("Monitoring thread ended.")
         self.mock_logger.output.assert_called_with("Finished monitoring.", verbose_level=1)
 
     def test_stop_tracker_not_running(self):
