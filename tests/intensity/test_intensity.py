@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 import numpy as np
 import pandas as pd
-import importlib.resources
+import sys
 
 from carbontracker import constants
 from carbontracker.emissions.intensity import intensity
@@ -21,9 +21,16 @@ class TestIntensity(unittest.TestCase):
         mock_geocoder_ip.return_value = mock_location
 
         result = intensity.get_default_intensity()
-        ref = importlib.resources.files("carbontracker") / "data/carbon-intensities.csv"
-        with importlib.resources.as_file(ref) as path:
-            carbon_intensities_df = pd.read_csv(path)
+
+        # importlib.resources.files was introduced in Python 3.9 and replaces deprecated pkg_resource.resources
+        if sys.version_info < (3,9):
+            import pkg_resources
+            carbon_intensities_df = pd.read_csv(pkg_resources.resource_filename("carbontracker", "data/carbon-intensities.csv"))
+        else:
+            import importlib.resources
+            ref = importlib.resources.files("carbontracker") / "data/carbon-intensities.csv"
+            with importlib.resources.as_file(ref) as path:
+                carbon_intensities_df = pd.read_csv(path)
         intensity_row = carbon_intensities_df[carbon_intensities_df["alpha-2"] == mock_location.country].iloc[0]
         expected_intensity = intensity_row["Carbon intensity of electricity (gCO2/kWh)"]
 
