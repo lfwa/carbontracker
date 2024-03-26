@@ -29,8 +29,8 @@ class NvidiaGPU(Handler):
         names = [pynvml.nvmlDeviceGetName(handle) for handle in self._handles]
 
         # Decode names if Python version is less than 3.9
-        if sys.version_info < (3, 9):
-            names = [name.decode("utf-8") for name in names]
+        if sys.version_info < (3,10):
+            names = [name.decode() for name in names]
 
         return names
 
