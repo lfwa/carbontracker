@@ -2,9 +2,9 @@ import os.path
 import traceback
 
 import geocoder
-import importlib.resources
 import numpy as np
 import pandas as pd
+import sys
 
 from carbontracker import loggerutil
 from carbontracker import exceptions
@@ -26,8 +26,14 @@ def get_default_intensity():
         country = "Unknown"
 
     try:
-        carbon_intensities_df = pd.read_csv(
-            str(importlib.resources.files("carbontracker").joinpath("data", "carbon-intensities.csv")))
+        # importlib.resources.files was introduced in Python 3.9
+        if sys.version_info < (3,9):
+            import pkg_resources
+            path = pkg_resources.resource_filename("carbontracker", "data/carbon-intensities.csv")
+        else:
+            import importlib.resources
+            path = importlib.resources.files("carbontracker").joinpath("data", "carbon-intensities.csv")
+        carbon_intensities_df = pd.read_csv(str(path))
         intensity_row = carbon_intensities_df[carbon_intensities_df["alpha-2"] == country].iloc[0]
         intensity = intensity_row["Carbon intensity of electricity (gCO2/kWh)"]
         year = intensity_row["Year"]

@@ -23,6 +23,9 @@ dynamic = ["version"]
 homepage = "https://github.com/lfwa/carbontracker"
 repository = "https://github.com/lfwa/carbontracker"
 
+[tool.setuptools]
+packages = ['carbontracker']
+
 [tool.setuptools_scm]
 
 [project.optional-dependencies]
