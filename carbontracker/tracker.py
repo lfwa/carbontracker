@@ -151,7 +151,8 @@ class CarbonTrackerThread(Thread):
     def epoch_end(self):
         self.measuring_event.clear()  # Clear the event to stop measuring
         self.epoch_times.append(time.time() - self.cur_epoch_time)
-        self._log_epoch_measurements()
+        power_gpu, power_cpu = self._log_epoch_measurements()
+        return power_gpu, power_cpu
 
     def _log_components_info(self):
         log = ["The following components were found:"]
@@ -167,6 +168,8 @@ class CarbonTrackerThread(Thread):
         self.logger.info(f"Epoch {self.epoch_counter}:")
         duration = self.epoch_times[-1]
         self.logger.info(f"Duration: {loggerutil.convert_to_timestring(duration, True)}")
+        power_gpu = 0
+        gpu_power = 0
         for comp in self.components:
             if comp.power_usages and comp.power_usages[-1]:
                 power_avg = np.mean(comp.power_usages[-1], axis=0)
@@ -181,6 +184,11 @@ class CarbonTrackerThread(Thread):
                 power_avg = None
 
             self.logger.info(f"Average power usage (W) for {comp.name}: {power_avg}")
+            if comp.name == 'gpu':
+                power_gpu = power_avg
+            else:
+                gpu_power = power_avg
+        return power_gpu, gpu_power
 
     def _components_remove_unavailable(self):
         self.components = [cmp for cmp in self.components if cmp.available()]
@@ -208,6 +216,19 @@ class CarbonTrackerThread(Thread):
             energy_usage = comp.energy_usage(self.epoch_times)
             total_energy += energy_usage
         return total_energy * constants.PUE_2022
+    
+    def energy_per_epoch_per_device(self):
+        gpu_energy = 0
+        cpu_energy = 0
+        for comp in self.components:
+            energy_usage = comp.energy_usage(self.epoch_times)
+            if comp.name == "gpu":
+                gpu_energy = energy_usage[-1]
+            elif comp.name == "cpu":
+                cpu_energy = energy_usage[-1]
+
+                
+        return gpu_energy,cpu_energy
 
     def _handle_error(self, error):
         err_str = traceback.format_exc()
@@ -290,7 +311,8 @@ class CarbonTracker:
             return
 
         try:
-            self.tracker.epoch_end()
+            gpu_power, cpu_power = self.tracker.epoch_end()
+            gpu_energy, cpu_energy, time = self._output_current()
 
             if self.epoch_counter == self.monitor_epochs:
                 self._output_actual()
@@ -304,6 +326,7 @@ class CarbonTracker:
                 self._delete()
         except Exception as e:
             self._handle_error(e)
+        return gpu_power, cpu_power, gpu_energy, cpu_energy, time
 
     def stop(self):
         """Ensure that tracker is stopped and deleted. E.g. use with early
@@ -371,6 +394,15 @@ class CarbonTracker:
             self._output_energy("Actual consumption:", time, energy, _co2eq, conversions)
         else:
             self._output_energy(f"Actual consumption for {self.epoch_counter} epoch(s):", time, energy, _co2eq, conversions)
+        
+    def _output_current(self):
+        """Output current usage of epoch."""
+        energy_gpu, energy_cpu = self.tracker.energy_per_epoch_per_device()
+        #print(energy_usages)
+        times = self.tracker.epoch_times
+        #print(times)
+        return energy_gpu, energy_cpu, times[-1]
+        
 
     def _output_pred(self):
         """Output predicted usage for full training epochs."""
