@@ -5,6 +5,7 @@
 [![Unit Tests](https://github.com/lfwa/carbontracker/actions/workflows/test.yml/badge.svg)](https://github.com/lfwa/carbontracker/actions)
 [![License](https://img.shields.io/github/license/lfwa/carbontracker)](https://github.com/lfwa/carbontracker/blob/master/LICENSE)
 [![Downloads](https://static.pepy.tech/badge/carbontracker)](https://pepy.tech/project/carbontracker)
+
 [Website](https://carbontracker.info)
 
 ## About
