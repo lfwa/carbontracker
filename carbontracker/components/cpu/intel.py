@@ -4,7 +4,7 @@ import time
 
 from carbontracker import exceptions
 from carbontracker.components.handler import Handler
-from typing import List
+from typing import List, Union
 
 # RAPL Literature:
 # https://www.researchgate.net/publication/322308215_RAPL_in_Action_Experiences_in_Using_RAPL_for_Power_Measurements
@@ -20,14 +20,14 @@ class IntelCPU(Handler):
         super().__init__(pids, devices_by_pid)
         self._handler = None
 
-    def devices(self):
+    def devices(self) -> List[str]:
         """Returns the name of all RAPL Domains"""
         return self._devices
 
-    def available(self):
+    def available(self) -> bool:
         return os.path.exists(RAPL_DIR) and bool(os.listdir(RAPL_DIR))
 
-    def power_usage(self):
+    def power_usage(self) -> List[float]:
         before_measures = self._get_measurements()
         time.sleep(MEASURE_DELAY)
         after_measures = self._get_measurements()
@@ -44,13 +44,13 @@ class IntelCPU(Handler):
         default = [0.0 for device in range(len(self._devices))]
         return default
 
-    def _compute_power(self, before, after):
+    def _compute_power(self, before: int, after: int) -> float:
         """Compute avg. power usage from two samples in microjoules."""
         joules = (after - before) / 1000000
         watt = joules / MEASURE_DELAY
         return watt
 
-    def _read_energy(self, path):
+    def _read_energy(self, path: str) -> int:
         with open(os.path.join(path, "energy_uj"), "r") as f:
             return int(f.read())
 
@@ -82,7 +82,7 @@ class IntelCPU(Handler):
 
         return measurements
 
-    def _convert_rapl_name(self, name, pattern):
+    def _convert_rapl_name(self, name, pattern) -> Union[None, str]:
         if re.match(pattern, name):
             return "cpu:" + name[-1]
 
@@ -90,8 +90,8 @@ class IntelCPU(Handler):
         # Get amount of intel-rapl folders
         packages = list(filter(lambda x: ":" in x, os.listdir(RAPL_DIR)))
         self.device_count = len(packages)
-        self._devices = []
-        self._rapl_devices = []
+        self._devices: List[str] = []
+        self._rapl_devices: List[str] = []
         self.parts_pattern = re.compile(r"intel-rapl:(\d):(\d)")
         devices_pattern = re.compile("intel-rapl:.")
 
@@ -101,9 +101,9 @@ class IntelCPU(Handler):
                     name = f.read().strip()
                 if name != "psys":
                     self._rapl_devices.append(package)
-                    self._devices.append(
-                        self._convert_rapl_name(package, devices_pattern)
-                    )
+                    rapl_name = self._convert_rapl_name(package, devices_pattern)
+                    if rapl_name is not None:
+                        self._devices.append(rapl_name)
 
     def shutdown(self):
         pass

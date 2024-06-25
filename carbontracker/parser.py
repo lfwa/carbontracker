@@ -4,7 +4,7 @@ import re
 import numpy as np
 
 from carbontracker import exceptions
-from typing import Dict, Union
+from typing import Dict, Union, List
 
 
 def parse_all_logs(log_dir):
@@ -331,7 +331,7 @@ def get_all_logs(log_dir):
     return output_logs, std_logs
 
 
-def get_devices(std_log_data: str) -> Dict[str, list[str]]:
+def get_devices(std_log_data: str) -> Dict[str, List[str]]:
     """
     Retrieve dictionary of components with their device(s).
 

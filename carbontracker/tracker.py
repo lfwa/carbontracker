@@ -5,7 +5,7 @@ import traceback
 import psutil
 import math
 from threading import Thread, Event
-from typing import List
+from typing import List, Union
 
 import numpy as np
 
@@ -23,11 +23,11 @@ from carbontracker.emissions.intensity.fetchers import electricitymaps
 class CarbonIntensityThread(Thread):
     """Sleeper thread to update Carbon Intensity every 15 minutes."""
 
-    def __init__(self, logger, stop_event, update_interval=900):
+    def __init__(self, logger, stop_event, update_interval: Union[float, int] = 900):
         super(CarbonIntensityThread, self).__init__()
         self.name = "CarbonIntensityThread"
         self.logger = logger
-        self.update_interval = update_interval
+        self.update_interval: Union[float, int] = update_interval
         self.daemon = True
         self.stop_event = stop_event
         self.carbon_intensities = []
@@ -111,7 +111,7 @@ class CarbonTrackerThread(Thread):
         logger,
         ignore_errors,
         delete,
-        update_interval=10,
+        update_interval: Union[int, float] = 10,
     ):
         super(CarbonTrackerThread, self).__init__()
         self.cur_epoch_time = time.time()

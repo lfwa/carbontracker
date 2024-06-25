@@ -1,13 +1,15 @@
 import logging
+from logging import LogRecord
 import os
 import sys
 import pathlib
 import datetime
 import importlib_metadata as metadata
 from carbontracker import constants
+from typing import Union
 
 
-def convert_to_timestring(seconds, add_milliseconds=False):
+def convert_to_timestring(seconds: int, add_milliseconds=False) -> str:
     negative = False
     if seconds < 0:
         negative = True
@@ -35,14 +37,15 @@ def convert_to_timestring(seconds, add_milliseconds=False):
 class TrackerFormatter(logging.Formatter):
     converter = datetime.datetime.fromtimestamp
 
-    def formatTime(self, record, datefmt=None):
-        ct = self.converter(record.created)
-        if datefmt:
-            s = ct.strftime(datefmt)
-        else:
-            t = ct.strftime("%Y-%m-%d %H:%M:%S")
-            s = "%s" % t
-        return s
+    def formatTime(self, record: LogRecord, datefmt: Union[str, None] = None) -> str:
+        if record.created:
+            ct = self.converter(record.created)
+            if datefmt:
+                s = ct.strftime(datefmt)
+            else:
+                t = ct.strftime("%Y-%m-%d %H:%M:%S")
+                s = "%s" % t
+            return s
 
 
 class VerboseFilter(logging.Filter):
@@ -57,7 +60,9 @@ class VerboseFilter(logging.Filter):
 class Logger:
     def __init__(self, log_dir=None, verbose=0, log_prefix=""):
         self.verbose = verbose
-        self.logger, self.logger_output, self.logger_err = self._setup(log_dir=log_dir, log_prefix=log_prefix)
+        self.logger, self.logger_output, self.logger_err = self._setup(
+            log_dir=log_dir, log_prefix=log_prefix
+        )
         self._log_initial_info()
         self.msg_prepend = "CarbonTracker: "
 
@@ -86,7 +91,9 @@ class Logger:
 
         # Add error logging to console.
         ce = logging.StreamHandler(stream=sys.stdout)
-        ce_formatter = logging.Formatter("CarbonTracker: {levelname} - {message}", style="{")
+        ce_formatter = logging.Formatter(
+            "CarbonTracker: {levelname} - {message}", style="{"
+        )
         ce.setLevel(logging.INFO)
         ce.setFormatter(ce_formatter)
         logger_err.addHandler(ce)
@@ -103,7 +110,9 @@ class Logger:
             f_formatter = TrackerFormatter(fmt="%(asctime)s - %(message)s")
 
             # Add output logging to file.
-            fh = logging.FileHandler(f"{log_dir}/{logger_name}_{date}_carbontracker_output.log")
+            fh = logging.FileHandler(
+                f"{log_dir}/{logger_name}_{date}_carbontracker_output.log"
+            )
             fh.setLevel(logging.INFO)
             fh.setFormatter(f_formatter)
             logger_output.addHandler(fh)
@@ -115,8 +124,12 @@ class Logger:
             logger.addHandler(f)
 
             # Add error logging to file.
-            err_formatter = logging.Formatter("{asctime} - {threadName} - {levelname} - {message}", style="{")
-            f_err = logging.FileHandler(f"{log_dir}/{logger_name}_{date}_carbontracker_err.log", delay=True)
+            err_formatter = logging.Formatter(
+                "{asctime} - {threadName} - {levelname} - {message}", style="{"
+            )
+            f_err = logging.FileHandler(
+                f"{log_dir}/{logger_name}_{date}_carbontracker_err.log", delay=True
+            )
             f_err.setLevel(logging.DEBUG)
             f_err.setFormatter(err_formatter)
             logger_err.addHandler(f_err)

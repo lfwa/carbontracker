@@ -139,7 +139,7 @@ def carbon_intensity(logger, time_dur=None):
     return carbon_intensity
 
 
-def set_carbon_intensity_message(ci, time_dur):
+def set_carbon_intensity_message(ci: CarbonIntensity, time_dur):
     if ci.is_prediction:
         if ci.success:
             ci.message = (
@@ -160,4 +160,5 @@ def set_carbon_intensity_message(ci, time_dur):
             )
         else:
             ci.set_default_message()
-    ci.message += f" at detected location: {ci.address}."
+    if ci.message is not None:
+        ci.message += f" at detected location: {ci.address}."

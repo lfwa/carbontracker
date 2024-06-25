@@ -8,7 +8,7 @@ from carbontracker.components.apple_silicon.powermetrics import (
     AppleSiliconGPU,
 )
 from carbontracker.components.handler import Handler
-from typing import Iterable, List, Union, Type
+from typing import Iterable, List, Union, Type, Sized
 
 COMPONENTS = [
     {
@@ -115,7 +115,7 @@ class Component:
                 # Append zero measurement to avoid further errors.
                 self.power_usages.append([0])
 
-    def energy_usage(self, epoch_times: List[int]):
+    def energy_usage(self, epoch_times: List[int]) -> List[int]:
         """Returns energy (mWh) used by component per epoch."""
         energy_usages = []
         # We have to compute each epoch in a for loop since numpy cannot
