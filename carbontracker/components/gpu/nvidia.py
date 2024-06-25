@@ -7,6 +7,7 @@ recommended to run nvmlInit() and nvmlShutdown() as few times as possible, e.g.
 by running queries in batches (initializing and shutdown after each query can
 result in more than a 10x slowdown).
 """
+
 import sys
 
 import pynvml
@@ -14,14 +15,15 @@ import os
 
 from carbontracker import exceptions
 from carbontracker.components.handler import Handler
+from typing import List, Union
 
 
 class NvidiaGPU(Handler):
-    def __init__(self, pids, devices_by_pid):
+    def __init__(self, pids: List[int], devices_by_pid: bool):
         super().__init__(pids, devices_by_pid)
-        self._handles = None
+        self._handles = []
 
-    def devices(self):
+    def devices(self) -> List[str]:
         """
         Note:
             Requires NVML to be initialized.
@@ -29,12 +31,12 @@ class NvidiaGPU(Handler):
         names = [pynvml.nvmlDeviceGetName(handle) for handle in self._handles]
 
         # Decode names if Python version is less than 3.9
-        if sys.version_info < (3,10):
+        if sys.version_info < (3, 10):
             names = [name.decode() for name in names]
 
         return names
 
-    def available(self):
+    def available(self) -> bool:
         """Checks if NVML and any GPUs are available."""
         try:
             self.init()
@@ -47,7 +49,7 @@ class NvidiaGPU(Handler):
             available = False
         return available
 
-    def power_usage(self):
+    def power_usage(self) -> List[float]:
         """Retrieves instantaneous power usages (W) of all GPUs in a list.
 
         Note:
@@ -73,9 +75,9 @@ class NvidiaGPU(Handler):
 
     def shutdown(self):
         pynvml.nvmlShutdown()
-        self._handles = None
+        self._handles = []
 
-    def _get_handles(self):
+    def _get_handles(self) -> List:
         """Returns handles of GPUs in slurm job if existent otherwise all
         available GPUs."""
         device_indices = self._slurm_gpu_indices()
@@ -87,7 +89,7 @@ class NvidiaGPU(Handler):
 
         return [pynvml.nvmlDeviceGetHandleByIndex(i) for i in device_indices]
 
-    def _slurm_gpu_indices(self):
+    def _slurm_gpu_indices(self) -> Union[List[int], None]:
         """Returns indices of GPUs for the current slurm job if existent.
 
         Note:
@@ -97,12 +99,16 @@ class NvidiaGPU(Handler):
         """
         index_str = os.environ.get("CUDA_VISIBLE_DEVICES")
         try:
-            indices = [int(i) for i in index_str.split(",")]
+            indices = (
+                [int(i) for i in index_str.split(",")]
+                if index_str is not None
+                else None
+            )
         except:
             indices = None
         return indices
 
-    def _get_handles_by_pid(self):
+    def _get_handles_by_pid(self) -> List:
         """Returns handles of GPU running at least one process from PIDS.
 
         Note:
@@ -119,7 +125,7 @@ class NvidiaGPU(Handler):
             gpu_pids = [
                 p.pid
                 for p in pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
-                         + pynvml.nvmlDeviceGetGraphicsRunningProcesses(handle)
+                + pynvml.nvmlDeviceGetGraphicsRunningProcesses(handle)
             ]
 
             if set(gpu_pids).intersection(self.pids):

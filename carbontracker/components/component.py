@@ -3,7 +3,12 @@ import numpy as np
 from carbontracker import exceptions
 from carbontracker.components.gpu import nvidia
 from carbontracker.components.cpu import intel
-from carbontracker.components.apple_silicon.powermetrics import AppleSiliconCPU, AppleSiliconGPU
+from carbontracker.components.apple_silicon.powermetrics import (
+    AppleSiliconCPU,
+    AppleSiliconGPU,
+)
+from carbontracker.components.handler import Handler
+from typing import Iterable, List, Union, Type, Sized
 
 COMPONENTS = [
     {
@@ -19,38 +24,46 @@ COMPONENTS = [
 ]
 
 
-def component_names():
+def component_names() -> List[str]:
     return [comp["name"] for comp in COMPONENTS]
 
 
-def error_by_name(name):
+def error_by_name(name) -> Exception:
     for comp in COMPONENTS:
         if comp["name"] == name:
             return comp["error"]
+    raise exceptions.ComponentNameError()
 
 
-def handlers_by_name(name):
+def handlers_by_name(name) -> List[Type[Handler]]:
     for comp in COMPONENTS:
         if comp["name"] == name:
             return comp["handlers"]
+    raise exceptions.ComponentNameError()
 
 
 class Component:
-    def __init__(self, name, pids, devices_by_pid):
+    def __init__(self, name: str, pids: Iterable[int], devices_by_pid: bool):
         self.name = name
         if name not in component_names():
-            raise exceptions.ComponentNameError(f"No component found with name '{self.name}'.")
-        self._handler = self._determine_handler(pids=pids, devices_by_pid=devices_by_pid)
-        self.power_usages = []
-        self.cur_epoch = -1  # Sentry
+            raise exceptions.ComponentNameError(
+                f"No component found with name '{self.name}'."
+            )
+        self._handler = self._determine_handler(
+            pids=pids, devices_by_pid=devices_by_pid
+        )
+        self.power_usages: List[List[float]] = []
+        self.cur_epoch: int = -1  # Sentry
 
     @property
-    def handler(self):
+    def handler(self) -> Handler:
         if self._handler is None:
             raise error_by_name(self.name)
         return self._handler
 
-    def _determine_handler(self, pids, devices_by_pid):
+    def _determine_handler(
+        self, pids: Iterable[int], devices_by_pid: bool
+    ) -> Union[Handler, None]:
         handlers = handlers_by_name(self.name)
         for h in handlers:
             handler = h(pids=pids, devices_by_pid=devices_by_pid)
@@ -58,13 +71,13 @@ class Component:
                 return handler
         return None
 
-    def devices(self):
+    def devices(self) -> List[str]:
         return self.handler.devices()
 
-    def available(self):
+    def available(self) -> bool:
         return self._handler is not None
 
-    def collect_power_usage(self, epoch):
+    def collect_power_usage(self, epoch: int):
         if epoch < 1:
             return
 
@@ -77,11 +90,13 @@ class Component:
             if diff != 0:
                 for _ in range(diff):
                     # Copy previous measurement lists.
-                    latest_measurements = self.power_usages[-1] if self.power_usages else []
+                    latest_measurements = (
+                        self.power_usages[-1] if self.power_usages else []
+                    )
                     self.power_usages.append(latest_measurements)
             self.power_usages.append([])
         try:
-            self.power_usages[-1].append(self.handler.power_usage())
+            self.power_usages[-1] += self.handler.power_usage()
         except exceptions.IntelRaplPermissionError:
             # Only raise error if no measurements have been collected.
             if not self.power_usages[-1]:
@@ -100,7 +115,7 @@ class Component:
                 # Append zero measurement to avoid further errors.
                 self.power_usages.append([0])
 
-    def energy_usage(self, epoch_times):
+    def energy_usage(self, epoch_times: List[int]) -> List[int]:
         """Returns energy (mWh) used by component per epoch."""
         energy_usages = []
         # We have to compute each epoch in a for loop since numpy cannot
@@ -138,11 +153,17 @@ class Component:
         self.handler.shutdown()
 
 
-def create_components(components, pids, devices_by_pid):
+def create_components(
+    components: str, pids: Iterable[int], devices_by_pid: bool
+) -> List[Component]:
     components = components.strip().replace(" ", "").lower()
     if components == "all":
-        return [Component(name=comp_name, pids=pids, devices_by_pid=devices_by_pid) for comp_name in component_names()]
+        return [
+            Component(name=comp_name, pids=pids, devices_by_pid=devices_by_pid)
+            for comp_name in component_names()
+        ]
     else:
         return [
-            Component(name=comp_name, pids=pids, devices_by_pid=devices_by_pid) for comp_name in components.split(",")
+            Component(name=comp_name, pids=pids, devices_by_pid=devices_by_pid)
+            for comp_name in components.split(",")
         ]

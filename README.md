@@ -5,6 +5,7 @@
 [![Unit Tests](https://github.com/lfwa/carbontracker/actions/workflows/test.yml/badge.svg)](https://github.com/lfwa/carbontracker/actions)
 [![License](https://img.shields.io/github/license/lfwa/carbontracker)](https://github.com/lfwa/carbontracker/blob/master/LICENSE)
 
+[Website](https://carbontracker.info)
 
 ## About
 **carbontracker** is a tool for tracking and predicting the energy consumption and carbon footprint of training deep learning models as described in [Anthony et al. (2020)](https://arxiv.org/abs/2007.03051).
