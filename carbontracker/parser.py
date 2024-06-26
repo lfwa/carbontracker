@@ -394,7 +394,7 @@ def get_avg_power_usages(std_log_data):
                         [component name]: list[list[float]]
                 }
     """
-    power_re = re.compile(r"Average power usage \(W\) for (.+): (\[.+\]|None)")
+    power_re = re.compile(r"Average power usage \(W\) for (.+): (\[?[0-9\.]+\]?|None)")
     matches = re.findall(power_re, std_log_data)
     components = list(set([comp for comp, _ in matches]))
     avg_power_usages = {}
