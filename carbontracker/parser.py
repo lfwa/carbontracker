@@ -94,6 +94,11 @@ def parse_logs(log_dir, std_log_file=None, output_log_file=None):
         if power_usages is None or durations is None:
             energy_usages = None
         else:
+            if power_usages.size != durations.size:
+                raise exceptions.MismatchedEpochsError(
+                    f"Found {power_usages.size} power measurements and {durations.size} duration measurements. "
+                    "Expected equal number of measurements."
+                )
             energy_usages = (power_usages.T * durations).T
         measurements = {
             "avg_power_usages (W)": power_usages,
@@ -394,7 +399,7 @@ def get_avg_power_usages(std_log_data):
                         [component name]: list[list[float]]
                 }
     """
-    power_re = re.compile(r"Average power usage \(W\) for (.+): (\[.+\]|None)")
+    power_re = re.compile(r"Average power usage \(W\) for (.+): (\[?[0-9\.]+\]?|None)")
     matches = re.findall(power_re, std_log_data)
     components = list(set([comp for comp, _ in matches]))
     avg_power_usages = {}

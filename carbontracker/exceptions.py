@@ -58,3 +58,7 @@ class FetcherNameError(Exception):
 
 class MismatchedLogFilesError(Exception):
     pass
+
+
+class MismatchedEpochsError(Exception):
+    pass
