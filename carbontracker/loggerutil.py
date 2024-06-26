@@ -70,7 +70,7 @@ class Logger:
         if log_prefix:
             log_prefix += "_"
 
-        logger_name = f"{log_prefix}{os.getpid()}"
+        logger_name = f"{log_prefix}{os.getpid()}.{logger_id}"
         logger = logging.getLogger(logger_name)
 
         logger_err = logging.getLogger(f"carbontracker.{logger_id}.err")

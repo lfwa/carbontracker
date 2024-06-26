@@ -3,7 +3,7 @@ from unittest import skipIf
 from carbontracker import loggerutil
 from carbontracker.loggerutil import Logger, convert_to_timestring
 import unittest.mock
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 import tempfile
 import os
 import logging
@@ -163,6 +163,13 @@ class TestLoggerUtil(unittest.TestCase):
         logger.output(test_message)
 
         mock_info.assert_called_once_with(f"CarbonTracker: {test_message}")
+
+    def test_multiple_loggers(self):
+        logger1 = loggerutil.Logger(logger_id="1")
+        logger2 = loggerutil.Logger(logger_id="2")
+        self.assertNotEqual(logger1.logger, logger2.logger)
+        self.assertNotEqual(logger1.logger_output, logger2.logger_output)
+        self.assertNotEqual(logger1.logger_err, logger2.logger_err)
 
 
 if __name__ == "__main__":
