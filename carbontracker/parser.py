@@ -94,6 +94,11 @@ def parse_logs(log_dir, std_log_file=None, output_log_file=None):
         if power_usages is None or durations is None:
             energy_usages = None
         else:
+            if power_usages.size != durations.size:
+                raise exceptions.MismatchedEpochsError(
+                    f"Found {power_usages.size} power measurements and {durations.size} duration measurements. "
+                    "Expected equal number of measurements."
+                )
             energy_usages = (power_usages.T * durations).T
         measurements = {
             "avg_power_usages (W)": power_usages,

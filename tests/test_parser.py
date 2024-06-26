@@ -927,3 +927,42 @@ class TestParser(fake_filesystem_unittest.TestCase):
         lines = "not_a_float equivalent1\n10.5 equivalent2"
         equivalents = parse_equivalents(lines)
         self.assertEqual({"equivalent2": 10.5}, equivalents)
+
+    @mock.patch("builtins.open", new_callable=mock.mock_open)
+    @mock.patch("os.listdir")
+    @mock.patch("os.path.isfile")
+    @mock.patch("carbontracker.parser.get_devices")
+    def test_parse_epoch_mismatch(
+        self, mock_get_devices, mock_isfile, mock_listdir, mock_open
+    ):
+        log_dir = "/path/to/logs"
+
+        std_log_data = (
+            "2022-11-14 15:44:48 - Average power usage (W) for gpu: [136.86084615]\n"
+            "2022-11-14 15:44:48 - Average power usage (W) for cpu: [13.389104]\n"
+            "2022-11-14 15:44:48 - Average power usage (W) for gpu: [136.86084615]\n"
+            "2022-11-14 15:44:48 - Average power usage (W) for cpu: [13.389104]\n"
+            "2022-11-14 15:44:48 - Epoch 1:\nDuration: 0:02:21.90"
+        )
+
+        self.fs.create_file(
+            os.path.join(log_dir, "carbontracker_output_log1.log"),
+            contents="output_log1 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "carbontracker_log1.log"), contents=std_log_data
+        )
+
+        mock_isfile.side_effect = lambda path: path.endswith(".log")
+        mock_open.return_value.read.return_value = std_log_data
+        mock_get_devices.return_value = {
+            "gpu": ["NVIDIA GeForce RTX 3060"],
+            "cpu": ["cpu:0"],
+        }
+
+        with self.assertRaises(exceptions.MismatchedEpochsError):
+            components = parser.parse_logs(
+                log_dir,
+                os.path.join(log_dir, "carbontracker_log1.log"),
+                os.path.join(log_dir, "carbontracker_output_log1.log"),
+            )
