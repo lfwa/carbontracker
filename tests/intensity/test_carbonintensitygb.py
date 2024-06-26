@@ -124,7 +124,7 @@ class TestCarbonIntensityGB(TestCase):
 
     def test_time_from_to_str(self):
         time_dur = 3600
-        time_from = datetime.datetime.now(datetime.UTC)
+        time_from = datetime.datetime.now(datetime.timezone.utc)
         time_to = time_from + datetime.timedelta(seconds=time_dur)
         from_str = time_from.strftime("%Y-%m-%dT%H:%MZ")
         to_str = time_to.strftime("%Y-%m-%dT%H:%MZ")

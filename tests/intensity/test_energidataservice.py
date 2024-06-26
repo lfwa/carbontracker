@@ -64,7 +64,7 @@ class TestEnergiDataService(unittest.TestCase):
 
         _result = self.fetcher.carbon_intensity(self.geocoder, time_dur=1800)
 
-        now = datetime.datetime.now(datetime.UTC)
+        now = datetime.datetime.now(datetime.timezone.utc)
 
         from_time = now - datetime.timedelta(
             minutes=now.minute % 5, seconds=now.second, microseconds=now.microsecond

@@ -60,7 +60,7 @@ class EnergiDataService(IntensityFetcher):
         return np.mean(carbon_intensities)
 
     def _interval(self, time_dur):
-        from_time = datetime.datetime.now(datetime.UTC)
+        from_time = datetime.datetime.now(datetime.timezone.utc)
         to_time = from_time + datetime.timedelta(seconds=time_dur)
         from_str = self._nearest_5_min(from_time)
         to_str = self._nearest_5_min(to_time)

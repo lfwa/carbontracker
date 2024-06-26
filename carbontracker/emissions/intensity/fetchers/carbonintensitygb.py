@@ -74,7 +74,7 @@ class CarbonIntensityGB(IntensityFetcher):
         """Returns the current date in UTC (from) and time_dur seconds ahead
         (to) in ISO8601 format YYYY-MM-DDThh:mmZ."""
         date_format = "%Y-%m-%dT%H:%MZ"
-        time_from = datetime.datetime.now(datetime.UTC)
+        time_from = datetime.datetime.now(datetime.timezone.utc)
         time_to = time_from + datetime.timedelta(seconds=time_dur)
         from_str = time_from.strftime(date_format)
         to_str = time_to.strftime(date_format)
