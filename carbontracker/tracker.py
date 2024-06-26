@@ -8,6 +8,7 @@ from threading import Thread, Event
 from typing import List, Union
 
 import numpy as np
+from random import randint
 
 from carbontracker import constants
 from carbontracker import loggerutil
@@ -331,7 +332,10 @@ class CarbonTracker:
         try:
             pids = self._get_pids()
             self.logger = loggerutil.Logger(
-                log_dir=log_dir, verbose=verbose, log_prefix=log_file_prefix
+                log_dir=log_dir,
+                verbose=verbose,
+                log_prefix=log_file_prefix,
+                logger_id=str(randint(1, 999999)),
             )
             self.tracker = CarbonTrackerThread(
                 delete=self._delete,
