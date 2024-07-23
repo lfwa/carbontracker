@@ -778,6 +778,57 @@ class TestCarbonTracker(unittest.TestCase):
             str(context.exception), "'CarbonTracker' object has no attribute 'logger'"
         )
 
+    # # Instantiating a second instance should not make this instance log twice
+    # @mock.patch("carbontracker.tracker.CarbonIntensityThread")
+    # def test_multiple_instances(self, mock_intensity_thread):
+    #     assert self.mock_logger is not None
+    #     assert self.tracker is not None
+
+    #     tracker2 = CarbonTracker(
+    #         epochs=5,
+    #         epochs_before_pred=1,
+    #         monitor_epochs=3,
+    #         update_interval=10,
+    #         interpretable=True,
+    #         stop_and_confirm=True,
+    #         ignore_errors=False,
+    #         components="all",
+    #         devices_by_pid=False,
+    #         log_dir=None,
+    #         log_file_prefix="",
+    #         verbose=1,
+    #         decimal_precision=6,
+    #     )
+
+    #     predictor = MagicMock()
+    #     predictor.predict_energy = MagicMock(return_value=100)
+    #     predictor.predict_time = MagicMock(return_value=1000)
+
+    #     self.tracker.epochs = 5
+    #     self.tracker.tracker.total_energy_per_epoch = MagicMock(
+    #         return_value=[10, 20, 30]
+    #     )
+    #     self.tracker.tracker.epoch_times = [100, 200, 300]
+    #     self.tracker._co2eq = MagicMock(return_value=150)
+    #     self.tracker.interpretable = True
+
+    #     self.tracker._output_pred()
+
+    #     expected_description = "Predicted consumption for 5 epoch(s):"
+
+    #     expected_output = (
+    #         f"\n{expected_description}\n"
+    #         "\tTime:\t0:16:40\n"
+    #         "\tEnergy:\t100.000000 kWh\n"
+    #         "\tCO2eq:\t150.000000 g"
+    #         "\n\tThis is equivalent to:\n"
+    #         "\t1.395349 km travelled by car"
+    #     )
+
+    #     self.mock_logger.output.assert_called_once_with(
+    #         expected_output, verbose_level=1
+    #     )
+
 
 if __name__ == "__main__":
     unittest.main()

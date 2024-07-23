@@ -58,23 +58,23 @@ class VerboseFilter(logging.Filter):
 
 
 class Logger:
-    def __init__(self, log_dir=None, verbose=0, log_prefix=""):
+    def __init__(self, log_dir=None, verbose=0, log_prefix="", logger_id="root"):
         self.verbose = verbose
         self.logger, self.logger_output, self.logger_err = self._setup(
-            log_dir=log_dir, log_prefix=log_prefix
+            log_dir=log_dir, log_prefix=log_prefix, logger_id=logger_id
         )
         self._log_initial_info()
         self.msg_prepend = "CarbonTracker: "
 
-    def _setup(self, log_dir=None, log_prefix=""):
+    def _setup(self, log_dir=None, log_prefix="", logger_id="root"):
         if log_prefix:
             log_prefix += "_"
 
-        logger_name = f"{log_prefix}{os.getpid()}"
+        logger_name = f"{log_prefix}{os.getpid()}.{logger_id}"
         logger = logging.getLogger(logger_name)
 
-        logger_err = logging.getLogger("carbontracker.err")
-        logger_output = logging.getLogger("carbontracker.output")
+        logger_err = logging.getLogger(f"carbontracker.{logger_id}.err")
+        logger_output = logging.getLogger(f"carbontracker.{logger_id}.output")
         logger.propagate = False
         logger.setLevel(logging.DEBUG)
         logger_output.propagate = False
