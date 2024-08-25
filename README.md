@@ -31,6 +31,13 @@ pip install carbontracker
 
 ## Basic usage
 
+### Command Line Mode
+Wrap any of your scripts (python, bash, etc.):
+
+`carbontracker python script.py
+`
+### Embed into Python Scripts
+
 #### Required arguments
 - `epochs`:
   Total epochs of your training loop.
