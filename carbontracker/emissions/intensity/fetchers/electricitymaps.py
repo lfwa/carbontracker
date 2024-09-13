@@ -3,6 +3,7 @@ import requests
 from carbontracker import exceptions
 from carbontracker.emissions.intensity.fetcher import IntensityFetcher
 from carbontracker.emissions.intensity import intensity
+from carbontracker.loggerutil import Logger
 
 API_URL = "https://api-access.electricitymaps.com/free-tier/carbon-intensity/latest"
 
@@ -10,12 +11,18 @@ API_URL = "https://api-access.electricitymaps.com/free-tier/carbon-intensity/lat
 class ElectricityMap(IntensityFetcher):
     _api_key = None
 
+    def __init__(self, logger: Logger):
+        self.logger = logger
+
     @classmethod
     def set_api_key(cls, key):
         cls._api_key = key
 
     def suitable(self, g_location):
-        return self._api_key is not None
+        has_key = self._api_key is not None
+        if not has_key:
+            self.logger.err_warn("ElectricityMaps API key not set. Will default to average carbon intensity.")
+        return has_key
 
     def carbon_intensity(self, g_location, time_dur=None):
         carbon_intensity = intensity.CarbonIntensity(g_location=g_location)

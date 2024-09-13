@@ -98,12 +98,13 @@ class CarbonIntensity:
         self.message = default_intensity["description"]
 
 
-def carbon_intensity(logger, time_dur=None):
-    fetchers = [
-        electricitymaps.ElectricityMap(),
-        energidataservice.EnergiDataService(),
-        carbonintensitygb.CarbonIntensityGB(),
-    ]
+def carbon_intensity(logger, time_dur=None, fetchers=None):
+    if fetchers is None:
+        fetchers = [
+            electricitymaps.ElectricityMap(logger=logger),
+            #energidataservice.EnergiDataService(), # UPDATE 2024: EnergiDataService/CarbonIntensityGB has been deprecated
+            #carbonintensitygb.CarbonIntensityGB(),
+        ]
 
     carbon_intensity = CarbonIntensity(default=True)
 

@@ -215,7 +215,7 @@ class TestIntensity(unittest.TestCase):
 
         logger = MagicMock()
 
-        result = carbon_intensity(logger)
+        result = carbon_intensity(logger, fetchers=[mock_carbonintensitygb()])
 
         self.assertEqual(result.carbon_intensity, 23.0)
         self.assertTrue(result.success)
@@ -230,7 +230,7 @@ class TestIntensity(unittest.TestCase):
         mock_energidataservice.return_value.carbon_intensity.return_value = mock_result
 
         logger = MagicMock()
-        result = carbon_intensity(logger)
+        result = carbon_intensity(logger, fetchers=[mock_energidataservice()])
 
         self.assertEqual(result.carbon_intensity, 23.0)
         self.assertTrue(result.success)
