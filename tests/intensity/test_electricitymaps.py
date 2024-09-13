@@ -5,7 +5,8 @@ from carbontracker import exceptions
 
 class TestElectricityMap(unittest.TestCase):
     def setUp(self):
-        self.electricity_map = ElectricityMap()
+        self.logger = MagicMock()
+        self.electricity_map = ElectricityMap(logger=self.logger)
         self.g_location = MagicMock()
         self.g_location.lng = 0.0
         self.g_location.lat = 0.0
