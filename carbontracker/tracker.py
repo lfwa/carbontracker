@@ -376,13 +376,13 @@ class CarbonTracker:
         try:
             self.tracker.epoch_end()
 
-            if self.epoch_counter == self.monitor_epochs:
-                self._output_actual()
-
             if self.epoch_counter == self.epochs_before_pred:
                 self._output_pred()
                 if self.stop_and_confirm:
                     self._user_query()
+
+            if self.epoch_counter == self.monitor_epochs:
+                self._output_actual()
 
             if self.epoch_counter == self.monitor_epochs:
                 self._delete()
