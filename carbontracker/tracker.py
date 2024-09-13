@@ -232,7 +232,7 @@ class CarbonTrackerThread(Thread):
         for comp in self.components:
             energy_usage = comp.energy_usage(self.epoch_times)
             total_energy += energy_usage
-        return total_energy * constants.PUE_2022
+        return total_energy * constants.PUE_2023
 
     def _handle_error(self, error):
         err_str = traceback.format_exc()
