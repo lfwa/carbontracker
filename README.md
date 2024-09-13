@@ -4,6 +4,7 @@
 [![Python](https://img.shields.io/badge/python-%3E%3D3.7-blue)](https://www.python.org/downloads/)
 [![Unit Tests](https://github.com/lfwa/carbontracker/actions/workflows/test.yml/badge.svg)](https://github.com/lfwa/carbontracker/actions)
 [![License](https://img.shields.io/github/license/lfwa/carbontracker)](https://github.com/lfwa/carbontracker/blob/master/LICENSE)
+[![Downloads](https://static.pepy.tech/badge/carbontracker)](https://pepy.tech/project/carbontracker)
 
 [Website](https://carbontracker.info)
 
@@ -29,6 +30,13 @@ pip install carbontracker
 ```
 
 ## Basic usage
+
+### Command Line Mode
+Wrap any of your scripts (python, bash, etc.):
+
+`carbontracker python script.py
+`
+### Embed into Python Scripts
 
 #### Required arguments
 - `epochs`:
@@ -179,6 +187,8 @@ Measured GPU devices: ['Tesla T4']
 ## Extending **carbontracker**
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Star History
+[![Star History Chart](https://api.star-history.com/svg?repos=lfwa/carbontracker&type=Date)](https://star-history.com/#lfwa/carbontracker&Date)
 
 ## carbontracker in media
 * Official press release from University of Copenhagen can be obtained here: [en](https://news.ku.dk/all_news/2020/11/students-develop-tool-to-predict-the-carbon-footprint-of-algorithms/) [da](https://nyheder.ku.dk/alle_nyheder/2020/11/studerende-opfinder-vaerktoej-der-forudsiger-algoritmers-co2-aftryk/)
