@@ -920,13 +920,13 @@ class TestParser(fake_filesystem_unittest.TestCase):
         log_dir = "/logs"
         print_aggregate(log_dir)
         mock_print.assert_called_once_with(
-            "The training of models in this work is estimated to use 100.000 kWh of electricity contributing to 50.000 kg of CO2eq. Measured by carbontracker (https://github.com/lfwa/carbontracker)."
+            "The training of models in this work is estimated to use 100.0000000000000000 kWh of electricity contributing to 50.0000000000000000 kg of CO2eq. Measured by carbontracker (https://github.com/lfwa/carbontracker)."
         )
 
     @mock.patch("builtins.print")
     @mock.patch(
         "carbontracker.parser.aggregate_consumption",
-        return_value=(100.0, 50000.0, {"km travelled": 200.0}),
+        return_value=(100.0, 5000.0, {"km travelled": 200.0}),
     )
     def test_print_aggregate_non_empty_equivalents(
         self, mock_aggregate_consumption, mock_print
@@ -934,8 +934,8 @@ class TestParser(fake_filesystem_unittest.TestCase):
         log_dir = "/logs"
         print_aggregate(log_dir)
         mock_print.assert_called_once_with(
-            "The training of models in this work is estimated to use 100.000 kWh of electricity contributing to 50.000 kg of CO2eq. "
-            "This is equivalent to 200.000 km travelled. "
+            "The training of models in this work is estimated to use 100.0000000000000000 kWh of electricity contributing to 5.0000000000000000 kg of CO2eq. "
+            "This is equivalent to 200.0000000000000000 km travelled. "
             "Measured by carbontracker (https://github.com/lfwa/carbontracker)."
         )
 
