@@ -194,9 +194,9 @@ def print_aggregate(log_dir):
     """
     energy, co2eq, equivalents = aggregate_consumption(log_dir)
 
-    equivalents_p = " or ".join([f"{v:.3f} {k}" for k, v in equivalents.items()])
+    equivalents_p = " or ".join([f"{v:.16f} {k}" for k, v in equivalents.items()])
 
-    printable = f"The training of models in this work is estimated to use {energy:.3f} kWh of electricity contributing to {co2eq / 1000:.3f} kg of CO2eq. "
+    printable = f"The training of models in this work is estimated to use {energy:.16f} kWh of electricity contributing to {co2eq / 1000:.16f} kg of CO2eq. "
     if equivalents_p:
         printable += f"This is equivalent to {equivalents_p}. "
 
