@@ -80,3 +80,6 @@ class AppleSiliconGPU(Handler):
             return power
         else:
             return 0.0
+        
+    def shutdown(self):
+        pass
