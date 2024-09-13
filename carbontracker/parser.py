@@ -134,7 +134,8 @@ def get_consumption(output_log_data: str):
                 }
     """
     actual_re = re.compile(
-        r"(?i)Actual consumption for (\d*) epoch\(s\):"
+        r"(?i)Actual consumption"
+        r"(?:\s*for\s+\d+\s+epochs)?"
         r"[\s\S]*?Time:\s*(.*)\n\s*Energy:\s*(.*)\s+kWh"
         r"[\s\S]*?CO2eq:\s*(.*)\s+g"
         r"(?:\s*This is equivalent to:\s*([\s\S]*?))?(?=\d{4}-\d{2}-\d{2}|\Z)"
@@ -157,11 +158,12 @@ def get_early_stop(std_log_data: str) -> bool:
     early_stop = re.findall(early_stop_re, std_log_data)
     return bool(early_stop)
 
-
 def extract_measurements(match):
     if not match:
         return None
     match = match.groups()
+    if len(match) == 4:
+        match = [1] + list(match)
     epochs = int(match[0])
     duration = get_time(match[1])
     energy, co2eq, equivalents = get_stats(match)
