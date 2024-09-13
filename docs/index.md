@@ -46,3 +46,12 @@ This ensures that for Slurm we only fetch GPU devices associated with the curren
 If this fails we measure all available GPUs.
 
 - NVML cannot find processes for containers spawned without `--pid=host`. This affects the `device_by_pid` parameter and means that it will never find any active processes for GPUs in affected containers.
+
+## Running **carbontracker** on Apple Silicon
+
+- **carbontracker** is compatible with Apple Silicon on MacOS using `powermetrics` to get power consumption data.
+- `powermetrics` requires root access to run. This can be done by adding `your_username ALL=(ALL) NOPASSWD: /usr/bin/powermetrics` to `/etc/sudoers` (replace `your_username` with your actual username):
+```
+echo "your_username ALL=(ALL) NOPASSWD: /usr/bin/powermetrics" | sudo tee -a /etc/sudoers
+```
+- Alternatively, one can run **carbontracker** with root privileges.
