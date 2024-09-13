@@ -112,7 +112,7 @@ class CarbonTrackerThread(Thread):
         logger,
         ignore_errors,
         delete,
-        update_interval: Union[int, float] = 10,
+        update_interval: Union[int, float] = 1,
     ):
         super(CarbonTrackerThread, self).__init__()
         self.cur_epoch_time = time.time()
@@ -297,7 +297,7 @@ class CarbonTracker:
         epochs,
         epochs_before_pred=1,
         monitor_epochs=-1,
-        update_interval=10,
+        update_interval=1,
         interpretable=True,
         stop_and_confirm=False,
         ignore_errors=False,

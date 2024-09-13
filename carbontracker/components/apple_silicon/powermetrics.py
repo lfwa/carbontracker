@@ -18,7 +18,7 @@ class PowerMetricsUnified:
             or time.time() - PowerMetricsUnified._last_updated > 1
         ):
             PowerMetricsUnified._output = subprocess.check_output(
-                ["sudo", "powermetrics", "-n", "1", "-i", "1000", "--samplers", "all"],
+                ["sudo", "powermetrics", "-n", "1", "-i", "100", "--samplers", "all"],
                 universal_newlines=True,
             )
             PowerMetricsUnified._last_updated = time.time()
