@@ -146,7 +146,7 @@ class TestIntensity(unittest.TestCase):
                     message = f"Current carbon intensity is {carbon_intensity:.2f} gCO2/kWh at detected location: {fallback_address}."
                 else:
                     message = (f"Live carbon intensity could not be fetched at detected location: {detected_address}. "
-                               f"Defaulted to average carbon intensity for DK in 2021 of 149.75 gCO2/kWh. "
+                               f"Defaulted to average carbon intensity for DK in 2023 of 151.65 gCO2/kWh. "
                                f"at detected location: {fallback_address}.")
             return message
         # Test scenarios

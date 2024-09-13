@@ -296,7 +296,7 @@ class CarbonTracker:
         self,
         epochs,
         epochs_before_pred=1,
-        monitor_epochs=1,
+        monitor_epochs=-1,
         update_interval=10,
         interpretable=True,
         stop_and_confirm=False,
