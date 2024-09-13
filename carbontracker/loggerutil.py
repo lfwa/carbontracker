@@ -140,7 +140,7 @@ class Logger:
         self.info(f"{__package__} version {metadata.version(__package__)}")
         self.info(
             "Only predicted and actual consumptions are multiplied by a PUE "
-            f"coefficient of {constants.PUE_2022} (Rhonda Ascierto, 2022, Uptime "
+            f"coefficient of {constants.PUE_2023} (Daniel Bizo, 2023, Uptime "
             "Institute Global Data Center Survey)."
         )
 

@@ -283,7 +283,7 @@ class TestCarbonTrackerThread(unittest.TestCase):
 
         total_energy = self.thread.total_energy_per_epoch()
 
-        expected_total_energy = np.array([3.0, 5.0, 7.0]) * constants.PUE_2022
+        expected_total_energy = np.array([3.0, 5.0, 7.0]) * constants.PUE_2023
         np.testing.assert_array_equal(total_energy, expected_total_energy)
 
     @mock.patch("os._exit")
