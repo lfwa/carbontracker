@@ -11,11 +11,11 @@ on:
       - dev
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9, '3.10']
+        python-version: ['3.7', '3.8','3.9', '3.10', '3.11', '3.12']
 
     steps:
     - uses: actions/checkout@v3
@@ -27,9 +27,11 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 black
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install .[test]
     - name: Lint with flake8
       run: |
         flake8 carbontracker --count --select=E9,F63,F7,F82 --show-source --statistics
     - name: Formatting with Black
       run: black --line-length 120 carbontracker
+    - name: Run tests
+      run: python -m unittest discover -v

@@ -5,8 +5,13 @@ from carbontracker import exceptions
 from pyfakefs import fake_filesystem_unittest
 
 from carbontracker import parser
-from carbontracker.parser import extract_measurements, parse_logs, print_aggregate, get_stats, \
-    parse_equivalents
+from carbontracker.parser import (
+    extract_measurements,
+    parse_logs,
+    print_aggregate,
+    get_stats,
+    parse_equivalents,
+)
 
 
 class TestParser(fake_filesystem_unittest.TestCase):
@@ -19,16 +24,28 @@ class TestParser(fake_filesystem_unittest.TestCase):
     def test_get_all_logs(self, mock_getsize, mock_isfile, mock_listdir):
         log_dir = "/path/to/logs"
 
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_output_log1.log"), contents="output_log1 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_output_log2.log"), contents="output_log2 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_log1.log"), contents="std_log1 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_log2.log"), contents="std_log2 content")
+        self.fs.create_file(
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker_output.log"),
+            contents="output_log1 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "32487_2024-06-26T141608Z_carbontracker_output.log"),
+            contents="output_log2 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker.log"),
+            contents="std_log1 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "32487_2024-06-26T141608Z_carbontracker.log"),
+            contents="std_log2 content",
+        )
 
         mock_listdir.return_value = [
-            "carbontracker_output_log1.log",
-            "carbontracker_output_log2.log",
-            "carbontracker_log1.log",
-            "carbontracker_log2.log",
+            "10151_2024-03-26T105926Z_carbontracker_output.log",
+            "32487_2024-06-26T141608Z_carbontracker_output.log",
+            "10151_2024-03-26T105926Z_carbontracker.log",
+            "32487_2024-06-26T141608Z_carbontracker.log",
         ]
 
         mock_isfile.side_effect = lambda path: path.endswith(".log")
@@ -37,12 +54,12 @@ class TestParser(fake_filesystem_unittest.TestCase):
         output_logs, std_logs = parser.get_all_logs(log_dir)
 
         expected_output_logs = [
-            os.path.join(log_dir, "carbontracker_output_log1.log"),
-            os.path.join(log_dir, "carbontracker_output_log2.log"),
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker_output.log"),
+            os.path.join(log_dir, "32487_2024-06-26T141608Z_carbontracker_output.log"),
         ]
         expected_std_logs = [
-            os.path.join(log_dir, "carbontracker_log1.log"),
-            os.path.join(log_dir, "carbontracker_log2.log"),
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker.log"),
+            os.path.join(log_dir, "32487_2024-06-26T141608Z_carbontracker.log"),
         ]
 
         self.assertCountEqual(output_logs, expected_output_logs)
@@ -102,25 +119,46 @@ class TestParser(fake_filesystem_unittest.TestCase):
     def test_get_most_recent_logs(self, mock_getmtime, mock_isfile, mock_listdir):
         log_dir = "/path/to/logs"
 
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_output_log1.log"), contents="output_log1 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_output_log2.log"), contents="output_log2 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_log1.log"), contents="std_log1 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_log2.log"), contents="std_log2 content")
+        self.fs.create_file(
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker_output.log"),
+            contents="output_log1 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "32487_2024-06-26T141608Z_carbontracker_output.log"),
+            contents="output_log2 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker.log"),
+            contents="std_log1 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "32487_2024-06-26T141608Z_carbontracker.log"),
+            contents="std_log2 content",
+        )
 
         mock_listdir.return_value = [
-            "carbontracker_output_log1.log",
-            "carbontracker_output_log2.log",
-            "carbontracker_log1.log",
-            "carbontracker_log2.log",
+            "10151_2024-03-26T105926Z_carbontracker_output.log",
+            "32487_2024-06-26T141608Z_carbontracker_output.log",
+            "10151_2024-03-26T105926Z_carbontracker.log",
+            "32487_2024-06-26T141608Z_carbontracker.log",
         ]
 
         mock_isfile.side_effect = lambda path: path.endswith(".log")
-        mock_getmtime.side_effect = [100, 200, 300, 400]  # Mock the modification timestamps
+        mock_getmtime.side_effect = [
+            100,
+            200,
+            300,
+            400,
+        ]  # Mock the modification timestamps
 
         std_log, output_log = parser.get_most_recent_logs(log_dir)
 
-        expected_std_log = os.path.join(log_dir, "carbontracker_log2.log")
-        expected_output_log = os.path.join(log_dir, "carbontracker_output_log2.log")
+        expected_std_log = os.path.join(
+            log_dir, "32487_2024-06-26T141608Z_carbontracker.log"
+        )
+        expected_output_log = os.path.join(
+            log_dir, "32487_2024-06-26T141608Z_carbontracker_output.log"
+        )
 
         self.assertEqual(std_log, expected_std_log)
         self.assertEqual(output_log, expected_output_log)
@@ -174,18 +212,33 @@ class TestParser(fake_filesystem_unittest.TestCase):
     def test_parse_all_logs(self, mock_isfile, mock_listdir, mock_open):
         log_dir = "/path/to/logs"
 
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_output_log1.log"), contents="output_log1 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_log1.log"), contents="std_log1 content")
+        self.fs.create_file(
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker_output.log"),
+            contents="output_log1 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker.log"),
+            contents="std_log1 content",
+        )
 
-        mock_listdir.return_value = ["carbontracker_output_log1.log", "carbontracker_log1.log"]
+        mock_listdir.return_value = [
+            "10151_2024-03-26T105926Z_carbontracker_output.log",
+            "10151_2024-03-26T105926Z_carbontracker.log",
+        ]
         mock_isfile.side_effect = lambda path: path.endswith(".log")
         mock_open.return_value.read.return_value = "content"
 
         logs = parser.parse_all_logs(log_dir)
 
         self.assertEqual(len(logs), 1)
-        self.assertEqual(logs[0]["output_filename"], os.path.join(log_dir, "carbontracker_output_log1.log"))
-        self.assertEqual(logs[0]["standard_filename"], os.path.join(log_dir, "carbontracker_log1.log"))
+        self.assertEqual(
+            logs[0]["output_filename"],
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker_output.log"),
+        )
+        self.assertEqual(
+            logs[0]["standard_filename"],
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker.log"),
+        )
 
     @mock.patch("builtins.open", new_callable=mock.mock_open)
     @mock.patch("os.listdir")
@@ -200,19 +253,30 @@ class TestParser(fake_filesystem_unittest.TestCase):
             "2022-11-14 15:44:48 - Epoch 1:\nDuration: 0:02:21.90"
         )
 
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_output_log1.log"), contents="output_log1 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_log1.log"), contents=std_log_data)
+        self.fs.create_file(
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker_output.log"),
+            contents="output_log1 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker.log"),
+            contents=std_log_data,
+        )
 
         mock_isfile.side_effect = lambda path: path.endswith(".log")
         mock_open.return_value.read.return_value = std_log_data
-        mock_get_devices.return_value = {"gpu": ["NVIDIA GeForce RTX 3060"], "cpu": ["cpu:0"]}
+        mock_get_devices.return_value = {
+            "gpu": ["NVIDIA GeForce RTX 3060"],
+            "cpu": ["cpu:0"],
+        }
 
-        components = parser.parse_logs(log_dir, os.path.join(log_dir, "carbontracker_log1.log"),
-                                       os.path.join(log_dir, "carbontracker_output_log1.log"))
+        components = parser.parse_logs(
+            log_dir,
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker.log"),
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker_output.log"),
+        )
 
         self.assertIn("gpu", components)
         self.assertIn("cpu", components)
-
 
     def test_get_avg_power_usages_none_power(self):
         std_log_data = "2022-11-14 15:44:48 - Average power usage (W) for gpu: None"
@@ -226,68 +290,119 @@ class TestParser(fake_filesystem_unittest.TestCase):
     @mock.patch("os.listdir")
     @mock.patch("os.path.isfile")
     @mock.patch("os.path.getsize")
-    def test_get_all_logs_mismatched_files(self, mock_getsize, mock_isfile, mock_listdir):
+    def test_get_all_logs_mismatched_files(
+        self, mock_getsize, mock_isfile, mock_listdir
+    ):
         log_dir = "/path/to/logs"
 
         # Create three matching pairs of log files
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_output_log1.log"), contents="output_log1 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_log1.log"), contents="std_log1 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_output_log2.log"), contents="output_log2 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_log2.log"), contents="std_log2 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_output_log3.log"), contents="output_log3 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_log3.log"), contents="std_log3 content")
+        self.fs.create_file(
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker_output.log"),
+            contents="output_log1 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker.log"),
+            contents="std_log1 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "32487_2024-06-26T141608Z_carbontracker_output.log"),
+            contents="output_log2 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "32487_2024-06-26T141608Z_carbontracker.log"),
+            contents="std_log2 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "40793_2024-03-26T131535Z_carbontracker_output.log"),
+            contents="output_log3 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "40793_2024-03-26T131535Z_carbontracker.log"),
+            contents="std_log3 content",
+        )
 
         # Add extra unmatched output log file
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_output_log4.log"), contents="output_log4 content")
+        self.fs.create_file(
+            os.path.join(log_dir, "9803_2024-03-26T105836Z_carbontracker_output.log"),
+            contents="output_log4 content",
+        )
 
         mock_listdir.return_value = [
-            "carbontracker_output_log1.log",
-            "carbontracker_output_log2.log",
-            "carbontracker_output_log3.log",
-            "carbontracker_output_log4.log",
-            "carbontracker_log1.log",
-            "carbontracker_log2.log",
-            "carbontracker_log3.log",
+            "10151_2024-03-26T105926Z_carbontracker_output.log",
+            "32487_2024-06-26T141608Z_carbontracker_output.log",
+            "40793_2024-03-26T131535Z_carbontracker_output.log",
+            "9803_2024-03-26T105836Z_carbontracker_output.log",
+            "10151_2024-03-26T105926Z_carbontracker.log",
+            "32487_2024-06-26T141608Z_carbontracker.log",
+            "40793_2024-03-26T131535Z_carbontracker.log",
         ]
 
         mock_isfile.side_effect = lambda path: path.endswith(".log")
         mock_getsize.return_value = 100
 
-        with self.assertRaises(exceptions.MismatchedLogFilesError):
-            parser.get_all_logs(log_dir)
+        expected = [os.path.join(log_dir, f) for f in mock_listdir.return_value]
+        self.assertTupleEqual(
+            parser.get_all_logs(log_dir),
+            (expected[:3], expected[4:]),
+        )
 
     @mock.patch("os.listdir")
     @mock.patch("os.path.isfile")
     @mock.patch("os.path.getsize")
-    def test_get_all_logs_mismatched_files_extra_std_log(self, mock_getsize, mock_isfile, mock_listdir):
+    def test_get_all_logs_mismatched_files_extra_std_log(
+        self, mock_getsize, mock_isfile, mock_listdir
+    ):
         log_dir = "/path/to/logs"
 
         # Create three matching pairs of log files
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_output_log1.log"), contents="output_log1 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_log1.log"), contents="std_log1 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_output_log2.log"), contents="output_log2 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_log2.log"), contents="std_log2 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_output_log3.log"), contents="output_log3 content")
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_log3.log"), contents="std_log3 content")
+        self.fs.create_file(
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker_output.log"),
+            contents="output_log1 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker.log"),
+            contents="std_log1 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "32487_2024-06-26T141608Z_carbontracker_output.log"),
+            contents="output_log2 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "32487_2024-06-26T141608Z_carbontracker.log"),
+            contents="std_log2 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "40793_2024-03-26T131535Z_carbontracker_output.log"),
+            contents="output_log3 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "40793_2024-03-26T131535Z_carbontracker.log"),
+            contents="std_log3 content",
+        )
 
         # Add extra unmatched std log file
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_log4.log"), contents="std_log4 content")
+        self.fs.create_file(
+            os.path.join(log_dir, "9803_2024-03-26T105836Z_carbontracker.log"),
+            contents="std_log4 content",
+        )
 
         mock_listdir.return_value = [
-            "carbontracker_output_log1.log",
-            "carbontracker_output_log2.log",
-            "carbontracker_output_log3.log",
-            "carbontracker_log1.log",
-            "carbontracker_log2.log",
-            "carbontracker_log3.log",
-            "carbontracker_log4.log",
+            "10151_2024-03-26T105926Z_carbontracker_output.log",
+            "32487_2024-06-26T141608Z_carbontracker_output.log",
+            "40793_2024-03-26T131535Z_carbontracker_output.log",
+            "10151_2024-03-26T105926Z_carbontracker.log",
+            "32487_2024-06-26T141608Z_carbontracker.log",
+            "40793_2024-03-26T131535Z_carbontracker.log",
+            "9803_2024-03-26T105836Z_carbontracker.log",
         ]
 
         mock_isfile.side_effect = lambda path: path.endswith(".log")
         mock_getsize.return_value = 100
 
-        with self.assertRaises(exceptions.MismatchedLogFilesError):
-            parser.get_all_logs(log_dir)
+        expected = [os.path.join(log_dir, f) for f in mock_listdir.return_value]
+        self.assertTupleEqual(
+            parser.get_all_logs(log_dir), (expected[:3], expected[3:6])
+        )
 
     @mock.patch("builtins.open", new_callable=mock.mock_open)
     def test_get_consumption_no_equivalents(self, mock_open):
@@ -327,7 +442,9 @@ class TestParser(fake_filesystem_unittest.TestCase):
     @mock.patch("builtins.open", new_callable=mock.mock_open)
     @mock.patch("carbontracker.parser.get_avg_power_usages", return_value={})
     @mock.patch("carbontracker.parser.get_devices")
-    def test_parse_logs_consumption_no_power_usages(self, mock_get_devices, mock_power_usages, mock_open):
+    def test_parse_logs_consumption_no_power_usages(
+        self, mock_get_devices, mock_power_usages, mock_open
+    ):
         log_dir = "/logs"
         std_log_file = log_dir + "/test_carbontracker.log"
         output_log_file = log_dir + "/test_carbontracker_output.log"
@@ -402,7 +519,9 @@ class TestParser(fake_filesystem_unittest.TestCase):
         log_dir = "/path/to/logs"
         mock_get_all_logs.return_value = ([], [])
 
-        total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(log_dir)
+        total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(
+            log_dir
+        )
 
         self.assertEqual(total_energy, 0)
         self.assertEqual(total_co2eq, 0)
@@ -411,7 +530,9 @@ class TestParser(fake_filesystem_unittest.TestCase):
     @mock.patch("carbontracker.parser.get_all_logs")
     @mock.patch("carbontracker.parser.get_consumption")
     @mock.patch("carbontracker.parser.get_early_stop")
-    def test_aggregate_consumption(self, mock_get_early_stop, mock_get_consumption, mock_get_all_logs):
+    def test_aggregate_consumption(
+        self, mock_get_early_stop, mock_get_consumption, mock_get_all_logs
+    ):
         log_dir = "/path/to/logs"
         output_log_path = "/path/to/logs/output_log1"
         std_log_path = "/path/to/logs/std_log1"
@@ -423,8 +544,12 @@ class TestParser(fake_filesystem_unittest.TestCase):
         mock_get_consumption.return_value = (None, None)
         mock_get_early_stop.return_value = False
 
-        with mock.patch("builtins.open", mock.mock_open(read_data="mock_data")) as mock_open:
-            total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(log_dir)
+        with mock.patch(
+            "builtins.open", mock.mock_open(read_data="mock_data")
+        ) as mock_open:
+            total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(
+                log_dir
+            )
 
         expected_total_energy = 0
         expected_total_co2eq = 0
@@ -449,14 +574,25 @@ class TestParser(fake_filesystem_unittest.TestCase):
             "	0.007977 km travelled by car\n"
         )
 
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_output_log1.log"), contents=output_log_content)
-        self.fs.create_file(os.path.join(log_dir, "carbontracker_log1.log"), contents="std_log1 content")
+        self.fs.create_file(
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker_output.log"),
+            contents=output_log_content,
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker.log"),
+            contents="std_log1 content",
+        )
 
-        mock_listdir.return_value = ["carbontracker_output_log1.log", "carbontracker_log1.log"]
+        mock_listdir.return_value = [
+            "10151_2024-03-26T105926Z_carbontracker_output.log",
+            "10151_2024-03-26T105926Z_carbontracker.log",
+        ]
         mock_isfile.side_effect = lambda path: path.endswith(".log")
         mock_open.return_value.read.return_value = output_log_content
 
-        total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(log_dir)
+        total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(
+            log_dir
+        )
 
         self.assertEqual(total_energy, 0.009417)
         self.assertEqual(total_co2eq, 0.96049)
@@ -465,7 +601,9 @@ class TestParser(fake_filesystem_unittest.TestCase):
     @mock.patch("carbontracker.parser.get_all_logs")
     @mock.patch("carbontracker.parser.get_consumption")
     @mock.patch("carbontracker.parser.get_early_stop")
-    def test_aggregate_consumption_both_none(self, mock_get_early_stop, mock_get_consumption, mock_get_all_logs):
+    def test_aggregate_consumption_both_none(
+        self, mock_get_early_stop, mock_get_consumption, mock_get_all_logs
+    ):
         log_dir = "/path/to/logs"
         output_log_path = "/path/to/logs/output_log1"
         std_log_path = "/path/to/logs/std_log1"
@@ -477,7 +615,9 @@ class TestParser(fake_filesystem_unittest.TestCase):
         mock_get_consumption.return_value = (None, None)
         mock_get_early_stop.return_value = False
 
-        total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(log_dir)
+        total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(
+            log_dir
+        )
 
         expected_total_energy = 0
         expected_total_co2eq = 0
@@ -490,7 +630,9 @@ class TestParser(fake_filesystem_unittest.TestCase):
     @mock.patch("carbontracker.parser.get_all_logs")
     @mock.patch("carbontracker.parser.get_consumption")
     @mock.patch("carbontracker.parser.get_early_stop")
-    def test_aggregate_consumption_actual_none(self, mock_get_early_stop, mock_get_consumption, mock_get_all_logs):
+    def test_aggregate_consumption_actual_none(
+        self, mock_get_early_stop, mock_get_consumption, mock_get_all_logs
+    ):
         log_dir = "/path/to/logs"
         output_log_path = "/path/to/logs/output_log1"
         std_log_path = "/path/to/logs/std_log1"
@@ -499,10 +641,15 @@ class TestParser(fake_filesystem_unittest.TestCase):
         self.fs.create_file(std_log_path, contents="std_log_content")
 
         mock_get_all_logs.return_value = ([output_log_path], [std_log_path])
-        mock_get_consumption.return_value = (None, {"energy (kWh)": 1, "co2eq (g)": 2, "equivalents": {"km": 3}})
+        mock_get_consumption.return_value = (
+            None,
+            {"energy (kWh)": 1, "co2eq (g)": 2, "equivalents": {"km": 3}},
+        )
         mock_get_early_stop.return_value = False
 
-        total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(log_dir)
+        total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(
+            log_dir
+        )
 
         expected_total_energy = 1
         expected_total_co2eq = 2
@@ -515,7 +662,9 @@ class TestParser(fake_filesystem_unittest.TestCase):
     @mock.patch("carbontracker.parser.get_all_logs")
     @mock.patch("carbontracker.parser.get_consumption")
     @mock.patch("carbontracker.parser.get_early_stop")
-    def test_aggregate_consumption_pred_none(self, mock_get_early_stop, mock_get_consumption, mock_get_all_logs):
+    def test_aggregate_consumption_pred_none(
+        self, mock_get_early_stop, mock_get_consumption, mock_get_all_logs
+    ):
         log_dir = "/path/to/logs"
         output_log_path = "/path/to/logs/output_log1"
         std_log_path = "/path/to/logs/std_log1"
@@ -524,10 +673,15 @@ class TestParser(fake_filesystem_unittest.TestCase):
         self.fs.create_file(std_log_path, contents="std_log_content")
 
         mock_get_all_logs.return_value = ([output_log_path], [std_log_path])
-        mock_get_consumption.return_value = ({"energy (kWh)": 1, "co2eq (g)": 2, "equivalents": {"km": 3}}, None)
+        mock_get_consumption.return_value = (
+            {"energy (kWh)": 1, "co2eq (g)": 2, "equivalents": {"km": 3}},
+            None,
+        )
         mock_get_early_stop.return_value = False
 
-        total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(log_dir)
+        total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(
+            log_dir
+        )
 
         expected_total_energy = 1
         expected_total_co2eq = 2
@@ -540,7 +694,9 @@ class TestParser(fake_filesystem_unittest.TestCase):
     @mock.patch("carbontracker.parser.get_all_logs")
     @mock.patch("carbontracker.parser.get_consumption")
     @mock.patch("carbontracker.parser.get_early_stop")
-    def test_aggregate_consumption_both_available(self, mock_get_early_stop, mock_get_consumption, mock_get_all_logs):
+    def test_aggregate_consumption_both_available(
+        self, mock_get_early_stop, mock_get_consumption, mock_get_all_logs
+    ):
         log_dir = "/path/to/logs"
         output_log_path = "/path/to/logs/output_log1"
         std_log_path = "/path/to/logs/std_log1"
@@ -587,7 +743,9 @@ class TestParser(fake_filesystem_unittest.TestCase):
         )
         mock_get_early_stop.return_value = False
 
-        total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(log_dir)
+        total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(
+            log_dir
+        )
 
         expected_total_energy = 0.014018
         expected_total_co2eq = 1.429803
@@ -600,7 +758,9 @@ class TestParser(fake_filesystem_unittest.TestCase):
     @mock.patch("carbontracker.parser.get_all_logs")
     @mock.patch("carbontracker.parser.get_consumption")
     @mock.patch("carbontracker.parser.get_early_stop")
-    def test_aggregate_consumption_multiple_files(self, mock_get_early_stop, mock_get_consumption, mock_get_all_logs):
+    def test_aggregate_consumption_multiple_files(
+        self, mock_get_early_stop, mock_get_consumption, mock_get_all_logs
+    ):
         log_dir = "/path/to/logs"
         output_log_path1 = "/path/to/logs/output_log1"
         std_log_path1 = "/path/to/logs/std_log1"
@@ -635,7 +795,10 @@ class TestParser(fake_filesystem_unittest.TestCase):
         self.fs.create_file(output_log_path2, contents=output_log_content2)
         self.fs.create_file(std_log_path2, contents=std_log_content2)
 
-        mock_get_all_logs.return_value = ([output_log_path1, output_log_path2], [std_log_path1, std_log_path2])
+        mock_get_all_logs.return_value = (
+            [output_log_path1, output_log_path2],
+            [std_log_path1, std_log_path2],
+        )
         mock_get_consumption.side_effect = [
             (
                 {
@@ -660,7 +823,9 @@ class TestParser(fake_filesystem_unittest.TestCase):
         ]
         mock_get_early_stop.return_value = False
 
-        total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(log_dir)
+        total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(
+            log_dir
+        )
 
         expected_total_energy = 0.010512  # Sum of energy from both logs
         expected_total_co2eq = 1.072353
@@ -668,13 +833,18 @@ class TestParser(fake_filesystem_unittest.TestCase):
 
         self.assertAlmostEqual(total_energy, expected_total_energy, places=6)
         self.assertAlmostEqual(total_co2eq, expected_total_co2eq, places=6)
-        self.assertAlmostEqual(total_equivalents['km travelled by car'],
-                               expected_total_equivalents['km travelled by car'], places=6)
+        self.assertAlmostEqual(
+            total_equivalents["km travelled by car"],
+            expected_total_equivalents["km travelled by car"],
+            places=6,
+        )
 
     @mock.patch("carbontracker.parser.get_all_logs")
     @mock.patch("carbontracker.parser.get_consumption")
     @mock.patch("carbontracker.parser.get_early_stop")
-    def test_aggregate_consumption_early_stop(self, mock_get_early_stop, mock_get_consumption, mock_get_all_logs):
+    def test_aggregate_consumption_early_stop(
+        self, mock_get_early_stop, mock_get_consumption, mock_get_all_logs
+    ):
         log_dir = "/path/to/logs"
         output_log_path = "/path/to/logs/output_log1"
         std_log_path = "/path/to/logs/std_log1"
@@ -719,7 +889,9 @@ class TestParser(fake_filesystem_unittest.TestCase):
         )
         mock_get_early_stop.return_value = True
 
-        total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(log_dir)
+        total_energy, total_co2eq, total_equivalents = parser.aggregate_consumption(
+            log_dir
+        )
 
         expected_total_energy = 0.003504  # Energy from actual
         expected_total_co2eq = 0.357451
@@ -727,8 +899,11 @@ class TestParser(fake_filesystem_unittest.TestCase):
 
         self.assertAlmostEqual(total_energy, expected_total_energy, places=6)
         self.assertAlmostEqual(total_co2eq, expected_total_co2eq, places=6)
-        self.assertAlmostEqual(total_equivalents["km travelled by car"],
-                               expected_total_equivalents["km travelled by car"], places=6)
+        self.assertAlmostEqual(
+            total_equivalents["km travelled by car"],
+            expected_total_equivalents["km travelled by car"],
+            places=6,
+        )
 
     def test_get_time_no_match(self):
         time_str = "Invalid time string"
@@ -736,22 +911,31 @@ class TestParser(fake_filesystem_unittest.TestCase):
         assert result is None
 
     @mock.patch("builtins.print")
-    @mock.patch("carbontracker.parser.aggregate_consumption", return_value=(100.0, 50000.0, {}))
-    def test_print_aggregate_empty_equivalents(self, mock_aggregate_consumption, mock_print):
+    @mock.patch(
+        "carbontracker.parser.aggregate_consumption", return_value=(100.0, 50000.0, {})
+    )
+    def test_print_aggregate_empty_equivalents(
+        self, mock_aggregate_consumption, mock_print
+    ):
         log_dir = "/logs"
         print_aggregate(log_dir)
         mock_print.assert_called_once_with(
-            "The training of models in this work is estimated to use 100.000 kWh of electricity contributing to 50.000 kg of CO2eq. Measured by carbontracker (https://github.com/lfwa/carbontracker)."
+            "The training of models in this work is estimated to use 100.0000000000000000 kWh of electricity contributing to 50.0000000000000000 kg of CO2eq. Measured by carbontracker (https://github.com/lfwa/carbontracker)."
         )
 
     @mock.patch("builtins.print")
-    @mock.patch("carbontracker.parser.aggregate_consumption", return_value=(100.0, 50000.0, {"km travelled": 200.0}))
-    def test_print_aggregate_non_empty_equivalents(self, mock_aggregate_consumption, mock_print):
+    @mock.patch(
+        "carbontracker.parser.aggregate_consumption",
+        return_value=(100.0, 5000.0, {"km travelled": 200.0}),
+    )
+    def test_print_aggregate_non_empty_equivalents(
+        self, mock_aggregate_consumption, mock_print
+    ):
         log_dir = "/logs"
         print_aggregate(log_dir)
         mock_print.assert_called_once_with(
-            "The training of models in this work is estimated to use 100.000 kWh of electricity contributing to 50.000 kg of CO2eq. "
-            "This is equivalent to 200.000 km travelled. "
+            "The training of models in this work is estimated to use 100.0000000000000000 kWh of electricity contributing to 5.0000000000000000 kg of CO2eq. "
+            "This is equivalent to 200.0000000000000000 km travelled. "
             "Measured by carbontracker (https://github.com/lfwa/carbontracker)."
         )
 
@@ -766,3 +950,45 @@ class TestParser(fake_filesystem_unittest.TestCase):
         lines = "not_a_float equivalent1\n10.5 equivalent2"
         equivalents = parse_equivalents(lines)
         self.assertEqual({"equivalent2": 10.5}, equivalents)
+
+    @mock.patch("builtins.open", new_callable=mock.mock_open)
+    @mock.patch("os.listdir")
+    @mock.patch("os.path.isfile")
+    @mock.patch("carbontracker.parser.get_devices")
+    def test_parse_epoch_mismatch(
+        self, mock_get_devices, mock_isfile, mock_listdir, mock_open
+    ):
+        log_dir = "/path/to/logs"
+
+        std_log_data = (
+            "2022-11-14 15:44:48 - Average power usage (W) for gpu: [136.86084615]\n"
+            "2022-11-14 15:44:48 - Average power usage (W) for cpu: [13.389104]\n"
+            "2022-11-14 15:44:48 - Average power usage (W) for gpu: [136.86084615]\n"
+            "2022-11-14 15:44:48 - Average power usage (W) for cpu: [13.389104]\n"
+            "2022-11-14 15:44:48 - Epoch 1:\nDuration: 0:02:21.90"
+        )
+
+        self.fs.create_file(
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker_output.log"),
+            contents="output_log1 content",
+        )
+        self.fs.create_file(
+            os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker.log"),
+            contents=std_log_data,
+        )
+
+        mock_isfile.side_effect = lambda path: path.endswith(".log")
+        mock_open.return_value.read.return_value = std_log_data
+        mock_get_devices.return_value = {
+            "gpu": ["NVIDIA GeForce RTX 3060"],
+            "cpu": ["cpu:0"],
+        }
+
+        with self.assertRaises(exceptions.MismatchedEpochsError):
+            components = parser.parse_logs(
+                log_dir,
+                os.path.join(log_dir, "10151_2024-03-26T105926Z_carbontracker.log"),
+                os.path.join(
+                    log_dir, "10151_2024-03-26T105926Z_carbontracker_output.log"
+                ),
+            )

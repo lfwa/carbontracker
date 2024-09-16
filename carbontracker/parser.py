@@ -4,9 +4,28 @@ import re
 import numpy as np
 
 from carbontracker import exceptions
+from typing import Dict, Union, List
 
 
 def parse_all_logs(log_dir):
+    """
+    Parse all logs in directory.
+
+    Args:
+        log_dir (str): Directory of logs
+
+    Returns:
+        (dict[]): List of log entries of shape
+
+                {
+                    "output_filename": str,
+                    "standard_filename": str,
+                    "components": dict, # See parse_logs
+                    "early_stop": bool,
+                    "actual": dict | None, # See get_consumption
+                    "pred": dict | None, # See get_consumption
+                }
+    """
     logs = []
     output_logs, std_logs = get_all_logs(log_dir)
 
@@ -33,7 +52,29 @@ def parse_all_logs(log_dir):
 
 
 def parse_logs(log_dir, std_log_file=None, output_log_file=None):
-    """Parse logs in log_dir (defaults to most recent logs)."""
+    """
+    Parse logs in log_dir (defaults to most recent logs).
+
+    Args:
+        log_dir (str): Directory of logs
+        std_log_file (str, optional): Log file to read. Defaults to most recent logs.
+        output_log_file (str, optional): Deprecated
+
+    Returns:
+        (dict): Dictionary of shape
+
+                {
+                        [component name]: {
+                            "avg_power_usages (W)": NDArray | None,
+                            "avg_energy_usages (J)": NDArray | None,
+                            "epoch_durations (s)": NDArray | None,
+                            "devices": str[],
+                        }
+                }
+
+            where `[component name]` is either `"gpu"` or `"cpu"`.
+            Return value can contain both `"gpu"` and `"cpu"` field.
+    """
     if std_log_file is None or output_log_file is None:
         std_log_file, output_log_file = get_most_recent_logs(log_dir)
 
@@ -46,11 +87,18 @@ def parse_logs(log_dir, std_log_file=None, output_log_file=None):
 
     components = {}
     for comp, devices in devices.items():
-        power_usages = np.array(avg_power_usages[comp]) if len(avg_power_usages) != 0 else None
+        power_usages = (
+            np.array(avg_power_usages[comp]) if len(avg_power_usages) != 0 else None
+        )
         durations = np.array(epoch_durations) if len(epoch_durations) != 0 else None
         if power_usages is None or durations is None:
             energy_usages = None
         else:
+            if power_usages.size != durations.size:
+                raise exceptions.MismatchedEpochsError(
+                    f"Found {power_usages.size} power measurements and {durations.size} duration measurements. "
+                    "Expected equal number of measurements."
+                )
             energy_usages = (power_usages.T * durations).T
         measurements = {
             "avg_power_usages (W)": power_usages,
@@ -63,9 +111,31 @@ def parse_logs(log_dir, std_log_file=None, output_log_file=None):
     return components
 
 
-def get_consumption(output_log_data):
+def get_consumption(output_log_data: str):
+    """
+    Gets actual and predicted energy consumption, CO2eq and equivalence statements from output_log_data using regular expressions.
+
+    Args:
+        output_log_data (str): Log data to search through.
+
+    Returns:
+        actual (dict | None): Actual consumption
+
+        pred (dict | None): Predicted consumption
+
+            Both `actual` and `pred` has the shape:
+
+                {
+                    "epochs": int,
+                    "duration (s)": int,
+                    "energy (kWh)": float | None,
+                    "co2eq (g)": float | None,
+                    "equivalents": equivalents,
+                }
+    """
     actual_re = re.compile(
-        r"(?i)Actual consumption for (\d*) epoch\(s\):"
+        r"(?i)Actual consumption"
+        r"(?:\s*for\s+\d+\s+epochs)?"
         r"[\s\S]*?Time:\s*(.*)\n\s*Energy:\s*(.*)\s+kWh"
         r"[\s\S]*?CO2eq:\s*(.*)\s+g"
         r"(?:\s*This is equivalent to:\s*([\s\S]*?))?(?=\d{4}-\d{2}-\d{2}|\Z)"
@@ -83,16 +153,17 @@ def get_consumption(output_log_data):
     return actual, pred
 
 
-def get_early_stop(std_log_data):
+def get_early_stop(std_log_data: str) -> bool:
     early_stop_re = re.compile(r"(?i)Training was interrupted")
     early_stop = re.findall(early_stop_re, std_log_data)
     return bool(early_stop)
-
 
 def extract_measurements(match):
     if not match:
         return None
     match = match.groups()
+    if len(match) == 4:
+        match = [1] + list(match)
     epochs = int(match[0])
     duration = get_time(match[1])
     energy, co2eq, equivalents = get_stats(match)
@@ -106,7 +177,7 @@ def extract_measurements(match):
     return measurements
 
 
-def get_time(time_str):
+def get_time(time_str: str) -> Union[float, None]:
     duration_re = re.compile(r"(\d+):(\d{2}):(\d\d?(?:.\d{2})?)")
     match = re.search(duration_re, time_str)
     if not match:
@@ -117,12 +188,17 @@ def get_time(time_str):
 
 
 def print_aggregate(log_dir):
-    """Prints the aggregate consumption in all log files in log_dir."""
+    """
+    Prints the aggregate consumption in all log files in log_dir to stdout. See `get_aggregate`.
+
+    Args:
+        log_dir (str): Directory of logs
+    """
     energy, co2eq, equivalents = aggregate_consumption(log_dir)
 
-    equivalents_p = " or ".join([f"{v:.3f} {k}" for k, v in equivalents.items()])
+    equivalents_p = " or ".join([f"{v:.16f} {k}" for k, v in equivalents.items()])
 
-    printable = f"The training of models in this work is estimated to use {energy:.3f} kWh of electricity contributing to {co2eq / 1000:.3f} kg of CO2eq. "
+    printable = f"The training of models in this work is estimated to use {energy:.16f} kWh of electricity contributing to {co2eq / 1000:.16f} kg of CO2eq. "
     if equivalents_p:
         printable += f"This is equivalent to {equivalents_p}. "
 
@@ -132,7 +208,17 @@ def print_aggregate(log_dir):
 
 
 def aggregate_consumption(log_dir):
-    """Aggregate consumption in all log files in specified log_dir."""
+    """
+    Aggregate consumption in all log files in specified log_dir.
+
+    Args:
+        log_dir (str): Directory of logs
+
+    Returns:
+        total_energy (float): Total energy (kWh) of all logs
+        total_co2 (float): Total CO2eq (gCO2eq) of all logs
+        total_equivalents (float): Total energy of all logs
+    """
     output_logs, std_logs = get_all_logs(log_dir=log_dir)
 
     total_energy = 0
@@ -150,16 +236,16 @@ def aggregate_consumption(log_dir):
 
         if actual is None and pred is None:
             continue
-        elif actual is None:
+        elif actual is None and pred is not None:
             energy = pred["energy (kWh)"]
             co2eq = pred["co2eq (g)"]
             equivalents = pred["equivalents"]
-        elif pred is None:
+        elif pred is None and actual is not None:
             energy = actual["energy (kWh)"]
             co2eq = actual["co2eq (g)"]
             equivalents = actual["equivalents"]
         # Both actual and pred is available
-        else:
+        elif pred is not None and actual is not None:
             actual_epochs = actual["epochs"]
             pred_epochs = pred["epochs"]
             if early_stop or actual_epochs == pred_epochs:
@@ -170,6 +256,8 @@ def aggregate_consumption(log_dir):
                 energy = pred["energy (kWh)"]
                 co2eq = pred["co2eq (g)"]
                 equivalents = pred["equivalents"]
+        else:
+            continue  # unreachable case
 
         total_energy += energy
         if not np.isnan(co2eq):
@@ -200,17 +288,32 @@ def parse_equivalents(lines):
             try:
                 equivalents[tup[1].strip()] = float(tup[0].strip())
             except ValueError as e:
-                print(f"Warning: Unable to convert '{tup[0]}' to float. Skipping this equivalent.")
+                print(
+                    f"Warning: Unable to convert '{tup[0]}' to float. Skipping this equivalent."
+                )
                 continue
     return equivalents
 
 
 def get_all_logs(log_dir):
-    """Get all output and standard logs in log_dir."""
+    """
+    Get all output and standard logs in log_dir.
+
+    Args:
+        log_dir (str): Directory of logs
+
+    Returns:
+        std_logs (list[str]): List of file names of standard logs
+        output_logs (list[str]): List of file names of output logs
+
+    Raises:
+        MismatchedLogFilesError: Thrown if there exists standard log files that cannot be matched with an output log file or vice versa.
+    """
     files = [
         os.path.join(log_dir, f)
         for f in os.listdir(log_dir)
-        if os.path.isfile(os.path.join(log_dir, f)) and os.path.getsize(os.path.join(log_dir, f)) > 0
+        if os.path.isfile(os.path.join(log_dir, f))
+        and os.path.getsize(os.path.join(log_dir, f)) > 0
     ]
     output_re = re.compile(r".*carbontracker_output.log")
     std_re = re.compile(r".*carbontracker.log")
@@ -218,15 +321,15 @@ def get_all_logs(log_dir):
     std_logs = sorted(list(filter(std_re.match, files)))
     if len(output_logs) != len(std_logs):
         # Try to remove the files with no matching output/std logs
-        op_fn = [f.split("_")[0] for f in output_logs]
-        std_fn = [f.split("_")[0] for f in std_logs]
+        op_fn = [f.split("_carbontracker")[0] for f in output_logs]
+        std_fn = [f.split("_carbontracker")[0] for f in std_logs]
         if len(std_logs) > len(output_logs):
             missing_logs = list(set(std_fn) - set(op_fn))
             [std_logs.remove(f + "_carbontracker.log") for f in missing_logs]
         else:
             missing_logs = list(set(op_fn) - set(std_fn))
-            [output_logs.remove(f + "carbontracker_output.log") for f in missing_logs]
-        ### Even after removel if then there is a mismatch, then throw the error
+            [output_logs.remove(f + "_carbontracker_output.log") for f in missing_logs]
+        ### Even after removal if then there is a mismatch, then throw the error
         if len(output_logs) != len(std_logs):
             raise exceptions.MismatchedLogFilesError(
                 f"Found {len(output_logs)} output logs and {len(std_logs)} "
@@ -235,8 +338,22 @@ def get_all_logs(log_dir):
     return output_logs, std_logs
 
 
-def get_devices(std_log_data):
-    """Retrieve dictionary of components with their device(s)."""
+def get_devices(std_log_data: str) -> Dict[str, List[str]]:
+    """
+    Retrieve dictionary of components with their device(s).
+
+    Args:
+        std_log_data (str): Log data to parse
+
+    Returns:
+        (dict): Dictionary with devices per component of shape
+
+                {
+                        [component]: ["device1", "device2"]
+                }
+
+            Where `[component]` is the component name and `"device1"`, `"device2"` are device names.
+    """
     comp_re = re.compile(r"The following components were found:(.*)\n")
     device_re = re.compile(r" (.*?) with device\(s\) (.*?)\.")
     # Take first match as we only expect one.
@@ -254,22 +371,43 @@ def get_devices(std_log_data):
 
 
 def get_epoch_durations(std_log_data):
-    """Retrieve epoch durations (s)."""
+    """
+    Retrieve epoch durations (s).
+
+    Args:
+        std_log_data (str): Log to parse
+
+    Returns:
+        (list[float]): List of epoch durations (s)
+    """
     duration_re = re.compile(r"Duration: (\d+):(\d{2}):(\d\d?(?:.\d{2})?)")
     matches = re.findall(duration_re, std_log_data)
-    epoch_durations = [float(h) * 60 * 60 + float(m) * 60 + float(s) for h, m, s in matches]
+    epoch_durations = [
+        float(h) * 60 * 60 + float(m) * 60 + float(s) for h, m, s in matches
+    ]
     return epoch_durations
 
 
 def get_avg_power_usages(std_log_data):
-    """Retrieve average power usages for each epoch (W)."""
-    power_re = re.compile(r"Average power usage \(W\) for (.+): (\[.+\]|None)")
+    """
+    Retrieve average power usages for each epoch (W).
+
+    Args:
+        std_log_data (str): Log to parse
+
+    Returns:
+        (dict): Dictionary containing list of average power usages for each epoch per component. Has shape:
+                {
+                        [component name]: list[list[float]]
+                }
+    """
+    power_re = re.compile(r"Average power usage \(W\) for (.+): (\[?[0-9\.]+\]?|None)")
     matches = re.findall(power_re, std_log_data)
     components = list(set([comp for comp, _ in matches]))
     avg_power_usages = {}
 
     for component in components:
-        powers = []
+        powers: list[list[float]] = []
         for comp, power in matches:
             if power == "None":
                 powers.append([0.0])
@@ -284,9 +422,22 @@ def get_avg_power_usages(std_log_data):
 
 
 def get_most_recent_logs(log_dir):
-    """Retrieve the file names of the most recent standard and output logs."""
+    """
+    Retrieve the file names of the most recent standard and output logs.
+
+    Args:
+        log_dir (str): Directory of logs
+
+    Returns:
+        std_log (str): File name of latest standard log
+        output_log (str): File name of latest output log
+    """
     # Get all files in log_dir.
-    files = [os.path.join(log_dir, f) for f in os.listdir(log_dir) if os.path.isfile(os.path.join(log_dir, f))]
+    files = [
+        os.path.join(log_dir, f)
+        for f in os.listdir(log_dir)
+        if os.path.isfile(os.path.join(log_dir, f))
+    ]
     # Find output and standard logs and sort by modified date.
     output_re = re.compile(r".*carbontracker_output.log")
     std_re = re.compile(r".*carbontracker.log")
