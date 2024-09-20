@@ -20,7 +20,7 @@ class GenericCPU(Handler):
         try:
             info = cpuinfo.get_cpu_info()
             cpu_brand = info.get('brand_raw', '')
-            logger.info(f"Detected CPU: {cpu_brand}")
+            logger.err_info(f"Detected CPU: {cpu_brand}")
             return cpu_brand
         except Exception as e:
             logger.err_warn(f"Failed to get CPU info: {e}")
@@ -60,12 +60,9 @@ class GenericCPU(Handler):
         return statistics.mean(self.cpu_power_data.values()) / 2  # 50% utilization
 
     def init(self):
-        logger.info("[setup] CPU Tracking...")
         if not self.cpu_brand:
             logger.err_warn("Failed to detect CPU. Falling back to generic CPU handler.")
             self.cpu_brand = "Unknown CPU"
-        else:
-            logger.info(f"CPU Model: {self.cpu_brand}")
         
         self.tdp = self.find_matching_tdp()
         
@@ -74,7 +71,7 @@ class GenericCPU(Handler):
             logger.err_warn(f"No matching TDP found for CPU: {self.cpu_brand}. Using average TDP of {self.tdp:.2f}W as fallback.")
         else:
             self.tdp = self.tdp / 2  # 50% utilization
-            logger.info(f"Using TDP of {self.tdp:.2f}W for {self.cpu_brand}")
+            logger.err_info(f"Using TDP of {self.tdp:.2f}W for {self.cpu_brand}")
 
     def find_matching_tdp(self) -> Optional[float]:
         # Try direct match
@@ -85,7 +82,7 @@ class GenericCPU(Handler):
         cpu_name_without_freq = self.cpu_brand.split('@')[0].strip()
         for cpu_name, tdp in self.cpu_power_data.items():
             if cpu_name_without_freq in cpu_name:
-                logger.info(f"Matched CPU {self.cpu_brand} to {cpu_name} with TDP {tdp}W")
+                logger.err_info(f"Matched CPU {self.cpu_brand} to {cpu_name} with TDP {tdp}W")
                 return tdp
         
         return None
