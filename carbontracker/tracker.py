@@ -1,3 +1,4 @@
+import asyncio
 import os
 import sys
 import time
@@ -34,6 +35,11 @@ class CarbonIntensityThread(Thread):
         self.carbon_intensities = []
 
         self.start()
+        
+    async def _fetch_carbon_intensity_async(self):
+        ci = await intensity.carbon_intensity_async(self.logger)
+        if ci.success and isinstance(ci.carbon_intensity, (int, float)) and not np.isnan(ci.carbon_intensity):
+            self.carbon_intensities.append(ci)
 
     def run(self):
         try:
@@ -222,7 +228,9 @@ class CarbonTrackerThread(Thread):
 
     def _collect_measurements(self):
         """Collect one round of measurements."""
+        batch_size = 5
         for comp in self.components:
+           if self.epoch_counter % batch_size == 0:
             comp.collect_power_usage(self.epoch_counter)
 
     def total_energy_per_epoch(self):
