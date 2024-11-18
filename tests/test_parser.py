@@ -992,3 +992,7 @@ class TestParser(fake_filesystem_unittest.TestCase):
                     log_dir, "10151_2024-03-26T105926Z_carbontracker_output.log"
                 ),
             )
+
+    def test_parse_logs_mismatch(self):
+        results = parser.get_avg_power_usages("2024-03-26 10:51:53 - Epoch 1:\n2024-03-26 10:51:53 - Duration: 0:00:00.00\n2024-03-26 10:51:53 - Average power usage (W) for cpu: None\n2024-03-26 10:51:53 - Average power usage (W) for gpu: None")
+        self.assertEqual(results, {"cpu": [[0.0]], "gpu": [[0.0]]})
