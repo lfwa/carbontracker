@@ -409,13 +409,14 @@ def get_avg_power_usages(std_log_data):
     for component in components:
         powers: list[list[float]] = []
         for comp, power in matches:
-            if power == "None":
-                powers.append([0.0])
-                continue
             if comp == component:
-                p_list = power.strip("[").strip("]").split(" ")
-                p_power = [float(num) for num in p_list if num != ""]
-                powers.append(p_power)
+                if power == "None":
+                    powers.append([0.0])
+                    continue
+                else:
+                    p_list = power.strip("[").strip("]").split(" ")
+                    p_power = [float(num) for num in p_list if num != ""]
+                    powers.append(p_power)
         avg_power_usages[component] = powers
 
     return avg_power_usages
