@@ -95,7 +95,7 @@ class IntelCPU(Handler):
         self._devices: List[str] = []
         self._rapl_devices: List[str] = []
         self.parts_pattern = re.compile(r"intel-rapl:(\d):(\d)")
-        devices_pattern = re.compile("intel-rapl:(\d)(:\d)?")
+        devices_pattern = re.compile(r"intel-rapl:(\d)(:\d)?")
 
         for package in packages:
             if re.fullmatch(devices_pattern, package):
