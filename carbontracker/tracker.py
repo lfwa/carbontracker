@@ -340,7 +340,7 @@ class CarbonTracker:
             self.tracker = CarbonTrackerThread(
                 delete=self._delete,
                 components=component.create_components(
-                    components=components, pids=pids, devices_by_pid=devices_by_pid
+                    components=components, pids=pids, devices_by_pid=devices_by_pid, logger=self.logger
                 ),
                 logger=self.logger,
                 ignore_errors=ignore_errors,

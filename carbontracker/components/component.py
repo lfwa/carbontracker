@@ -9,6 +9,8 @@ from carbontracker.components.apple_silicon.powermetrics import (
 )
 from carbontracker.components.handler import Handler
 from typing import Iterable, List, Union, Type, Sized
+from carbontracker.loggerutil import Logger
+import os
 
 COMPONENTS = [
     {
@@ -43,7 +45,7 @@ def handlers_by_name(name) -> List[Type[Handler]]:
 
 
 class Component:
-    def __init__(self, name: str, pids: Iterable[int], devices_by_pid: bool):
+    def __init__(self, name: str, pids: Iterable[int], devices_by_pid: bool, logger: Logger):
         self.name = name
         if name not in component_names():
             raise exceptions.ComponentNameError(
@@ -54,6 +56,7 @@ class Component:
         )
         self.power_usages: List[List[float]] = []
         self.cur_epoch: int = -1  # Sentry
+        self.logger = logger
 
     @property
     def handler(self) -> Handler:
@@ -97,18 +100,19 @@ class Component:
             self.power_usages.append([])
         try:
             self.power_usages[-1] += self.handler.power_usage()
-        except exceptions.IntelRaplPermissionError:
+        except exceptions.IntelRaplPermissionError as e:
+            energy_paths = " and ".join(e.file_names)
+            commands = ["sudo chmod +r " + energy_path for energy_path in e.file_names]
             # Only raise error if no measurements have been collected.
             if not self.power_usages[-1]:
-                print(
-                    "No sudo access to read Intel's RAPL measurements from the energy_uj file."
-                    "\nSee issue: https://github.com/lfwa/carbontracker/issues/40"
-                )
+                self.logger.err_critical(
+                    f"Could not read CPU/DRAM energy consumption due to lack of read-permissions.\n\tPlease run the following command(s): \n\t\t{"\n\t\t".join(commands)}"
+                    )
             # Append zero measurement to avoid further errors.
             self.power_usages.append([0])
         except exceptions.GPUPowerUsageRetrievalError:
             if not self.power_usages[-1]:
-                print(
+                self.logger.err_critical(
                     "GPU model does not support retrieval of power usages in NVML."
                     "\nSee issue: https://github.com/lfwa/carbontracker/issues/36"
                 )
@@ -154,16 +158,16 @@ class Component:
 
 
 def create_components(
-    components: str, pids: Iterable[int], devices_by_pid: bool
+    components: str, pids: Iterable[int], devices_by_pid: bool, logger: Logger
 ) -> List[Component]:
     components = components.strip().replace(" ", "").lower()
     if components == "all":
         return [
-            Component(name=comp_name, pids=pids, devices_by_pid=devices_by_pid)
+            Component(name=comp_name, pids=pids, devices_by_pid=devices_by_pid, logger=logger)
             for comp_name in component_names()
         ]
     else:
         return [
-            Component(name=comp_name, pids=pids, devices_by_pid=devices_by_pid)
+            Component(name=comp_name, pids=pids, devices_by_pid=devices_by_pid, logger=logger)
             for comp_name in components.split(",")
         ]

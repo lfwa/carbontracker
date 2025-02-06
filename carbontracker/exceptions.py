@@ -23,7 +23,8 @@ class UnitError(Exception):
 class IntelRaplPermissionError(Exception):
     """Raised when an Intel RAPL permission error occurs."""
 
-    pass
+    def __init__(self, file_names: list[str]):
+        self.file_names = file_names
 
 
 class GPUPowerUsageRetrievalError(Exception):
