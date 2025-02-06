@@ -56,6 +56,7 @@ class IntelCPU(Handler):
 
     def _get_measurements(self):
         measurements = []
+        permission_errors = []
         for package in self._rapl_devices:
             try:
                 power_usage = self._read_energy(os.path.join(RAPL_DIR, package))
@@ -63,7 +64,7 @@ class IntelCPU(Handler):
             # If there is no sudo access, we cannot read the energy_uj file.
             # Permission denied error is raised.
             except PermissionError:
-                raise exceptions.IntelRaplPermissionError()
+                permission_errors += [os.path.join(RAPL_DIR, package, "energy_uj")]
 
             except FileNotFoundError:
                 # check cpu/gpu/dram
@@ -79,12 +80,15 @@ class IntelCPU(Handler):
                     )
 
                 measurements.append(total_power_usage)
-
+        if permission_errors:
+            raise exceptions.IntelRaplPermissionError(permission_errors)
         return measurements
 
-    def _convert_rapl_name(self, name, pattern) -> Union[None, str]:
-        if re.match(pattern, name):
-            return "cpu:" + name[-1]
+    def _convert_rapl_name(self, package, name, pattern) -> Union[None, str]:
+        match = re.match(pattern, package)
+        name = name if "package" not in name else "cpu"
+        if match:
+            return name + ":" + match.group(1)
 
     def init(self):
         # Get amount of intel-rapl folders
@@ -93,15 +97,15 @@ class IntelCPU(Handler):
         self._devices: List[str] = []
         self._rapl_devices: List[str] = []
         self.parts_pattern = re.compile(r"intel-rapl:(\d):(\d)")
-        devices_pattern = re.compile("intel-rapl:.")
+        devices_pattern = re.compile(r"intel-rapl:(\d)(:\d)?")
 
         for package in packages:
             if re.fullmatch(devices_pattern, package):
                 with open(os.path.join(RAPL_DIR, package, "name"), "r") as f:
                     name = f.read().strip()
-                if name != "psys":
+                if name != "psys" and ("package" in name or "dram" in name):
                     self._rapl_devices.append(package)
-                    rapl_name = self._convert_rapl_name(package, devices_pattern)
+                    rapl_name = self._convert_rapl_name(package, name, devices_pattern)
                     if rapl_name is not None:
                         self._devices.append(rapl_name)
 

@@ -1,3 +1,5 @@
+from typing import List
+
 class NoComponentsAvailableError(Exception):
     def __init__(
         self,
@@ -23,7 +25,8 @@ class UnitError(Exception):
 class IntelRaplPermissionError(Exception):
     """Raised when an Intel RAPL permission error occurs."""
 
-    pass
+    def __init__(self, file_names: List[str]):
+        self.file_names = file_names
 
 
 class GPUPowerUsageRetrievalError(Exception):

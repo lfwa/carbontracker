@@ -12,7 +12,7 @@ class TestIntelCPU(unittest.TestCase):
         mock_exists.return_value = True
         mock_listdir.return_value = ["some_directory"]
 
-        component = Component(name='cpu', pids=[], devices_by_pid={})
+        component = Component(name='cpu', pids=[], devices_by_pid={}, logger=None)
         self.assertTrue(component.available())
 
     @patch("os.path.exists")
@@ -21,6 +21,7 @@ class TestIntelCPU(unittest.TestCase):
     def test_devices(self, mock_file, mock_listdir, mock_exists):
         mock_exists.return_value = True
         mock_listdir.side_effect = [["intel-rapl:0", "intel-rapl:1"], ["name"], ["name"]]
+        mock_file.return_value.read.side_effect = ["package-0", "package-1"]
 
         cpu = IntelCPU(pids=[], devices_by_pid={})
         cpu.init()
@@ -34,7 +35,7 @@ class TestIntelCPU(unittest.TestCase):
         mock_exists.return_value = False
         mock_listdir.return_value = []
 
-        cpu = Component(name='cpu', pids=[], devices_by_pid={})
+        cpu = Component(name='cpu', pids=[], devices_by_pid={}, logger=None)
         self.assertFalse(cpu.available())
 
     @patch("time.sleep")
@@ -72,14 +73,18 @@ class TestIntelCPU(unittest.TestCase):
     @patch("builtins.open", new_callable=mock_open)
     def test__get_measurements(self, mock_file, mock_listdir, mock_exists):
         mock_exists.return_value = True
-        mock_listdir.return_value = ["intel-rapl:0", "intel-rapl:1"]
-        mock_file.return_value.read.return_value = "1000000"
+        # Simulate true RAPL zone hierarchy
+        mock_listdir.return_value = ["intel-rapl:0", "intel-rapl:0:0", "intel-rapl:0:1", "intel-rapl:0:2","intel-rapl:1"]
+        #mock_file.return_value.read.return_value = "1000000"
+        mock_file.return_value.read.side_effect = ["package-0", "cores", "uncores", "dram", "psys", "1000000", "99999", "88", "88", "88"]
 
         cpu = IntelCPU(pids=[], devices_by_pid={})
         cpu.init()
 
         measurements = cpu._get_measurements()
-        self.assertEqual(measurements, [1000000, 1000000])
+        self.assertEqual(measurements, [1000000, 99999])
+        self.assertEqual(cpu._rapl_devices, ["intel-rapl:0", "intel-rapl:0:2"]) # Only package and dram zones are considered, the rest are included in package
+        self.assertEqual(cpu._devices, ["cpu:0", "dram:0"])
 
     @patch("os.listdir")
     @patch("builtins.open", new_callable=mock_open, read_data="cpu")
@@ -89,7 +94,17 @@ class TestIntelCPU(unittest.TestCase):
         cpu = IntelCPU(pids=[], devices_by_pid={})
         cpu.init()
 
-        self.assertEqual(cpu._convert_rapl_name("intel-rapl:0", re.compile("intel-rapl:.")), "cpu:0")
+        self.assertEqual(cpu._convert_rapl_name("intel-rapl:0", "package-0", re.compile(r"intel-rapl:(\d)(:\d)?")), "cpu:0")
+
+    @patch("os.listdir")
+    @patch("builtins.open", new_callable=mock_open, read_data="cpu")
+    def test__convert_rapl_name_dram(self, mock_file, mock_listdir):
+        mock_listdir.return_value = ["intel-rapl:0", "intel-rapl:1"]
+
+        cpu = IntelCPU(pids=[], devices_by_pid={})
+        cpu.init()
+
+        self.assertEqual(cpu._convert_rapl_name("intel-rapl:1", "dram", re.compile(r"intel-rapl:(\d)(:\d)?")), "dram:1")
 
     @patch("os.path.exists")
     @patch("os.listdir")
@@ -97,6 +112,7 @@ class TestIntelCPU(unittest.TestCase):
     def test_init(self, mock_file, mock_listdir, mock_exists):
         mock_exists.return_value = True
         mock_listdir.return_value = ["intel-rapl:0", "intel-rapl:1"]
+        mock_file.return_value.read.side_effect = ["package-0", "package-1"]
 
         cpu = IntelCPU(pids=[], devices_by_pid={})
         cpu.init()
