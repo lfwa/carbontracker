@@ -12,7 +12,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         python-version: ['3.7.17', '3.8.18','3.9.21', '3.10.16', '3.11.11', '3.12.9'] # Latest version available for each. Ref: https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
