@@ -12,7 +12,7 @@ class TestExceptions(unittest.TestCase):
 
     def test_intel_rapl_permission_error(self):
         with self.assertRaises(exceptions.IntelRaplPermissionError):
-            raise exceptions.IntelRaplPermissionError
+            raise exceptions.IntelRaplPermissionError(file_names=["file1", "file2"])
 
     def test_gpu_power_usage_retrieval_error(self):
         with self.assertRaises(exceptions.GPUPowerUsageRetrievalError):

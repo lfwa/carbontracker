@@ -12,7 +12,7 @@ class TestIntelCPU(unittest.TestCase):
         mock_exists.return_value = True
         mock_listdir.return_value = ["some_directory"]
 
-        component = Component(name='cpu', pids=[], devices_by_pid={})
+        component = Component(name='cpu', pids=[], devices_by_pid={}, logger=None)
         self.assertTrue(component.available())
 
     @patch("os.path.exists")
@@ -35,7 +35,7 @@ class TestIntelCPU(unittest.TestCase):
         mock_exists.return_value = False
         mock_listdir.return_value = []
 
-        cpu = Component(name='cpu', pids=[], devices_by_pid={})
+        cpu = Component(name='cpu', pids=[], devices_by_pid={}, logger=None)
         self.assertFalse(cpu.available())
 
     @patch("time.sleep")

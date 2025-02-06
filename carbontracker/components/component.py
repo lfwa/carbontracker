@@ -106,7 +106,7 @@ class Component:
             # Only raise error if no measurements have been collected.
             if not self.power_usages[-1]:
                 self.logger.err_critical(
-                    f"Could not read CPU/DRAM energy consumption due to lack of read-permissions.\n\tPlease run the following command(s): \n\t\t{"\n\t\t".join(commands)}"
+                    r"Could not read CPU/DRAM energy consumption due to lack of read-permissions.\n\tPlease run the following command(s): \n\t\t" + r"\n\t\t".join(commands)
                     )
             # Append zero measurement to avoid further errors.
             self.power_usages.append([0])
