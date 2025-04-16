@@ -161,10 +161,11 @@ def get_early_stop(std_log_data: str) -> bool:
 def extract_measurements(match):
     if not match:
         return None
+    epochs = epochs_match = re.search(r"for\s+(\d+)\s+epoch", match.group(0))
+    epochs = int(epochs_match.group(1))
     match = match.groups()
     if len(match) == 4:
         match = [1] + list(match)
-    epochs = int(match[0])
     duration = get_time(match[1])
     energy, co2eq, equivalents = get_stats(match)
     measurements = {
