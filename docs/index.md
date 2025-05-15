@@ -55,3 +55,13 @@ If this fails we measure all available GPUs.
 echo "your_username ALL=(ALL) NOPASSWD: /usr/bin/powermetrics" | sudo tee -a /etc/sudoers
 ```
 - Alternatively, one can run **carbontracker** with root privileges.
+
+## Running **carbontracker** in Virtual Machines
+
+In virtual machines or containerized environments where direct power measurements are unavailable, **carbontracker** estimates power consumption using [CPU TDP values](https://github.com/mlco2/codecarbon/blob/master/codecarbon/data/hardware/cpu_power.csv):
+
+- Identifies the CPU model when possible
+- Uses 50% of the CPU's TDP value to estimate power consumption at 50% utilization
+- Falls back to 50% of average TDP across known CPUs if the specific model isn't found
+
+While less precise than direct measurements, this provides reasonable power consumption estimates in virtualized environments.
