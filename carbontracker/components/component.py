@@ -2,7 +2,7 @@ import numpy as np
 
 from carbontracker import exceptions
 from carbontracker.components.gpu import nvidia
-from carbontracker.components.cpu import intel
+from carbontracker.components.cpu import intel, generic
 from carbontracker.components.apple_silicon.powermetrics import (
     AppleSiliconCPU,
     AppleSiliconGPU,
@@ -21,7 +21,7 @@ COMPONENTS = [
     {
         "name": "cpu",
         "error": exceptions.CPUError("No CPU(s) available."),
-        "handlers": [intel.IntelCPU, AppleSiliconCPU],
+        "handlers": [intel.IntelCPU, AppleSiliconCPU, generic.GenericCPU],
     },
 ]
 

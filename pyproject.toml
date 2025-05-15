@@ -16,7 +16,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
 ]
-dependencies = ["requests", "numpy", "pandas", "geocoder", "pynvml", "psutil", "importlib-metadata"]
+dependencies = ["requests", "numpy", "pandas", "geocoder", "pynvml", "psutil", "importlib-metadata", "py-cpuinfo"]
 dynamic = ["version"]
 
 [project.urls]
