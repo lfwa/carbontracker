@@ -2,11 +2,22 @@ import argparse
 import subprocess
 from carbontracker.tracker import CarbonTracker
 from carbontracker import parser
+from carbontracker.report import generate_report_from_log
 import ast
+import os
 
 
 def parse_logs(log_dir):
     parser.print_aggregate(log_dir=log_dir)
+
+
+def generate_report(log_file, output_pdf):
+    """Generate a PDF report from a log file"""
+    if not os.path.exists(log_file):
+        print(f"Error: Log file {log_file} does not exist")
+        return
+    generate_report_from_log(log_file, output_pdf)
+    print(f"Report generated: {output_pdf}")
 
 
 def main():
@@ -18,6 +29,8 @@ def main():
         --log_dir (path, optional): Log directory. Defaults to `./logs`.
         --api_keys (str, optional): API keys in a dictionary-like format, e.g. `\'{"electricitymaps": "YOUR_KEY"}\'`
         --parse (path, optional): Directory containing the log files to parse.
+        --report (path, optional): Generate a PDF report from a log file.
+        --output (path, optional): Output path for the generated report. Defaults to 'carbon_report.pdf'
 
     Example:
         Tracking the carbon intensity of `script.py`.
@@ -31,6 +44,10 @@ def main():
         Parsing logs:
 
             $ carbontracker --parse ./internal_logs
+
+        Generating a report:
+
+            $ carbontracker --report ./logs/carbontracker.log --output report.pdf
     """
 
     # Create a parser for the known arguments
@@ -44,6 +61,9 @@ def main():
         default=None,
     )
     cli_parser.add_argument("--parse", type=str, help="Directory containing the log files to parse.")
+    cli_parser.add_argument("--report", type=str, help="Generate a PDF report from a log file.")
+    cli_parser.add_argument("--output", type=str, default="carbon_report.pdf", 
+                          help="Output path for the generated report.")
 
     # Parse known arguments only
     known_args, remaining_args = cli_parser.parse_known_args()
@@ -51,6 +71,11 @@ def main():
     # Check if the --parse argument is provided
     if known_args.parse:
         parse_logs(known_args.parse)
+        return
+
+    # Check if the --report argument is provided
+    if known_args.report:
+        generate_report(known_args.report, known_args.output)
         return
 
     # Parse the API keys string into a dictionary

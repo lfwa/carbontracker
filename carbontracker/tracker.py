@@ -52,6 +52,7 @@ class CarbonIntensityThread(Thread):
             and not np.isnan(ci.carbon_intensity)
         ):
             self.carbon_intensities.append(ci)
+            self.logger.info(f"Carbon intensity: {ci.carbon_intensity:.2f} gCO2/kWh at {ci.address}")
 
     def predict_carbon_intensity(self, pred_time_dur):
         ci = intensity.carbon_intensity(self.logger, time_dur=pred_time_dur)
