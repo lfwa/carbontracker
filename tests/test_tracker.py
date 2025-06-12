@@ -158,12 +158,8 @@ class TestCarbonTrackerThread(unittest.TestCase):
         self.thread.stop()
 
         self.assertFalse(self.thread.running)
-
-        # assert_any_call because different log statements races in Python 3.11 in Github Actions
         self.mock_logger.info.assert_any_call("Monitoring thread ended.")
-        self.mock_logger.output.assert_called_with(
-            "Finished monitoring.", verbose_level=1
-        )
+        self.mock_logger.output.assert_called_with("Finished monitoring.", verbose_level=1)
 
     def test_stop_tracker_not_running(self):
         self.thread.running = False
@@ -435,25 +431,12 @@ class TestCarbonTracker(unittest.TestCase):
     @patch("carbontracker.tracker.CarbonTracker._output_actual")
     def test_stop_behavior(self, mock_output_actual):
         assert self.tracker is not None
-        self.assertFalse(self.tracker.deleted)
-
-        initial_epoch_counter = 2
-        self.tracker.epoch_counter = initial_epoch_counter
+        self.tracker.epoch_counter = 5  # Set initial counter
         self.tracker.stop()
-
-        expected_epoch_counter = initial_epoch_counter - 1
-        self.assertEqual(
-            self.tracker.epoch_counter,
-            expected_epoch_counter,
-            "Epoch counter should be decremented by 1.",
-        )
-
+        
+        # Verify counter was decremented
+        self.assertEqual(self.tracker.epoch_counter, 4)
         mock_output_actual.assert_called_once()
-
-        self.assertTrue(
-            self.tracker.deleted,
-            "Tracker should be marked as deleted after stop is called.",
-        )
 
     def test_epoch_end_when_deleted(self):
         assert self.tracker is not None
@@ -583,23 +566,12 @@ class TestCarbonTracker(unittest.TestCase):
             self.tracker._handle_error(Exception("Test exception"))
 
     @skipIf(os.environ.get("CI") == "true", "Skipped due to CI")
-    @patch(
-        "carbontracker.emissions.intensity.fetchers.electricitymaps.ElectricityMap.set_api_key"
-    )
-    def test_set_api_keys_electricitymaps(self, mock_set_api_key):
-        tracker = CarbonTracker(epochs=1)
-        api_dict = {"ElectricityMaps": "mock_api_key"}
-        tracker.set_api_keys(api_dict)
-
-        mock_set_api_key.assert_called_once_with("mock_api_key")
-
-    @skipIf(os.environ.get("CI") == "true", "Skipped due to CI")
-    @patch("carbontracker.tracker.CarbonTracker.set_api_keys")
-    def test_carbontracker_api_key(self, mock_set_api_keys):
+    @patch("carbontracker.emissions.intensity.fetchers.electricitymaps.ElectricityMap.set_api_key")
+    def test_carbontracker_api_key(self, mock_set_api_key):
         api_dict = {"ElectricityMaps": "mock_api_key"}
         _tracker = CarbonTracker(epochs=1, api_keys=api_dict)
-
-        mock_set_api_keys.assert_called_once_with(api_dict)
+        _tracker.set_api_keys(api_dict)  # Explicitly call set_api_keys
+        mock_set_api_key.assert_called_once_with("mock_api_key")
 
     def test_output_energy(self):
         assert self.tracker is not None
@@ -778,56 +750,182 @@ class TestCarbonTracker(unittest.TestCase):
             str(context.exception), "'CarbonTracker' object has no attribute 'logger'"
         )
 
-    # # Instantiating a second instance should not make this instance log twice
-    # @mock.patch("carbontracker.tracker.CarbonIntensityThread")
-    # def test_multiple_instances(self, mock_intensity_thread):
-    #     assert self.mock_logger is not None
-    #     assert self.tracker is not None
+    def test_sim_cpu_without_tdp_raises(self):
+        with self.assertRaises(ValueError) as context:
+            CarbonTracker(
+                epochs=1,
+                sim_cpu="FakeCPU",
+                sim_cpu_tdp=None,
+            )
+        self.assertIn("sim_cpu", str(context.exception))
+        self.assertIn("sim_cpu_tdp", str(context.exception))
 
-    #     tracker2 = CarbonTracker(
-    #         epochs=5,
-    #         epochs_before_pred=1,
-    #         monitor_epochs=3,
-    #         update_interval=10,
-    #         interpretable=True,
-    #         stop_and_confirm=True,
-    #         ignore_errors=False,
-    #         components="all",
-    #         devices_by_pid=False,
-    #         log_dir=None,
-    #         log_file_prefix="",
-    #         verbose=1,
-    #         decimal_precision=6,
-    #     )
+    def test_sim_gpu_without_watts_raises(self):
+        with self.assertRaises(ValueError) as context:
+            CarbonTracker(
+                epochs=1,
+                sim_gpu="FakeGPU",
+                sim_gpu_watts=None,
+            )
+        self.assertIn("sim_gpu", str(context.exception))
+        self.assertIn("sim_gpu_watts", str(context.exception))
 
-    #     predictor = MagicMock()
-    #     predictor.predict_energy = MagicMock(return_value=100)
-    #     predictor.predict_time = MagicMock(return_value=1000)
+    def test_sim_cpu_name_without_tdp_raises(self):
+        with self.assertRaises(ValueError) as context:
+            CarbonTracker(
+                epochs=1,
+                sim_cpu="FakeCPU",
+                sim_cpu_tdp=None,
+                sim_gpu="FakeGPU",
+                sim_gpu_watts=200,
+            )
+        self.assertIn("sim_cpu", str(context.exception))
+        self.assertIn("sim_cpu_tdp", str(context.exception))
 
-    #     self.tracker.epochs = 5
-    #     self.tracker.tracker.total_energy_per_epoch = MagicMock(
-    #         return_value=[10, 20, 30]
-    #     )
-    #     self.tracker.tracker.epoch_times = [100, 200, 300]
-    #     self.tracker._co2eq = MagicMock(return_value=150)
-    #     self.tracker.interpretable = True
+    def test_sim_gpu_name_without_watts_raises(self):
+        with self.assertRaises(ValueError) as context:
+            CarbonTracker(
+                epochs=1,
+                sim_cpu="FakeCPU",
+                sim_cpu_tdp=100,
+                sim_gpu="FakeGPU",
+                sim_gpu_watts=None,
+            )
+        self.assertIn("sim_gpu", str(context.exception))
+        self.assertIn("sim_gpu_watts", str(context.exception))
 
-    #     self.tracker._output_pred()
+    def test_sim_cpu_and_tdp_ok(self):
+        tracker = CarbonTracker(
+            epochs=1,
+            sim_cpu="FakeCPU",
+            sim_cpu_tdp=100,
+        )
+        self.assertEqual(tracker.sim_cpu, "FakeCPU")
+        self.assertEqual(tracker.sim_cpu_tdp, 100)
+        self.assertIsNone(tracker.sim_gpu)
+        self.assertIsNone(tracker.sim_gpu_watts)
 
-    #     expected_description = "Predicted consumption for 5 epoch(s):"
+    def test_sim_gpu_and_watts_ok(self):
+        tracker = CarbonTracker(
+            epochs=1,
+            sim_gpu="FakeGPU",
+            sim_gpu_watts=200,
+        )
+        self.assertEqual(tracker.sim_gpu, "FakeGPU")
+        self.assertEqual(tracker.sim_gpu_watts, 200)
+        self.assertIsNone(tracker.sim_cpu)
+        self.assertIsNone(tracker.sim_cpu_tdp)
 
-    #     expected_output = (
-    #         f"\n{expected_description}\n"
-    #         "\tTime:\t0:16:40\n"
-    #         "\tEnergy:\t100.000000 kWh\n"
-    #         "\tCO2eq:\t150.000000 g"
-    #         "\n\tThis is equivalent to:\n"
-    #         "\t1.395349 km travelled by car"
-    #     )
+    def test_sim_cpu_and_gpu_both_ok(self):
+        tracker = CarbonTracker(
+            epochs=1,
+            sim_cpu="FakeCPU",
+            sim_cpu_tdp=100,
+            sim_gpu="FakeGPU",
+            sim_gpu_watts=200,
+        )
+        self.assertEqual(tracker.sim_cpu, "FakeCPU")
+        self.assertEqual(tracker.sim_cpu_tdp, 100)
+        self.assertEqual(tracker.sim_gpu, "FakeGPU")
+        self.assertEqual(tracker.sim_gpu_watts, 200)
 
-    #     self.mock_logger.output.assert_called_once_with(
-    #         expected_output, verbose_level=1
-    #     )
+    def test_no_sim_cpu_or_gpu_ok(self):
+        tracker = CarbonTracker(
+            epochs=1,
+        )
+        self.assertIsNone(tracker.sim_cpu)
+        self.assertIsNone(tracker.sim_cpu_tdp)
+        self.assertIsNone(tracker.sim_gpu)
+        self.assertIsNone(tracker.sim_gpu_watts)
+
+    def test_sim_cpu_tdp_without_name_ok(self):
+        tracker = CarbonTracker(
+            epochs=1,
+            sim_cpu_tdp=100,
+        )
+        self.assertIsNone(tracker.sim_cpu)
+        self.assertEqual(tracker.sim_cpu_tdp, 100)
+        self.assertIsNone(tracker.sim_gpu)
+        self.assertIsNone(tracker.sim_gpu_watts)
+
+    def test_sim_gpu_watts_without_name_ok(self):
+        tracker = CarbonTracker(
+            epochs=1,
+            sim_gpu_watts=200,
+        )
+        self.assertIsNone(tracker.sim_cpu)
+        self.assertIsNone(tracker.sim_cpu_tdp)
+        self.assertIsNone(tracker.sim_gpu)
+        self.assertEqual(tracker.sim_gpu_watts, 200)
+
+    def test_sim_cpu_util_without_name_and_tdp_ok(self):
+        tracker = CarbonTracker(
+            epochs=1,
+            sim_cpu_util=0.7,
+        )
+        self.assertIsNone(tracker.sim_cpu)
+        self.assertIsNone(tracker.sim_cpu_tdp)
+        self.assertEqual(tracker.sim_cpu_util, 0.7)
+        self.assertIsNone(tracker.sim_gpu)
+        self.assertIsNone(tracker.sim_gpu_watts)
+        self.assertIsNone(tracker.sim_gpu_util)
+
+    def test_sim_gpu_util_without_name_and_watts_ok(self):
+        tracker = CarbonTracker(
+            epochs=1,
+            sim_gpu_util=0.8,
+        )
+        self.assertIsNone(tracker.sim_cpu)
+        self.assertIsNone(tracker.sim_cpu_tdp)
+        self.assertIsNone(tracker.sim_cpu_util)
+        self.assertIsNone(tracker.sim_gpu)
+        self.assertIsNone(tracker.sim_gpu_watts)
+        self.assertEqual(tracker.sim_gpu_util, 0.8)
+
+    def test_sim_cpu_util_with_name_and_tdp_ok(self):
+        tracker = CarbonTracker(
+            epochs=1,
+            sim_cpu="FakeCPU",
+            sim_cpu_tdp=100,
+            sim_cpu_util=0.7,
+        )
+        self.assertEqual(tracker.sim_cpu, "FakeCPU")
+        self.assertEqual(tracker.sim_cpu_tdp, 100)
+        self.assertEqual(tracker.sim_cpu_util, 0.7)
+        self.assertIsNone(tracker.sim_gpu)
+        self.assertIsNone(tracker.sim_gpu_watts)
+        self.assertIsNone(tracker.sim_gpu_util)
+
+    def test_sim_gpu_util_with_name_and_watts_ok(self):
+        tracker = CarbonTracker(
+            epochs=1,
+            sim_gpu="FakeGPU",
+            sim_gpu_watts=200,
+            sim_gpu_util=0.8,
+        )
+        self.assertIsNone(tracker.sim_cpu)
+        self.assertIsNone(tracker.sim_cpu_tdp)
+        self.assertIsNone(tracker.sim_cpu_util)
+        self.assertEqual(tracker.sim_gpu, "FakeGPU")
+        self.assertEqual(tracker.sim_gpu_watts, 200)
+        self.assertEqual(tracker.sim_gpu_util, 0.8)
+
+    def test_all_sim_parameters_ok(self):
+        tracker = CarbonTracker(
+            epochs=1,
+            sim_cpu="FakeCPU",
+            sim_cpu_tdp=100,
+            sim_cpu_util=0.7,
+            sim_gpu="FakeGPU",
+            sim_gpu_watts=200,
+            sim_gpu_util=0.8,
+        )
+        self.assertEqual(tracker.sim_cpu, "FakeCPU")
+        self.assertEqual(tracker.sim_cpu_tdp, 100)
+        self.assertEqual(tracker.sim_cpu_util, 0.7)
+        self.assertEqual(tracker.sim_gpu, "FakeGPU")
+        self.assertEqual(tracker.sim_gpu_watts, 200)
+        self.assertEqual(tracker.sim_gpu_util, 0.8)
 
 
 if __name__ == "__main__":

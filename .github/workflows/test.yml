@@ -27,6 +27,11 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 black
+        if [ "${{ matrix.python-version }}" = "3.9.21" ]; then
+          pip install pyfakefs==4.5.1
+        else
+          pip install pyfakefs==5.8.0
+        fi
         pip install .[test]
     - name: Lint with flake8
       run: |

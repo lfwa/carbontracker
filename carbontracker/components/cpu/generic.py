@@ -68,10 +68,10 @@ class GenericCPU(Handler):
         
         if self.tdp is None:
             self.tdp = self.average_tdp
-            logger.err_warn(f"No matching TDP found for CPU: {self.cpu_brand}. Using average TDP of {self.tdp:.2f}W as fallback.")
+            logger.err_warn(f"No matching TDP found for CPU: {self.cpu_brand}. Using average TDP of {self.tdp:.2f}W at 50% utilization as fallback.")
         else:
             self.tdp = self.tdp / 2  # 50% utilization
-            logger.err_info(f"Using TDP of {self.tdp:.2f}W for {self.cpu_brand}")
+            logger.err_info(f"Using TDP of {self.tdp:.2f}W for {self.cpu_brand} at 50% utilization")
 
     def find_matching_tdp(self) -> Optional[float]:
         # Try direct match

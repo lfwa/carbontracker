@@ -16,7 +16,19 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
 ]
-dependencies = ["requests", "numpy", "pandas", "geocoder", "pynvml", "psutil", "importlib-metadata", "py-cpuinfo"]
+dependencies = [
+    "requests",
+    "numpy",
+    "pandas",
+    "geocoder",
+    "pynvml",
+    "psutil",
+    "importlib-metadata",
+    "py-cpuinfo",
+    "matplotlib",
+    "seaborn",
+    "reportlab<4.0.0"  # Pin to a version compatible with Python 3.7
+]
 dynamic = ["version"]
 
 [project.urls]
@@ -29,7 +41,10 @@ packages = ['carbontracker']
 [tool.setuptools_scm]
 
 [project.optional-dependencies]
-test = ["pyfakefs"]
+test = [
+    "pyfakefs==4.5.1; python_version < '3.10'",  # For Python 3.7-3.9
+    "pyfakefs==5.8.0; python_version >= '3.10'"   # For Python 3.10+
+]
 docs = ["mkdocs", "mkdocstrings[python]"]
 
 [project.scripts]
