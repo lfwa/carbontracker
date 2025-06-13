@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>CLI - Carbontracker</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "CLI";
+        var mkdocs_page_input_path = "documentation/CLI.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> Carbontracker
+        </a>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">About</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../getting-started/">Getting started</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../parsing/">Aggregating log files</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Documentation</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">CLI</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#carbontracker.cli.main">main</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#arguments">Arguments</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#additional-options">Additional Options</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../CarbonTracker/">CarbonTracker</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../Log%20Parsing/">Log Parsing</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Carbontracker</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Documentation</li>
+      <li class="breadcrumb-item active">CLI</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="cli">CLI</h1>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<a id="carbontracker.cli.main"></a>
+    <div class="doc doc-contents first">
+
+        <p>The <strong>carbontracker</strong> CLI allows the user to track the energy consumption and carbon intensity of any program.
+<a href="/#permissions">Make sure that you have relevant permissions before running this.</a></p>
+<p>The following command-line arguments are supported:</p>
+<ul>
+<li><code>--log_dir</code> (str, optional): Log directory. Defaults to <code>./logs</code>.</li>
+<li><code>--api_keys</code> (str, optional): API keys in a dictionary-like format, e.g. <code>{ \"electricitymaps\": \"YOUR_KEY\" }</code></li>
+<li><code>--parse</code> (str, optional): Directory containing the log files to parse.</li>
+<li><code>--report</code> (str, optional): Generate a PDF report from a log file.</li>
+<li><code>--output</code> (str, optional): Output path for the generated report. Defaults to 'carbon_report.pdf'</li>
+<li><code>--sim-cpu</code> (str, optional): Simulated CPU name (overrides detection)</li>
+<li><code>--sim-cpu-tdp</code> (float, optional): Simulated CPU TDP in Watts</li>
+<li><code>--sim-cpu-util</code> (float, optional): Simulated CPU utilization (0.0 to 1.0)</li>
+<li><code>--sim-gpu</code> (str, optional): Simulated GPU name (overrides detection)</li>
+<li><code>--sim-gpu-watts</code> (float, optional): Simulated GPU power consumption in Watts</li>
+<li><code>--sim-gpu-util</code> (float, optional): Simulated GPU utilization (0.0 to 1.0)</li>
+</ul>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <p>Tracking the carbon intensity of <code>script.py</code>:</p>
+<pre><code>$ carbontracker python script.py
+</code></pre>
+<p>With example options:</p>
+<pre><code>$ carbontracker --log_dir='./logs' --api_keys='{ \"electricitymaps\": \"API_KEY_EXAMPLE\" }' python script.py
+</code></pre>
+<p>Using simulated hardware:</p>
+<pre><code>$ carbontracker --sim-cpu "Intel Xeon" --sim-cpu-tdp 150 --sim-gpu "NVIDIA A100" --sim-gpu-watts 400 python script.py
+</code></pre>
+<p>Parsing logs:</p>
+<pre><code>$ carbontracker --parse ./internal_logs
+</code></pre>
+<p>Generating a report:</p>
+<pre><code>$ carbontracker --report ./logs/carbontracker.log --output report.pdf
+</code></pre>
+</details>
+
+            <details class="quote">
+              <summary>Source code in <code>carbontracker/cli.py</code></summary>
+              <pre class="highlight"><code class="language-python">def main():
+    """
+    The **carbontracker** CLI allows the user to track the energy consumption and carbon intensity of any program.
+    [Make sure that you have relevant permissions before running this.](/#permissions)
+
+    The following command-line arguments are supported:
+
+    * `--log_dir` (str, optional): Log directory. Defaults to `./logs`.
+    * `--api_keys` (str, optional): API keys in a dictionary-like format, e.g. `{ \\"electricitymaps\\": \\"YOUR_KEY\\" }`
+    * `--parse` (str, optional): Directory containing the log files to parse.
+    * `--report` (str, optional): Generate a PDF report from a log file.
+    * `--output` (str, optional): Output path for the generated report. Defaults to 'carbon_report.pdf'
+    * `--sim-cpu` (str, optional): Simulated CPU name (overrides detection)
+    * `--sim-cpu-tdp` (float, optional): Simulated CPU TDP in Watts
+    * `--sim-cpu-util` (float, optional): Simulated CPU utilization (0.0 to 1.0)
+    * `--sim-gpu` (str, optional): Simulated GPU name (overrides detection)
+    * `--sim-gpu-watts` (float, optional): Simulated GPU power consumption in Watts
+    * `--sim-gpu-util` (float, optional): Simulated GPU utilization (0.0 to 1.0)
+
+    Example:
+        Tracking the carbon intensity of `script.py`:
+
+            $ carbontracker python script.py
+
+        With example options:
+
+            $ carbontracker --log_dir='./logs' --api_keys='{ \\"electricitymaps\\": \\"API_KEY_EXAMPLE\\" }' python script.py
+
+        Using simulated hardware:
+
+            $ carbontracker --sim-cpu "Intel Xeon" --sim-cpu-tdp 150 --sim-gpu "NVIDIA A100" --sim-gpu-watts 400 python script.py
+
+        Parsing logs:
+
+            $ carbontracker --parse ./internal_logs
+
+        Generating a report:
+
+            $ carbontracker --report ./logs/carbontracker.log --output report.pdf
+    """
+
+    # Create a parser for the known arguments
+    cli_parser = argparse.ArgumentParser(description="CarbonTracker CLI", add_help=True)
+    cli_parser.add_argument("--log_dir", type=str, default="./logs", help="Log directory")
+    cli_parser.add_argument(
+        "--api_keys",
+        type=str,
+        help="API keys in a dictionary-like format, e.g., "
+             '\'{"electricitymaps": "YOUR_KEY"}\'',
+        default=None,
+    )
+    cli_parser.add_argument("--parse", type=str, help="Directory containing the log files to parse.")
+    cli_parser.add_argument("--report", type=str, help="Generate a PDF report from a log file.")
+    cli_parser.add_argument("--output", type=str, default="carbon_report.pdf", 
+                          help="Output path for the generated report.")
+
+    # Add simulated hardware arguments
+    cli_parser.add_argument("--sim-cpu", type=str, 
+                          help="Simulated CPU name (overrides detection). REQUIRED with --sim-cpu-tdp", 
+                          default=None)
+    cli_parser.add_argument("--sim-cpu-tdp", type=float, 
+                          help="Simulated CPU TDP in Watts. REQUIRED when --sim-cpu is specified", 
+                          default=None)
+    cli_parser.add_argument("--sim-cpu-util", type=float, 
+                          help="Simulated CPU utilization (0.0 to 1.0). Defaults to 0.5 if not specified", 
+                          default=None)
+    cli_parser.add_argument("--sim-gpu", type=str, 
+                          help="Simulated GPU name (overrides detection). REQUIRED with --sim-gpu-watts", 
+                          default=None)
+    cli_parser.add_argument("--sim-gpu-watts", type=float, 
+                          help="Simulated GPU power consumption in Watts. REQUIRED when --sim-gpu is specified", 
+                          default=None)
+    cli_parser.add_argument("--sim-gpu-util", type=float, 
+                          help="Simulated GPU utilization (0.0 to 1.0). Defaults to 0.5 if not specified", 
+                          default=None)
+
+    # Parse known arguments only
+    known_args, remaining_args = cli_parser.parse_known_args()
+
+    # Check if the --parse argument is provided
+    if known_args.parse:
+        parse_logs(known_args.parse)
+        return
+
+    # Check if the --report argument is provided
+    if known_args.report:
+        generate_report(known_args.report, known_args.output)
+        return
+
+    # Parse the API keys string into a dictionary
+    api_keys = ast.literal_eval(known_args.api_keys) if known_args.api_keys else None
+
+    tracker = CarbonTracker(
+        epochs=1, 
+        log_dir=known_args.log_dir, 
+        epochs_before_pred=0, 
+        api_keys=api_keys,
+        sim_cpu=known_args.sim_cpu,
+        sim_cpu_tdp=known_args.sim_cpu_tdp,
+        sim_cpu_util=known_args.sim_cpu_util,
+        sim_gpu=known_args.sim_gpu,
+        sim_gpu_watts=known_args.sim_gpu_watts,
+        sim_gpu_util=known_args.sim_gpu_util
+    )
+    tracker.epoch_start()
+
+    # The remaining_args are considered as the command to execute
+    if remaining_args:
+        try:
+            # Execute the command
+            subprocess.run(remaining_args, check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error executing command: {' '.join(remaining_args)}")
+            print(f"Subprocess error: {e}")
+
+    tracker.epoch_end()
+    tracker.stop()</code></pre>
+            </details>
+    </div>
+
+</div><p><line></p>
+<h3 id="usage">Usage</h3>
+<p>To start tracking, simply run the following command:</p>
+<pre><code class="language-bash">carbontracker &lt;script_or_command&gt; &lt;arg1&gt; &lt;arg2&gt; --log_dir &lt;log_directory&gt; --api_keys &lt;api_keys&gt;
+</code></pre>
+<p>For example:</p>
+<pre><code class="language-bash">carbontracker python train_resnet.py --epochs 100 --step_size 1 --log_dir ./logs --api_keys '{&quot;electricitymaps&quot;: &quot;YOUR_KEY_HERE&quot;}'
+</code></pre>
+<h3 id="arguments">Arguments</h3>
+<ul>
+<li><code>--log_dir</code>: Specifies the directory where CarbonTracker will save the logs. This is useful for keeping a record of your runs and for later analysis.</li>
+<li><code>--api_keys</code>: API key(s) for external services used by CarbonTracker to retrieve real-time carbon intensity data. Currently, <a href="https://www.electricitymaps.com/">Electricity Maps</a> is supported</li>
+</ul>
+<h3 id="additional-options">Additional Options</h3>
+<p>Log Parsing: If you've previously run CarbonTracker and saved the logs, you can parse and aggregate the data for analysis. Use the following command to aggregate logs from a specific directory:</p>
+<pre><code class="language-bash">carbontracker --parse &lt;log_directory&gt;
+</code></pre>
+<p>For example:</p>
+<pre><code class="language-bash">carbontracker --parse ./logs
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../../parsing/" class="btn btn-neutral float-left" title="Aggregating log files"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../CarbonTracker/" class="btn btn-neutral float-right" title="CarbonTracker">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../../parsing/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../CarbonTracker/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

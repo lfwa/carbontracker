@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="None" />
+      <link rel="shortcut icon" href="img/favicon.ico" />
+    <title>Carbontracker</title>
+    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "About";
+        var mkdocs_page_input_path = "index.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="." class="icon icon-home"> Carbontracker
+        </a>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">About</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#compatible-components">Compatible components</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#permissions">Permissions</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#disabling-cpu-monitoring">Disabling CPU monitoring</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#running-carbontracker-on-hpc-clusters-and-in-containers">Running carbontracker on HPC clusters and in containers</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#running-carbontracker-on-apple-silicon">Running carbontracker on Apple Silicon</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#running-carbontracker-in-virtual-machines">Running carbontracker in Virtual Machines</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="getting-started/">Getting started</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="parsing/">Aggregating log files</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Documentation</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="documentation/CLI/">CLI</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="documentation/CarbonTracker/">CarbonTracker</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="documentation/Log%20Parsing/">Log Parsing</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href=".">Carbontracker</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">About</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="about">About</h1>
+<p><strong>carbontracker</strong> is a tool for tracking and predicting the energy consumption and carbon footprint of training deep learning models as described in <a href="https://arxiv.org/abs/2007.03051">Anthony et al. (2020)</a>.
+It is available both as a CLI and as a Python module for easy implementation into existing code.</p>
+<p>See <a href="/getting-started">Getting started</a> for how to get started.</p>
+<p>See <a href="documentation/CLI/">CLI</a> for CLI options.</p>
+<h2 id="compatible-components">Compatible components</h2>
+<p><strong>carbontracker</strong> supports the following components:</p>
+<ul>
+<li>Intel CPUs that support <a href="http://web.eece.maine.edu/~vweaver/projects/rapl/rapl_support.html">Intel RAPL</a> on Linux. <a href="/#permissions">Note on how to enable permissions</a></li>
+<li>NVIDIA GPUs that support [NVIDIA Management Library (NVML)] on Linux</li>
+<li>Apple Silicon on MacOS</li>
+</ul>
+<h2 id="permissions">Permissions</h2>
+<p>To be able to read the power consumption from Intel CPUs, <strong>carbontracker</strong> needs read access to the <code>/sys/class/powercap/intel-rapl:0/energy_uj</code> file. This can be done like so using <code>chmod</code>:</p>
+<pre><code class="language-bash">sudo chmod +r /sys/class/powercap/intel-rapl:0/energy_uj
+</code></pre>
+<p>Note that these changes are not persistent. To make persistent changes, one can add a <code>udev</code> rule like so:</p>
+<pre><code class="language-bash"># /etc/udev/rules.d/powercap.rules
+ACTION==&quot;add|change&quot;, SUBSYSTEM==&quot;powercap&quot;, KERNEL==&quot;intel-rapl:*&quot;, RUN+=&quot;/bin/chmod og+r %S%p/energy_uj&quot;
+</code></pre>
+<p>Then one can immediately apply the permission changes:</p>
+<pre><code class="language-bash">sudo udevadm control --reload &amp;&amp; sudo udevadm trigger --subsystem-match=powercap
+</code></pre>
+<h3 id="disabling-cpu-monitoring">Disabling CPU monitoring</h3>
+<p>If you do not have such access and only wish to monitor GPU power consumption, one can disable CPU access using the <code>components</code> parameter:</p>
+<pre><code class="language-python">tracker = CarbonTracker(
+        epochs=args.num_epochs,
+        components=&quot;gpu&quot;, # Exclude CPU from components to monitor
+        log_dir='carbontracker/',
+        monitor_epochs=-1
+    )
+</code></pre>
+<h2 id="running-carbontracker-on-hpc-clusters-and-in-containers">Running <strong>carbontracker</strong> on HPC clusters and in containers</h2>
+<ul>
+<li>
+<p>Available GPU devices are determined by first checking the environment variable <code>CUDA_VISIBLE_DEVICES</code> (only if <code>devices_by_pid=False</code>, otherwise devices are found by PID). 
+This ensures that for Slurm we only fetch GPU devices associated with the current job and not the entire cluster. 
+If this fails we measure all available GPUs.</p>
+</li>
+<li>
+<p>NVML cannot find processes for containers spawned without <code>--pid=host</code>. This affects the <code>device_by_pid</code> parameter and means that it will never find any active processes for GPUs in affected containers.</p>
+</li>
+</ul>
+<h2 id="running-carbontracker-on-apple-silicon">Running <strong>carbontracker</strong> on Apple Silicon</h2>
+<ul>
+<li><strong>carbontracker</strong> is compatible with Apple Silicon on MacOS using <code>powermetrics</code> to get power consumption data.</li>
+<li><code>powermetrics</code> requires root access to run. This can be done by adding <code>your_username ALL=(ALL) NOPASSWD: /usr/bin/powermetrics</code> to <code>/etc/sudoers</code> (replace <code>your_username</code> with your actual username):</li>
+</ul>
+<pre><code>echo &quot;your_username ALL=(ALL) NOPASSWD: /usr/bin/powermetrics&quot; | sudo tee -a /etc/sudoers
+</code></pre>
+<ul>
+<li>Alternatively, one can run <strong>carbontracker</strong> with root privileges.</li>
+</ul>
+<h2 id="running-carbontracker-in-virtual-machines">Running <strong>carbontracker</strong> in Virtual Machines</h2>
+<p>In virtual machines or containerized environments where direct power measurements are unavailable, <strong>carbontracker</strong> estimates power consumption using <a href="https://github.com/mlco2/codecarbon/blob/master/codecarbon/data/hardware/cpu_power.csv">CPU TDP values</a>:</p>
+<ul>
+<li>Identifies the CPU model when possible</li>
+<li>Uses 50% of the CPU's TDP value to estimate power consumption at 50% utilization</li>
+<li>Falls back to 50% of average TDP across known CPUs if the specific model isn't found</li>
+</ul>
+<p>While less precise than direct measurements, this provides reasonable power consumption estimates in virtualized environments.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="getting-started/" class="btn btn-neutral float-right" title="Getting started">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+      <span><a href="getting-started/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = ".";</script>
+    <script src="js/theme_extra.js"></script>
+    <script src="js/theme.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 1.6.1
+Build Date UTC : 2025-06-13 18:26:56.990902+00:00
+-->
