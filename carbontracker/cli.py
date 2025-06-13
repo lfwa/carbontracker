@@ -25,27 +25,28 @@ def main():
     The **carbontracker** CLI allows the user to track the energy consumption and carbon intensity of any program.
     [Make sure that you have relevant permissions before running this.](/#permissions)
 
-    Args:
-        --log_dir (path, optional): Log directory. Defaults to `./logs`.
-        --api_keys (str, optional): API keys in a dictionary-like format, e.g. `\'{"electricitymaps": "YOUR_KEY"}\'`
-        --parse (path, optional): Directory containing the log files to parse.
-        --report (path, optional): Generate a PDF report from a log file.
-        --output (path, optional): Output path for the generated report. Defaults to 'carbon_report.pdf'
-        --sim-cpu (str, optional): Simulated CPU name (overrides detection)
-        --sim-cpu-tdp (float, optional): Simulated CPU TDP in Watts
-        --sim-cpu-util (float, optional): Simulated CPU utilization (0.0 to 1.0)
-        --sim-gpu (str, optional): Simulated GPU name (overrides detection)
-        --sim-gpu-watts (float, optional): Simulated GPU power consumption in Watts
-        --sim-gpu-util (float, optional): Simulated GPU utilization (0.0 to 1.0)
+    The following command-line arguments are supported:
+
+    * `--log_dir` (str, optional): Log directory. Defaults to `./logs`.
+    * `--api_keys` (str, optional): API keys in a dictionary-like format, e.g. `{ \\"electricitymaps\\": \\"YOUR_KEY\\" }`
+    * `--parse` (str, optional): Directory containing the log files to parse.
+    * `--report` (str, optional): Generate a PDF report from a log file.
+    * `--output` (str, optional): Output path for the generated report. Defaults to 'carbon_report.pdf'
+    * `--sim-cpu` (str, optional): Simulated CPU name (overrides detection)
+    * `--sim-cpu-tdp` (float, optional): Simulated CPU TDP in Watts
+    * `--sim-cpu-util` (float, optional): Simulated CPU utilization (0.0 to 1.0)
+    * `--sim-gpu` (str, optional): Simulated GPU name (overrides detection)
+    * `--sim-gpu-watts` (float, optional): Simulated GPU power consumption in Watts
+    * `--sim-gpu-util` (float, optional): Simulated GPU utilization (0.0 to 1.0)
 
     Example:
-        Tracking the carbon intensity of `script.py`.
+        Tracking the carbon intensity of `script.py`:
 
             $ carbontracker python script.py
 
-        With example options
+        With example options:
 
-            $ carbontracker --log_dir='./logs' --api_keys='{"electricitymaps": "API_KEY_EXAMPLE"}' python script.py
+            $ carbontracker --log_dir='./logs' --api_keys='{ \\"electricitymaps\\": \\"API_KEY_EXAMPLE\\" }' python script.py
 
         Using simulated hardware:
 

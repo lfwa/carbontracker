@@ -11,7 +11,7 @@ See [CLI](documentation/CLI.md) for CLI options.
 **carbontracker** supports the following components:
 
 - Intel CPUs that support [Intel RAPL](http://web.eece.maine.edu/~vweaver/projects/rapl/rapl_support.html) on Linux. [Note on how to enable permissions](/#permissions)
-- NVIDIA GPUs that support [NVIDIA Management Library (NVML)](Intel CPUs that support Intel RAPL) on Linux
+- NVIDIA GPUs that support [NVIDIA Management Library (NVML)] on Linux
 - Apple Silicon on MacOS
 
 ## Permissions

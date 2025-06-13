@@ -50,13 +50,13 @@ def handlers_by_name(
 ):
     for comp in COMPONENTS:
         if comp["name"] == name:
-            if name == "cpu" and sim_cpu and sim_cpu_tdp:
+            if name == "cpu" and sim_cpu is not None and sim_cpu_tdp is not None:
                 return [lambda pids, devices_by_pid: SimulatedCPUHandler(
                     sim_cpu, 
                     float(sim_cpu_tdp),
                     float(sim_cpu_util) if sim_cpu_util is not None else 0.5
                 )]
-            elif name == "gpu" and sim_gpu and sim_gpu_watts:
+            elif name == "gpu" and sim_gpu is not None and sim_gpu_watts is not None:
                 return [lambda pids, devices_by_pid: SimulatedGPUHandler(
                     sim_gpu, 
                     float(sim_gpu_watts),
