@@ -2,13 +2,24 @@ import argparse
 import subprocess
 from carbontracker.tracker import CarbonTracker
 from carbontracker import parser
+from carbontracker.report import generate_report_from_log
 import ast
+import os
 import carbontracker.loggerutil as loggerutil
 from carbontracker.emissions.conversion import co2eq
 
 
 def parse_logs(log_dir):
     parser.print_aggregate(log_dir=log_dir)
+
+
+def generate_report(log_file, output_pdf):
+    """Generate a PDF report from a log file"""
+    if not os.path.exists(log_file):
+        print(f"Error: Log file {log_file} does not exist")
+        return
+    generate_report_from_log(log_file, output_pdf)
+    print(f"Report generated: {output_pdf}")
 
 
 def main():
@@ -20,6 +31,14 @@ def main():
         --log_dir (path, optional): Log directory. Defaults to `./logs`.
         --api_keys (str, optional): API keys in a dictionary-like format, e.g. `\'{"electricitymaps": "YOUR_KEY"}\'`
         --parse (path, optional): Directory containing the log files to parse.
+        --report (path, optional): Generate a PDF report from a log file.
+        --output (path, optional): Output path for the generated report. Defaults to 'carbon_report.pdf'
+        --sim-cpu (str, optional): Simulated CPU name (overrides detection)
+        --sim-cpu-tdp (float, optional): Simulated CPU TDP in Watts
+        --sim-cpu-util (float, optional): Simulated CPU utilization (0.0 to 1.0)
+        --sim-gpu (str, optional): Simulated GPU name (overrides detection)
+        --sim-gpu-watts (float, optional): Simulated GPU power consumption in Watts
+        --sim-gpu-util (float, optional): Simulated GPU utilization (0.0 to 1.0)
 
     Example:
         Tracking the carbon intensity of `script.py`.
@@ -30,9 +49,17 @@ def main():
 
             $ carbontracker --log_dir='./logs' --api_keys='{"electricitymaps": "API_KEY_EXAMPLE"}' python script.py
 
+        Using simulated hardware:
+
+            $ carbontracker --sim-cpu "Intel Xeon" --sim-cpu-tdp 150 --sim-gpu "NVIDIA A100" --sim-gpu-watts 400 python script.py
+
         Parsing logs:
 
             $ carbontracker --parse ./internal_logs
+
+        Generating a report:
+
+            $ carbontracker --report ./logs/carbontracker.log --output report.pdf
     """
 
     # Create a parser for the known arguments
@@ -47,6 +74,29 @@ def main():
     )
     cli_parser.add_argument("--parse", type=str, help="Directory containing the log files to parse.")
     cli_parser.add_argument("--simpipe", type=str, help="Path to simpipe JSON file to parse and simulate log.")
+    cli_parser.add_argument("--report", type=str, help="Generate a PDF report from a log file.")
+    cli_parser.add_argument("--output", type=str, default="carbon_report.pdf",
+                          help="Output path for the generated report.")
+
+    # Add simulated hardware arguments
+    cli_parser.add_argument("--sim-cpu", type=str,
+                          help="Simulated CPU name (overrides detection). REQUIRED with --sim-cpu-tdp",
+                          default=None)
+    cli_parser.add_argument("--sim-cpu-tdp", type=float,
+                          help="Simulated CPU TDP in Watts. REQUIRED when --sim-cpu is specified",
+                          default=None)
+    cli_parser.add_argument("--sim-cpu-util", type=float,
+                          help="Simulated CPU utilization (0.0 to 1.0). Defaults to 0.5 if not specified",
+                          default=None)
+    cli_parser.add_argument("--sim-gpu", type=str,
+                          help="Simulated GPU name (overrides detection). REQUIRED with --sim-gpu-watts",
+                          default=None)
+    cli_parser.add_argument("--sim-gpu-watts", type=float,
+                          help="Simulated GPU power consumption in Watts. REQUIRED when --sim-gpu is specified",
+                          default=None)
+    cli_parser.add_argument("--sim-gpu-util", type=float,
+                          help="Simulated GPU utilization (0.0 to 1.0). Defaults to 0.5 if not specified",
+                          default=None)
 
     # Parse known arguments only
     known_args, remaining_args = cli_parser.parse_known_args()
@@ -158,11 +208,25 @@ def main():
         print(f"\nSimulation log written to {known_args.log_dir}")
         return
 
+    # Check if the --report argument is provided
+    if known_args.report:
+        generate_report(known_args.report, known_args.output)
+        return
+
     # Parse the API keys string into a dictionary
     api_keys = ast.literal_eval(known_args.api_keys) if known_args.api_keys else None
 
     tracker = CarbonTracker(
-        epochs=1, log_dir=known_args.log_dir, epochs_before_pred=0, api_keys=api_keys
+        epochs=1,
+        log_dir=known_args.log_dir,
+        epochs_before_pred=0,
+        api_keys=api_keys,
+        sim_cpu=known_args.sim_cpu,
+        sim_cpu_tdp=known_args.sim_cpu_tdp,
+        sim_cpu_util=known_args.sim_cpu_util,
+        sim_gpu=known_args.sim_gpu,
+        sim_gpu_watts=known_args.sim_gpu_watts,
+        sim_gpu_util=known_args.sim_gpu_util
     )
     tracker.epoch_start()
 

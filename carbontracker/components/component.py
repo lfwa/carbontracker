@@ -11,6 +11,8 @@ from carbontracker.components.handler import Handler
 from typing import Iterable, List, Union, Type, Sized
 from carbontracker.loggerutil import Logger
 import os
+from carbontracker.components.cpu.sim_cpu import SimulatedCPUHandler
+from carbontracker.components.gpu.sim_gpu import SimulatedGPUHandler
 
 COMPONENTS = [
     {
@@ -37,25 +39,64 @@ def error_by_name(name) -> Exception:
     raise exceptions.ComponentNameError()
 
 
-def handlers_by_name(name) -> List[Type[Handler]]:
+def handlers_by_name(
+    name, 
+    sim_cpu=None, 
+    sim_cpu_tdp=None, 
+    sim_cpu_util=None,
+    sim_gpu=None, 
+    sim_gpu_watts=None,
+    sim_gpu_util=None
+):
     for comp in COMPONENTS:
         if comp["name"] == name:
+            if name == "cpu" and sim_cpu is not None and sim_cpu_tdp is not None:
+                return [lambda pids, devices_by_pid: SimulatedCPUHandler(
+                    sim_cpu, 
+                    float(sim_cpu_tdp),
+                    float(sim_cpu_util) if sim_cpu_util is not None else 0.5
+                )]
+            elif name == "gpu" and sim_gpu is not None and sim_gpu_watts is not None:
+                return [lambda pids, devices_by_pid: SimulatedGPUHandler(
+                    sim_gpu, 
+                    float(sim_gpu_watts),
+                    float(sim_gpu_util) if sim_gpu_util is not None else 0.5
+                )]
             return comp["handlers"]
     raise exceptions.ComponentNameError()
 
 
 class Component:
-    def __init__(self, name: str, pids: Iterable[int], devices_by_pid: bool, logger: Logger):
+    def __init__(
+        self, 
+        name: str, 
+        pids: Iterable[int], 
+        devices_by_pid: bool, 
+        logger: Logger, 
+        sim_cpu=None,
+        sim_cpu_tdp=None,
+        sim_cpu_util=None,
+        sim_gpu=None,
+        sim_gpu_watts=None,
+        sim_gpu_util=None
+    ):
         self.name = name
         if name not in component_names():
             raise exceptions.ComponentNameError(
                 f"No component found with name '{self.name}'."
             )
         self._handler = self._determine_handler(
-            pids=pids, devices_by_pid=devices_by_pid
+            pids=pids, 
+            devices_by_pid=devices_by_pid, 
+            sim_cpu=sim_cpu,
+            sim_cpu_tdp=sim_cpu_tdp,
+            sim_cpu_util=sim_cpu_util,
+            sim_gpu=sim_gpu,
+            sim_gpu_watts=sim_gpu_watts,
+            sim_gpu_util=sim_gpu_util
         )
         self.power_usages: List[List[float]] = []
-        self.cur_epoch: int = -1  # Sentry
+        self.cur_epoch: int = -1
         self.logger = logger
 
     @property
@@ -65,11 +106,27 @@ class Component:
         return self._handler
 
     def _determine_handler(
-        self, pids: Iterable[int], devices_by_pid: bool
+        self, 
+        pids: Iterable[int], 
+        devices_by_pid: bool, 
+        sim_cpu=None,
+        sim_cpu_tdp=None,
+        sim_cpu_util=None,
+        sim_gpu=None,
+        sim_gpu_watts=None,
+        sim_gpu_util=None
     ) -> Union[Handler, None]:
-        handlers = handlers_by_name(self.name)
+        handlers = handlers_by_name(
+            self.name, 
+            sim_cpu=sim_cpu,
+            sim_cpu_tdp=sim_cpu_tdp,
+            sim_cpu_util=sim_cpu_util,
+            sim_gpu=sim_gpu,
+            sim_gpu_watts=sim_gpu_watts,
+            sim_gpu_util=sim_gpu_util
+        )
         for h in handlers:
-            handler = h(pids=pids, devices_by_pid=devices_by_pid)
+            handler = h(pids=pids, devices_by_pid=devices_by_pid) if callable(h) else h(pids=pids, devices_by_pid=devices_by_pid)
             if handler.available():
                 return handler
         return None
@@ -158,16 +215,47 @@ class Component:
 
 
 def create_components(
-    components: str, pids: Iterable[int], devices_by_pid: bool, logger: Logger
+    components: str, 
+    pids: Iterable[int], 
+    devices_by_pid: bool, 
+    logger: Logger, 
+    sim_cpu=None,
+    sim_cpu_tdp=None,
+    sim_cpu_util=None,
+    sim_gpu=None,
+    sim_gpu_watts=None,
+    sim_gpu_util=None
 ) -> List[Component]:
     components = components.strip().replace(" ", "").lower()
     if components == "all":
         return [
-            Component(name=comp_name, pids=pids, devices_by_pid=devices_by_pid, logger=logger)
+            Component(
+                name=comp_name, 
+                pids=pids, 
+                devices_by_pid=devices_by_pid, 
+                logger=logger, 
+                sim_cpu=sim_cpu,
+                sim_cpu_tdp=sim_cpu_tdp,
+                sim_cpu_util=sim_cpu_util,
+                sim_gpu=sim_gpu,
+                sim_gpu_watts=sim_gpu_watts,
+                sim_gpu_util=sim_gpu_util
+            )
             for comp_name in component_names()
         ]
     else:
         return [
-            Component(name=comp_name, pids=pids, devices_by_pid=devices_by_pid, logger=logger)
+            Component(
+                name=comp_name, 
+                pids=pids, 
+                devices_by_pid=devices_by_pid, 
+                logger=logger, 
+                sim_cpu=sim_cpu,
+                sim_cpu_tdp=sim_cpu_tdp,
+                sim_cpu_util=sim_cpu_util,
+                sim_gpu=sim_gpu,
+                sim_gpu_watts=sim_gpu_watts,
+                sim_gpu_util=sim_gpu_util
+            )
             for comp_name in components.split(",")
         ]

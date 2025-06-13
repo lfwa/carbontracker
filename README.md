@@ -22,7 +22,7 @@ Kindly cite our work if you use **carbontracker** in a scientific publication:
   note={arXiv:2007.03051},
   year={2020}}
 ```
-
+_
 ## Installation
 ### PyPi
 ```
@@ -66,6 +66,18 @@ Wrap any of your scripts (python, bash, etc.):
   Sets the level of verbosity.
 - `decimal_precision` (default=6):
   Desired decimal precision of reported values.
+- `sim_cpu` (default=None):
+  Name of the simulated CPU. If set, will use simulated CPU power measurements.
+- `sim_cpu_tdp` (default=None):
+  Thermal Design Power (TDP) in Watts for the simulated CPU. Required if `sim_cpu` is set.
+- `sim_cpu_util` (default=None):
+  CPU utilization factor between 0 and 1. If not set, defaults to 0.5 (50% utilization).
+- `sim_gpu` (default=None):
+  Name of the simulated GPU. If set, will use simulated GPU power measurements.
+- `sim_gpu_watts` (default=None):
+  Power consumption in Watts for the simulated GPU. Required if `sim_gpu` is set.
+- `sim_gpu_util` (default=None):
+  GPU utilization factor between 0 and 1. If not set, defaults to 0.5 (50% utilization).
 
 #### Example usage
 

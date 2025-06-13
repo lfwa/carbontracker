@@ -77,21 +77,25 @@ class TestPowerMetricsUnified(unittest.TestCase):
     @patch("subprocess.check_output", return_value="Sample Output")
     @patch("time.time", side_effect=[100, 101, 102, 200, 202])
     def test_get_output_with_actual_call(self, mock_time, mock_check_output):
+        # Reset the cache
+        PowerMetricsUnified._last_updated = None
+        PowerMetricsUnified._cached_output = None
+
         # First call - should call subprocess
         output1 = PowerMetricsUnified.get_output()
+        self.assertEqual(mock_check_output.call_count, 1)
 
         # Second call - should use cached output
         output2 = PowerMetricsUnified.get_output()
-        self.assertIsNotNone(PowerMetricsUnified._last_updated)
-        if PowerMetricsUnified._last_updated is None:
-            self.fail()
+        self.assertEqual(mock_check_output.call_count, 1)  # Still 1 because using cache
+
         # Advance time to invalidate cache
-        PowerMetricsUnified._last_updated -= 2
+        PowerMetricsUnified._last_updated = 0  # Force cache invalidation
 
         # Third call - should call subprocess again
         output3 = PowerMetricsUnified.get_output()
+        self.assertEqual(mock_check_output.call_count, 2)  # Now 2 because cache was invalid
 
-        self.assertEqual(mock_check_output.call_count, 2)
         self.assertEqual(output1, "Sample Output")
         self.assertEqual(output2, "Sample Output")
         self.assertEqual(output3, "Sample Output")

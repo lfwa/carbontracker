@@ -52,6 +52,7 @@ class CarbonIntensityThread(Thread):
             and not np.isnan(ci.carbon_intensity)
         ):
             self.carbon_intensities.append(ci)
+            self.logger.info(f"Carbon intensity: {ci.carbon_intensity:.2f} gCO2/kWh at {ci.address}")
 
     def predict_carbon_intensity(self, pred_time_dur):
         ci = intensity.carbon_intensity(self.logger, time_dur=pred_time_dur)
@@ -273,6 +274,12 @@ class CarbonTracker:
         log_file_prefix (str, optional): Prefix to add to the log file name.
         verbose (int, optional): Sets the level of verbosity.
         decimal_precision (int, optional): Desired decimal precision of reported values.
+        sim_cpu (float, optional): Custom CPU value for components.
+        sim_cpu_tdp (float, optional): Custom TDP value for components.
+        sim_cpu_util (float, optional): Custom CPU utilization for components.
+        sim_gpu (float, optional): Custom GPU value for components.
+        sim_gpu_watts (float, optional): Custom GPU Watts value for components.
+        sim_gpu_util (float, optional): Custom GPU utilization for components.
 
     Example:
         Tracking the carbon intensity of PyTorch model training:
@@ -308,26 +315,72 @@ class CarbonTracker:
         verbose=1,
         decimal_precision=12,
         api_keys=None,
+        sim_cpu=None,
+        sim_cpu_tdp=None,
+        sim_cpu_util=None,
+        sim_gpu=None,
+        sim_gpu_watts=None,
+        sim_gpu_util=None
     ):
-        if api_keys is not None:
-            self.set_api_keys(api_keys)
+        """Initialize CarbonTracker.
+
+        Args:
+            epochs (int): Number of epochs to monitor.
+            epochs_before_pred (int, optional): Number of epochs to monitor before making predictions. Defaults to 1.
+            monitor_epochs (int, optional): Number of epochs to monitor. Defaults to -1.
+            update_interval (int, optional): Interval in seconds between measurements. Defaults to 1.
+            interpretable (bool, optional): Whether to make predictions interpretable. Defaults to True.
+            stop_and_confirm (bool, optional): Whether to stop and confirm before making predictions. Defaults to False.
+            ignore_errors (bool, optional): Whether to ignore errors. Defaults to False.
+            components (str, optional): Components to monitor. Defaults to "all".
+            devices_by_pid (bool, optional): Whether to monitor devices by PID. Defaults to False.
+            log_dir (str, optional): Directory to store logs. Defaults to None.
+            log_file_prefix (str, optional): Prefix for log files. Defaults to "".
+            verbose (int, optional): Verbosity level. Defaults to 1.
+            decimal_precision (int, optional): Decimal precision for measurements. Defaults to 12.
+            api_keys (dict, optional): API keys for external services. Defaults to None.
+            sim_cpu (str, optional): Simulated CPU name. Defaults to None.
+            sim_cpu_tdp (float, optional): Simulated CPU TDP in Watts. Defaults to None.
+            sim_cpu_util (float, optional): Simulated CPU utilization. Defaults to None.
+            sim_gpu (str, optional): Simulated GPU name. Defaults to None.
+            sim_gpu_watts (float, optional): Simulated GPU power consumption in Watts. Defaults to None.
+            sim_gpu_util (float, optional): Simulated GPU utilization. Defaults to None.
+        """
+        # Add validation for monitor_epochs
+        if monitor_epochs != -1:
+            if monitor_epochs < epochs_before_pred:
+                raise ValueError("monitor_epochs cannot be less than epochs_before_pred")
+            if monitor_epochs == 0:
+                raise ValueError("monitor_epochs cannot be zero")
+
+        # Validate simulated component configurations
+        if sim_cpu is not None and sim_cpu_tdp is None:
+            raise ValueError("When using simulated CPU (sim_cpu), you must also specify the CPU TDP (sim_cpu_tdp)")
+        if sim_gpu is not None and sim_gpu_watts is None:
+            raise ValueError("When using simulated GPU (sim_gpu), you must also specify the GPU power consumption (sim_gpu_watts)")
 
         self.epochs = epochs
-        self.epochs_before_pred = (
-            epochs if epochs_before_pred < 0 else epochs_before_pred
-        )
-        self.monitor_epochs = epochs if monitor_epochs < 0 else monitor_epochs
-        if self.monitor_epochs == 0 or self.monitor_epochs < self.epochs_before_pred:
-            raise ValueError(
-                "Argument monitor_epochs expected a value in "
-                f"{{-1, >0, >=epochs_before_pred}}, got {monitor_epochs}."
-            )
+        self.epochs_before_pred = epochs_before_pred
+        self.monitor_epochs = monitor_epochs
+        self.update_interval = update_interval
         self.interpretable = interpretable
         self.stop_and_confirm = stop_and_confirm
         self.ignore_errors = ignore_errors
-        self.epoch_counter = 0
+        self.components = components
+        self.devices_by_pid = devices_by_pid
+        self.log_dir = log_dir
+        self.log_file_prefix = log_file_prefix
+        self.verbose = verbose
         self.decimal_precision = decimal_precision
+        self.api_keys = api_keys
+        self.sim_cpu = sim_cpu
+        self.sim_cpu_tdp = sim_cpu_tdp
+        self.sim_cpu_util = sim_cpu_util
+        self.sim_gpu = sim_gpu
+        self.sim_gpu_watts = sim_gpu_watts
+        self.sim_gpu_util = sim_gpu_util
         self.deleted = False
+        self.epoch_counter = 0
 
         try:
             pids = self._get_pids()
@@ -340,7 +393,7 @@ class CarbonTracker:
             self.tracker = CarbonTrackerThread(
                 delete=self._delete,
                 components=component.create_components(
-                    components=components, pids=pids, devices_by_pid=devices_by_pid, logger=self.logger
+                    components=components, pids=pids, devices_by_pid=devices_by_pid, logger=self.logger, sim_cpu=self.sim_cpu, sim_cpu_tdp=self.sim_cpu_tdp, sim_cpu_util=self.sim_cpu_util, sim_gpu=self.sim_gpu, sim_gpu_watts=self.sim_gpu_watts, sim_gpu_util=self.sim_gpu_util
                 ),
                 logger=self.logger,
                 ignore_errors=ignore_errors,
