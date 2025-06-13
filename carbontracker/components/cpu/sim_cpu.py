@@ -6,8 +6,8 @@ class SimulatedCPUHandler(Handler):
         super().__init__(pids=[], devices_by_pid=False)
         if not isinstance(name, str) or not name.strip():
             raise ValueError("CPU name must be a non-empty string.")
-        if tdp is None or not isinstance(tdp, (int, float)) or tdp <= 0:
-            raise ValueError("CPU TDP must be a positive number.")
+        if tdp is None or not isinstance(tdp, (int, float)) or tdp < 0:
+            raise ValueError("CPU TDP must be a non-negative number.")
         if not isinstance(utilization, (int, float)) or not (0.0 <= utilization <= 1.0):
             raise ValueError("CPU utilization must be between 0.0 and 1.0.")
         self.cpu_brand = name
