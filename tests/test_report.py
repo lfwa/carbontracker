@@ -34,6 +34,7 @@ class TestLogParser(unittest.TestCase):
     
     This test class generates real logs from CarbonTracker using simulation mode,
     ensuring the LogParser is always tested against the current log format.
+    
     """
 
     @classmethod
