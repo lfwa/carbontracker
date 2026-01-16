@@ -83,7 +83,7 @@ class CarbonIntensityThread(Thread):
             self.carbon_intensities_fetches.append(ci)
 
         location = self.carbon_intensities_fetches[-1].address
-        intensities = [ci.carbon_intensity for ci in self.carbon_intensities_fetches]
+        intensities = [float(ci.carbon_intensity) for ci in self.carbon_intensities_fetches]
         avg_intensity = np.mean(intensities)
 
         msg = (
@@ -203,7 +203,8 @@ class CarbonTrackerThread(Thread):
                 )
                 power_avg = None
 
-            self.logger.info(f"Average power usage (W) for {comp.name}: {power_avg}")
+            power_avg_val = float(power_avg) if power_avg is not None and not hasattr(power_avg, '__len__') else power_avg
+            self.logger.info(f"Average power usage (W) for {comp.name}: {power_avg_val}")
 
     def _components_remove_unavailable(self):
         self.components = [cmp for cmp in self.components if cmp.available()]

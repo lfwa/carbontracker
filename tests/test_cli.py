@@ -60,5 +60,41 @@ class TestCLI(unittest.TestCase):
         cli.main()
         mock_subprocess.assert_called_once_with(["echo 'test'"], check=True)
 
+
+class TestCLIReportDependency(unittest.TestCase):
+    """Tests for the optional reportlab dependency in CLI."""
+
+    def test_generate_report_shows_error_without_reportlab(self):
+        """Test that generate_report prints an error when reportlab is not installed."""
+        import carbontracker.report as report_module
+        import carbontracker.cli as cli_module
+
+        # Save original values
+        original_report_value = report_module.REPORTLAB_AVAILABLE
+        original_cli_value = cli_module.REPORTLAB_AVAILABLE
+
+        try:
+            # Mock reportlab as not available in both modules
+            report_module.REPORTLAB_AVAILABLE = False
+            cli_module.REPORTLAB_AVAILABLE = False
+
+            captured_output = StringIO()
+            sys.stdout = captured_output
+
+            cli_module.generate_report("dummy_log.txt", "dummy_output.pdf")
+
+            sys.stdout = sys.__stdout__
+            output = captured_output.getvalue()
+
+            # Check the error message contains installation instructions
+            self.assertIn("pip install carbontracker[pdfreport]", output)
+            self.assertIn("reportlab", output)
+        finally:
+            # Restore original values
+            report_module.REPORTLAB_AVAILABLE = original_report_value
+            cli_module.REPORTLAB_AVAILABLE = original_cli_value
+            sys.stdout = sys.__stdout__
+
+
 if __name__ == "__main__":
     unittest.main()

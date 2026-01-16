@@ -75,15 +75,29 @@ class LogParser:
         if components_match:
             self.components = components_match.group(1)
         
-        # Parse epochs
-        epoch_pattern = r'Epoch (\d+):\n.*?Duration: ([\d:\.]+)\n.*?Average power usage \(W\) for gpu: ([\d\.]+)\n.*?Average power usage \(W\) for cpu: ([\d\.]+)'
-        epoch_matches = re.finditer(epoch_pattern, self.log_content, re.DOTALL)
+        # Parse epochs - handle cases where only CPU or only GPU is present
+        epoch_pattern = r'Epoch (\d+):\n.*?Duration: ([\d:\.]+)'
+        epoch_matches = list(re.finditer(epoch_pattern, self.log_content, re.DOTALL))
         
-        for match in epoch_matches:
+        for i, match in enumerate(epoch_matches):
             epoch_num = int(match.group(1))
             duration = self._parse_duration(match.group(2))
-            gpu_power = float(match.group(3))
-            cpu_power = float(match.group(4))
+            
+            # Find the text block for this epoch (until next epoch or end)
+            start_pos = match.end()
+            if i + 1 < len(epoch_matches):
+                end_pos = epoch_matches[i + 1].start()
+            else:
+                end_pos = len(self.log_content)
+            epoch_block = self.log_content[start_pos:end_pos]
+            
+            # Parse GPU power (optional)
+            gpu_match = re.search(r'Average power usage \(W\) for gpu: ([\d\.]+)', epoch_block)
+            gpu_power = float(gpu_match.group(1)) if gpu_match else 0.0
+            
+            # Parse CPU power (optional)
+            cpu_match = re.search(r'Average power usage \(W\) for cpu: ([\d\.]+)', epoch_block)
+            cpu_power = float(cpu_match.group(1)) if cpu_match else 0.0
             
             self.epochs.append({
                 'epoch': epoch_num,
@@ -93,11 +107,20 @@ class LogParser:
                 'total_power': gpu_power + cpu_power
             })
         
-        # Parse carbon intensity
+        # Parse carbon intensity - try summary format first, then epoch format
         ci_match = re.search(r'Average carbon intensity during training was ([\d\.]+) gCO2eq/kWh at detected location: (.*)', self.log_content)
         if ci_match:
             self.carbon_intensity = float(ci_match.group(1))
             self.location = ci_match.group(2)
+        else:
+            # Try epoch-level format: "Carbon intensities (gCO2eq/kWh) fetched every N s at detected location LOCATION: [VALUES]"
+            ci_epoch_match = re.search(r'Carbon intensities \(gCO2eq/kWh\) fetched every \d+ s at detected location ([^:]+): \[([\d\.,\s]+)\]', self.log_content)
+            if ci_epoch_match:
+                self.location = ci_epoch_match.group(1).strip()
+                # Parse the list of values and average them
+                values_str = ci_epoch_match.group(2)
+                values = [float(v.strip()) for v in values_str.split(',')]
+                self.carbon_intensity = sum(values) / len(values)
         
         # Parse timestamps
         timestamp_pattern = r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
@@ -115,6 +138,11 @@ class LogParser:
         return float(duration_str)
 
     def calculate_energy_metrics(self):
+        if not self.epochs:
+            raise ValueError("No epochs found in log file. The log may be incomplete or in an unsupported format.")
+        if self.carbon_intensity is None:
+            raise ValueError("No carbon intensity data found in log file. The log may be incomplete.")
+        
         total_duration = sum(epoch['duration'] for epoch in self.epochs)
         avg_gpu_power = sum(epoch['gpu_power'] for epoch in self.epochs) / len(self.epochs)
         avg_cpu_power = sum(epoch['cpu_power'] for epoch in self.epochs) / len(self.epochs)
@@ -198,7 +226,7 @@ def generate_report_from_log(log_file_path, output_path):
     if not REPORTLAB_AVAILABLE:
         raise ImportError(
             "The 'reportlab' package is required to generate PDF reports but is not installed. "
-            "Please install it with: pip install carbontracker[pdfreport]"
+            "Please install it with: pip install reportlab"
         )
     
     # Read and parse log
