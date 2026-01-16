@@ -27,7 +27,6 @@ dependencies = [
     "py-cpuinfo",
     "matplotlib",
     "seaborn",
-    "reportlab==3.6.13"  # Pin to a version compatible with Python 3.7.x
 ]
 dynamic = ["version"]
 
@@ -46,6 +45,7 @@ test = [
     "pyfakefs==5.8.0; python_version >= '3.10'"   # For Python 3.10+
 ]
 docs = ["mkdocs", "mkdocstrings[python]"]
+pdfreport = ["reportlab==3.6.13"]  # Pin to a version compatible with Python 3.7.x
 
 [project.scripts]
 carbontracker = "carbontracker.cli:main"

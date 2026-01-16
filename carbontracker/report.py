@@ -3,12 +3,18 @@ from datetime import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
 import io
+
+# Check for optional reportlab dependency
+try:
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    REPORTLAB_AVAILABLE = True
+except ImportError:
+    REPORTLAB_AVAILABLE = False
 
 # Set the style for all plots
 sns.set_style("whitegrid")
@@ -188,6 +194,13 @@ class LogParser:
         return {'combined_plots': buf}
 
 def generate_report_from_log(log_file_path, output_path):
+    # Check if reportlab is installed
+    if not REPORTLAB_AVAILABLE:
+        raise ImportError(
+            "The 'reportlab' package is required to generate PDF reports but is not installed. "
+            "Please install it with: pip install carbontracker[pdfreport]"
+        )
+    
     # Read and parse log
     with open(log_file_path, 'r') as f:
         log_content = f.read()
