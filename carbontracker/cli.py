@@ -2,7 +2,7 @@ import argparse
 import subprocess
 from carbontracker.tracker import CarbonTracker
 from carbontracker import parser
-from carbontracker.report import generate_report_from_log
+from carbontracker.report import generate_report_from_log, REPORTLAB_AVAILABLE
 import ast
 import os
 
@@ -13,6 +13,12 @@ def parse_logs(log_dir):
 
 def generate_report(log_file, output_pdf):
     """Generate a PDF report from a log file"""
+    # Check for reportlab dependency early
+    if not REPORTLAB_AVAILABLE:
+        print("Error: The 'reportlab' package is required to generate PDF reports but is not installed.")
+        print("Please install it with: pip install 'carbontracker[pdfreport]'")
+        return
+    
     if not os.path.exists(log_file):
         print(f"Error: Log file {log_file} does not exist")
         return
