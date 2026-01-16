@@ -226,7 +226,7 @@ def generate_report_from_log(log_file_path, output_path):
     if not REPORTLAB_AVAILABLE:
         raise ImportError(
             "The 'reportlab' package is required to generate PDF reports but is not installed. "
-            "Please install it with: pip install reportlab"
+            "Please install it with: pip install carbontracker[pdfreport]"
         )
     
     # Read and parse log
