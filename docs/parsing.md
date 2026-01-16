@@ -38,3 +38,26 @@ Measured consumption: {'epochs': 1, 'duration (s)': 8.0, 'energy (kWh)': 6.5e-05
 Predicted consumption: {'epochs': 3, 'duration (s)': 25.0, 'energy (kWh)': 1000.000196, 'co2eq (g)': 10000.057604, 'equivalents': {'km travelled by car': 10000.000478}}
 Measured GPU devices: ['Tesla T4']
 ```
+
+## Generating PDF Reports
+
+Carbontracker can generate detailed PDF reports from log files. This feature requires additional dependencies.
+
+> **Note:** Install the PDF report dependencies first:
+> ```bash
+> pip install 'carbontracker[pdfreport]'
+> ```
+
+### Example usage
+```python
+from carbontracker.report import generate_report_from_log
+
+generate_report_from_log("./logs/carbontracker.log", "./report.pdf")
+```
+
+### Report contents
+The generated PDF includes:
+- Energy consumption metrics and visualizations
+- Carbon footprint analysis with CO2eq calculations
+- Power usage breakdown by component (CPU/GPU)
+- Training duration and efficiency metrics

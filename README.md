@@ -24,9 +24,15 @@ Kindly cite our work if you use **carbontracker** in a scientific publication:
 ```
 _
 ## Installation
-### PyPi
+### PyPI
 ```
 pip install carbontracker
+```
+
+### Optional Dependencies
+To generate PDF reports from carbontracker logs, install with the `pdfreport` extra:
+```
+pip install 'carbontracker[pdfreport]'
 ```
 
 ## Basic usage
@@ -181,6 +187,26 @@ Predicted consumption: {'epochs': 3, 'duration (s)': 25.0, 'energy (kWh)': 1000.
 Measured GPU devices: ['Tesla T4']
 ```
 
+### Generating PDF reports
+Carbontracker can generate detailed PDF reports from log files. This feature requires the optional `reportlab` dependency.
+
+> **Note:** You must install the PDF report dependencies first:
+> ```
+> pip install 'carbontracker[pdfreport]'
+> ```
+
+#### Example usage
+```python
+from carbontracker.report import generate_report_from_log
+
+generate_report_from_log("./logs/carbontracker.log", "./report.pdf")
+```
+
+The generated PDF includes:
+- Energy consumption metrics and visualizations
+- Carbon footprint analysis with CO2eq calculations
+- Power usage breakdown by component (CPU/GPU)
+- Training duration and efficiency metrics
 
 
 ## Compatibility
