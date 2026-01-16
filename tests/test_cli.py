@@ -87,7 +87,7 @@ class TestCLIReportDependency(unittest.TestCase):
             output = captured_output.getvalue()
 
             # Check the error message contains installation instructions
-            self.assertIn("pip install carbontracker[pdfreport]", output)
+            self.assertIn("pip install 'carbontracker[pdfreport]'", output)
             self.assertIn("reportlab", output)
         finally:
             # Restore original values

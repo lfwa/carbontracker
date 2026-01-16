@@ -16,7 +16,7 @@ def generate_report(log_file, output_pdf):
     # Check for reportlab dependency early
     if not REPORTLAB_AVAILABLE:
         print("Error: The 'reportlab' package is required to generate PDF reports but is not installed.")
-        print("Please install it with: pip install carbontracker[pdfreport]")
+        print("Please install it with: pip install 'carbontracker[pdfreport]'")
         return
     
     if not os.path.exists(log_file):

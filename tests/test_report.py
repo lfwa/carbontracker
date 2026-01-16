@@ -279,7 +279,7 @@ class TestReportOptionalDependency(unittest.TestCase):
                 generate_report_from_log("dummy_log.txt", "dummy_output.pdf")
 
             # Check the error message contains installation instructions
-            self.assertIn("pip install carbontracker[pdfreport]", str(context.exception))
+            self.assertIn("pip install 'carbontracker[pdfreport]'", str(context.exception))
             self.assertIn("reportlab", str(context.exception))
         finally:
             # Restore original value
