@@ -12,7 +12,7 @@ See [CLI](documentation/CLI.md) for CLI options.
 
 - Intel CPUs that support [Intel RAPL](http://web.eece.maine.edu/~vweaver/projects/rapl/rapl_support.html) on Linux. [Note on how to enable permissions](/#permissions)
 - NVIDIA GPUs that support [NVIDIA Management Library (NVML)] on Linux
-- Apple Silicon on MacOS
+- Apple Silicon on macOS
 
 ## Permissions
 To be able to read the power consumption from Intel CPUs, **carbontracker** needs read access to the `/sys/class/powercap/intel-rapl:0/energy_uj` file. This can be done like so using `chmod`:
@@ -49,7 +49,7 @@ If this fails we measure all available GPUs.
 
 ## Running **carbontracker** on Apple Silicon
 
-- **carbontracker** is compatible with Apple Silicon on MacOS using `powermetrics` to get power consumption data.
+- **carbontracker** is compatible with Apple Silicon on macOS using `powermetrics` to get power consumption data.
 - `powermetrics` requires root access to run. This can be done by adding `your_username ALL=(ALL) NOPASSWD: /usr/bin/powermetrics` to `/etc/sudoers` (replace `your_username` with your actual username):
 ```
 echo "your_username ALL=(ALL) NOPASSWD: /usr/bin/powermetrics" | sudo tee -a /etc/sudoers

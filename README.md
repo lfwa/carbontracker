@@ -220,7 +220,7 @@ The generated PDF includes:
 ## Notes
 ### Availability of GPUs and Slurm
 - Available GPU devices are determined by first checking the environment variable `CUDA_VISIBLE_DEVICES` (only if `devices_by_pid`=False otherwise we find devices by PID). This ensures that for Slurm we only fetch GPU devices associated with the current job and not the entire cluster. If this fails we measure all available GPUs.
-- NVML cannot find processes for containers spawned without `--pid=host`. This affects the `device_by_pids` parameter and means that it will never find any active processes for GPUs in affected containers. 
+- NVML cannot find processes for containers spawned without `--pid=host`. This affects the `devices_by_pid` parameter and means that it will never find any active processes for GPUs in affected containers. 
 
 ## Extending **carbontracker**
 See [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -231,7 +231,6 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 ## carbontracker in media
 * Official press release from University of Copenhagen can be obtained here: [en](https://news.ku.dk/all_news/2020/11/students-develop-tool-to-predict-the-carbon-footprint-of-algorithms/) [da](https://nyheder.ku.dk/alle_nyheder/2020/11/studerende-opfinder-vaerktoej-der-forudsiger-algoritmers-co2-aftryk/)
 
-* Carbontracker has recieved some attention in popular science forums within, and outside of, Denmark [[1](https://videnskab.dk/teknologi-innovation/kunstig-intelligens-er-en-kaempe-klimasynder-men-unge-danskeres-nye-vaerktoej)][[2](https://www.anthropocenemagazine.org/2020/11/time-to-talk-about-carbon-footprint-artificial-intelligence/)][[3](https://www.theregister.com/2020/11/04/gpt3_carbon_footprint_estimate/)][[4](https://jyllands-posten.dk/nyviden/ECE12533278/kunstig-intelligens-er-en-kaempe-klimasynder-men-nyt-dansk-vaerktoej-skal-hjaelpe/)][[5](https://www.sciencenewsforstudents.org/article/training-ai-energy-emissions-climate-risk)][[6](https://www.digitaltrends.com/news/carbontracker-deep-learning-sustainability/)][[7](https://www.prosa.dk/artikel/detail/news/effektivt-vaaben-mod-klimaforandringer/)][[8](https://medium.com/techtalkers/artificial-intelligence-contributes-to-climate-change-heres-how-405ff919186e)]
-
+* Carbontracker has received some attention in popular science forums within, and outside of, Denmark [[1](https://videnskab.dk/teknologi-innovation/kunstig-intelligens-er-en-kaempe-klimasynder-men-unge-danskeres-nye-vaerktoej)][[2](https://www.anthropocenemagazine.org/2020/11/time-to-talk-about-carbon-footprint-artificial-intelligence/)][[3](https://www.theregister.com/2020/11/04/gpt3_carbon_footprint_estimate/)][[4](https://jyllands-posten.dk/nyviden/ECE12533278/kunstig-intelligens-er-en-kaempe-klimasynder-men-nyt-dansk-vaerktoej-skal-hjaelpe/)][[5](https://www.sciencenewsforstudents.org/article/training-ai-energy-emissions-climate-risk)][[6](https://www.digitaltrends.com/news/carbontracker-deep-learning-sustainability/)][[7](https://www.prosa.dk/artikel/detail/news/effektivt-vaaben-mod-klimaforandringer/)][[8](https://medium.com/techtalkers/artificial-intelligence-contributes-to-climate-change-heres-how-405ff919186e)]
 
 

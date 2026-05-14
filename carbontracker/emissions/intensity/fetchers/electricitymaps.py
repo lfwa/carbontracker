@@ -16,7 +16,7 @@ class ElectricityMap(IntensityFetcher):
 
     def suitable(self, g_location):
         return True
-    ## Prediction is not suported for electricityMaps, thus time_dur is not used.
+    ## Prediction is not supported for electricityMaps, thus time_dur is not used.
     def fetch_carbon_intensity(self, g_location, time_dur=None) -> IntensityFetch:
         try:
             ci = self._carbon_intensity_by_location(lon=g_location.lng, lat=g_location.lat)
@@ -40,7 +40,7 @@ class ElectricityMap(IntensityFetcher):
 
         Args:
             lon (float): Longitude. Defaults to None.
-            lat (float): Lattitude. Defaults to None.
+            lat (float): Latitude. Defaults to None.
             zone (str): Alpha-2 country code. Defaults to None.
 
         Returns:
@@ -60,7 +60,7 @@ class ElectricityMap(IntensityFetcher):
             try:
                 errorDetails = response.json()
             except:
-                errorDetails = "Bad response recieved from api. Could not parse json"
+                errorDetails = "Bad response received from API. Could not parse JSON"
             raise exceptions.CarbonIntensityFetcherError(errorDetails)
 
         carbon_intensity = response.json()["carbonIntensity"]

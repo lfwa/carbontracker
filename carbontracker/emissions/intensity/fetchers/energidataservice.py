@@ -99,5 +99,5 @@ class EnergiDataService(IntensityFetcher):
         try:
             error_details = response.json()
         except Exception:  # noqa: BLE001
-            error_details = "Bad response received from API. Could not parse json"
+            error_details = "Bad response received from API. Could not parse JSON"
         raise exceptions.CarbonIntensityFetcherError(error_details)
