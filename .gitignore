@@ -171,3 +171,4 @@ cython_debug/
 # local developments
 /test_logs/
 /logs/
+dev_guide.md
