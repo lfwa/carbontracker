@@ -158,6 +158,7 @@ class CarbonTrackerThread(Thread):
             return
 
         self.running = False
+        self.measuring_event.set() # Set the event to ensure the thread can exit if waiting
         self.logger.info("Monitoring thread ended.")
         self.logger.output("Finished monitoring.", verbose_level=1)
 
