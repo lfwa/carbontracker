@@ -226,7 +226,7 @@ The generated PDF includes:
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Star History
-[![Star History Chart](https://api.star-history.com/svg?repos=lfwa/carbontracker&type=Date)](https://star-history.com/#lfwa/carbontracker&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=lfwa/carbontracker&type=Date)](https://star-history.dera.page/#lfwa/carbontracker&Date)
 
 ## carbontracker in media
 * Official press release from University of Copenhagen can be obtained here: [en](https://news.ku.dk/all_news/2020/11/students-develop-tool-to-predict-the-carbon-footprint-of-algorithms/) [da](https://nyheder.ku.dk/alle_nyheder/2020/11/studerende-opfinder-vaerktoej-der-forudsiger-algoritmers-co2-aftryk/)
