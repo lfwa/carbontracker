@@ -5,7 +5,7 @@ import traceback
 import psutil
 import math
 import json
-from threading import Thread, Event
+from threading import Thread, Event, Lock, current_thread
 from typing import List, Optional, Union
 import importlib.resources as pkg_resources
 
@@ -126,6 +126,9 @@ class CarbonTrackerThread(Thread):
         self.epoch_times = []
         self.running = True
         self.measuring_event = Event()
+        self.shutdown_event = Event()
+        self._components_shutdown_event = Event()
+        self._components_shutdown_lock = Lock()
         self.epoch_counter = 0
         self.daemon = True
 
@@ -135,17 +138,21 @@ class CarbonTrackerThread(Thread):
         """Thread's activity."""
         try:
             self.begin()
-            while self.running:
+            while not self.shutdown_event.is_set():
                 # Wait for the measuring_event to be set
                 self.measuring_event.wait()
+                if self.shutdown_event.is_set():
+                    break
                 self._collect_measurements()
-                time.sleep(self.update_interval)
-
-            # Shutdown in thread's activity instead of epoch_end() to ensure
-            # that we only shutdown after last measurement.
-            self._components_shutdown()
+                if self.shutdown_event.wait(self.update_interval):
+                    break
         except Exception as e:
             self._handle_error(e)
+        finally:
+            self.running = False
+            # Shutdown in the worker so an in-progress measurement always
+            # finishes before its components are released.
+            self._components_shutdown_once()
 
     def begin(self):
         self._components_remove_unavailable()
@@ -154,12 +161,17 @@ class CarbonTrackerThread(Thread):
         self.logger.info("Monitoring thread started.")
 
     def stop(self):
-        if not self.running:
-            return
-
+        first_stop = not self.shutdown_event.is_set()
+        self.shutdown_event.set()
         self.running = False
-        self.logger.info("Monitoring thread ended.")
-        self.logger.output("Finished monitoring.", verbose_level=1)
+        self.measuring_event.set()
+
+        if first_stop:
+            self.logger.info("Monitoring thread ended.")
+            self.logger.output("Finished monitoring.", verbose_level=1)
+
+        if current_thread() is not self:
+            self.join()
 
     def epoch_start(self):
         self.epoch_counter += 1
@@ -221,6 +233,13 @@ class CarbonTrackerThread(Thread):
     def _components_shutdown(self):
         for comp in self.components:
             comp.shutdown()
+
+    def _components_shutdown_once(self):
+        with self._components_shutdown_lock:
+            if self._components_shutdown_event.is_set():
+                return
+            self._components_shutdown_event.set()
+            self._components_shutdown()
 
     def _collect_measurements(self):
         """Collect one round of measurements."""

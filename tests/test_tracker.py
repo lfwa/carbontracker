@@ -25,9 +25,21 @@ class TestCarbonIntensityThread(unittest.TestCase):
     def setUp(self):
         self.logger = Mock()
         self.stop_event = Event()
+        self.threads = []
+
+    def tearDown(self):
+        for thread, stop_event in self.threads:
+            stop_event.set()
+            thread.join(timeout=1)
+            self.assertFalse(thread.is_alive())
+
+    def create_thread(self, logger, stop_event, *args):
+        thread = CarbonIntensityThread(logger, stop_event, *args)
+        self.threads.append((thread, stop_event))
+        return thread
 
     def test_init(self):
-        thread = CarbonIntensityThread(self.logger, self.stop_event)
+        thread = self.create_thread(self.logger, self.stop_event)
         self.assertEqual(thread.name, "CarbonIntensityThread")
         self.assertEqual(thread.daemon, True)
 
@@ -40,7 +52,7 @@ class TestCarbonIntensityThread(unittest.TestCase):
 
         service_instance = mock_intensity_service.return_value
         service_instance.fetch_carbon_intensity.return_value = intensity_mock_fetch 
-        thread = CarbonIntensityThread(self.logger, self.stop_event)
+        thread = self.create_thread(self.logger, self.stop_event)
         self.assertEqual(thread.carbon_intensities_fetches[0].carbon_intensity, 10.5)
  
     @patch("carbontracker.tracker.IntensityService")
@@ -52,7 +64,7 @@ class TestCarbonIntensityThread(unittest.TestCase):
 
         service_instance = mock_intensity_service.return_value
         service_instance.fetch_carbon_intensity.return_value = intensity_mock_fetch 
-        thread = CarbonIntensityThread(self.logger, self.stop_event)
+        thread = self.create_thread(self.logger, self.stop_event)
         self.assertEqual(len(thread.carbon_intensities_fetches),0)
        
 
@@ -64,7 +76,7 @@ class TestCarbonIntensityThread(unittest.TestCase):
 
         mock_intensity_service.return_value.fetch_carbon_intensity.return_value = mock_fetch 
 
-        thread = CarbonIntensityThread(self.logger, self.stop_event)
+        thread = self.create_thread(self.logger, self.stop_event)
         pred_time_dur = 1800
         ci = thread.predict_carbon_intensity(pred_time_dur)
 
@@ -104,7 +116,7 @@ class TestCarbonIntensityThread(unittest.TestCase):
         mock_stop_event = MagicMock()
         mock_logger = MagicMock()
 
-        thread = CarbonIntensityThread(mock_logger, mock_stop_event)
+        thread = self.create_thread(mock_logger, mock_stop_event)
         thread.run()
 
         assert mock_logger.err_warn.called
@@ -116,7 +128,7 @@ class TestCarbonIntensityThread(unittest.TestCase):
 
         mock_logger = MagicMock()
         stop_event = threading.Event()
-        CarbonIntensityThread(mock_logger, stop_event, None,update_interval)
+        self.create_thread(mock_logger, stop_event, None, update_interval)
         time.sleep(wait_duration)
 
         assert mock_fetch_carbon_intensity.call_count > 1
@@ -125,7 +137,7 @@ class TestCarbonIntensityThread(unittest.TestCase):
         mock_logger = MagicMock()
         stop_event = threading.Event()
 
-        thread = CarbonIntensityThread(mock_logger, stop_event)
+        thread = self.create_thread(mock_logger, stop_event)
         thread.carbon_intensities_fetches = []
         thread.average_carbon_intensity()
 
@@ -134,6 +146,7 @@ class TestCarbonIntensityThread(unittest.TestCase):
 
 class TestCarbonTrackerThread(unittest.TestCase):
     def setUp(self):
+        self.threads = []
         self.mock_components: List[Any] = [
             MagicMock(name="Component1"),
             MagicMock(name="Component2"),
@@ -145,7 +158,7 @@ class TestCarbonTrackerThread(unittest.TestCase):
         self.mock_logger = MagicMock(name="Logger")
         self.mock_delete = MagicMock(name="Delete")
 
-        self.thread = CarbonTrackerThread(
+        self.thread = self.create_thread(
             self.mock_components,
             self.mock_logger,
             False,
@@ -154,9 +167,14 @@ class TestCarbonTrackerThread(unittest.TestCase):
         )
 
     def tearDown(self):
-        self.thread.running = False
-        self.thread.epoch_counter = 0
-        self.thread.epoch_times = []
+        for thread in self.threads:
+            thread.stop()
+            self.assertFalse(thread.is_alive())
+
+    def create_thread(self, *args, **kwargs):
+        thread = CarbonTrackerThread(*args, **kwargs)
+        self.threads.append(thread)
+        return thread
 
     def test_stop_tracker(self):
         self.thread.running = True
@@ -197,7 +215,7 @@ class TestCarbonTrackerThread(unittest.TestCase):
         mock_logger = MagicMock(name="Logger")
         mock_delete = MagicMock(name="Delete")
 
-        thread = CarbonTrackerThread(mock_components, mock_logger, False, mock_delete)
+        thread = self.create_thread(mock_components, mock_logger, False, mock_delete)
 
         self.assertEqual(thread.components, mock_components)
         self.assertEqual(thread.logger, mock_logger)
@@ -316,10 +334,197 @@ class TestCarbonTrackerThread(unittest.TestCase):
         mock_wait = mock.MagicMock()
         mock_wait.side_effect = Exception("Test exception")
 
-        self.thread.measuring_event.wait = mock_wait
-        self.thread.run()
+        with patch.object(CarbonTrackerThread, "start"):
+            thread = CarbonTrackerThread(
+                self.mock_components,
+                self.mock_logger,
+                False,
+                self.mock_delete,
+            )
+        thread.measuring_event.wait = mock_wait
+        thread.run()
 
         mock_handle_error.assert_called()
+
+
+class RecordingEvent:
+    def __init__(self):
+        self.event = Event()
+        self.lock = threading.Lock()
+        self.wait_calls = 0
+        self.second_wait = Event()
+
+    def wait(self, timeout=None):
+        with self.lock:
+            self.wait_calls += 1
+            if self.wait_calls >= 2:
+                self.second_wait.set()
+        return self.event.wait(timeout)
+
+    def set(self):
+        self.event.set()
+
+    def clear(self):
+        self.event.clear()
+
+    def is_set(self):
+        return self.event.is_set()
+
+
+class TestCarbonTrackerThreadShutdown(unittest.TestCase):
+    def setUp(self):
+        self.threads = []
+
+    def tearDown(self):
+        for thread in self.threads:
+            thread.stop()
+            self.assertFalse(thread.is_alive())
+
+    def create_thread(self, update_interval=60, measuring_event=None):
+        component = MagicMock(name="Component")
+        component.name = "component"
+        component.available.return_value = True
+        component.devices.return_value = ["device"]
+        component.power_usages = []
+        initialized = Event()
+        component.init.side_effect = initialized.set
+
+        with patch.object(CarbonTrackerThread, "start"):
+            thread = CarbonTrackerThread(
+                [component],
+                MagicMock(name="Logger"),
+                False,
+                MagicMock(name="Delete"),
+                update_interval=update_interval,
+            )
+        if measuring_event is not None:
+            thread.measuring_event = measuring_event
+        self.threads.append(thread)
+        threading.Thread.start(thread)
+        self.assertTrue(initialized.wait(timeout=1))
+        return thread, component
+
+    def test_stop_before_first_epoch_joins_and_shuts_down_once(self):
+        thread, component = self.create_thread()
+
+        thread.stop()
+
+        self.assertFalse(thread.is_alive())
+        component.collect_power_usage.assert_not_called()
+        component.shutdown.assert_called_once_with()
+
+    def test_stop_after_epoch_while_idle_prevents_another_measurement(self):
+        measuring_event = RecordingEvent()
+        thread, component = self.create_thread(update_interval=0, measuring_event=measuring_event)
+        collection_started = Event()
+        finish_collection = Event()
+
+        def collect(_epoch):
+            collection_started.set()
+            finish_collection.wait(timeout=5)
+
+        component.collect_power_usage.side_effect = collect
+
+        thread.epoch_start()
+        self.assertTrue(collection_started.wait(timeout=1))
+        thread.epoch_end()
+        finish_collection.set()
+        self.assertTrue(measuring_event.second_wait.wait(timeout=1))
+
+        thread.stop()
+
+        self.assertFalse(thread.is_alive())
+        component.collect_power_usage.assert_called_once_with(1)
+        component.shutdown.assert_called_once_with()
+
+    def test_stop_during_collection_waits_for_worker_with_long_interval(self):
+        thread, component = self.create_thread(update_interval=3600)
+        collection_started = Event()
+        finish_collection = Event()
+
+        def collect(_epoch):
+            collection_started.set()
+            finish_collection.wait(timeout=5)
+
+        component.collect_power_usage.side_effect = collect
+        thread.epoch_start()
+        self.assertTrue(collection_started.wait(timeout=1))
+
+        stopper = threading.Thread(target=thread.stop)
+        stopper.start()
+        self.assertTrue(thread.shutdown_event.wait(timeout=1))
+        self.assertTrue(stopper.is_alive())
+        finish_collection.set()
+        stopper.join(timeout=1)
+
+        self.assertFalse(stopper.is_alive())
+        self.assertFalse(thread.is_alive())
+        component.collect_power_usage.assert_called_once_with(1)
+        component.shutdown.assert_called_once_with()
+
+    def test_repeated_stops_are_safe_and_shutdown_is_single_shot(self):
+        thread, component = self.create_thread()
+
+        thread.stop()
+        thread.stop()
+
+        self.assertFalse(thread.is_alive())
+        component.shutdown.assert_called_once_with()
+        self.assertEqual(
+            thread.logger.info.call_args_list.count(mock.call("Monitoring thread ended.")),
+            1,
+        )
+
+    def test_worker_initiated_stop_does_not_join_itself(self):
+        thread, component = self.create_thread()
+        stop_returned = Event()
+
+        def collect(_epoch):
+            thread.stop()
+            stop_returned.set()
+
+        component.collect_power_usage.side_effect = collect
+
+        thread.epoch_start()
+        self.assertTrue(stop_returned.wait(timeout=1))
+        thread.join(timeout=1)
+
+        self.assertFalse(thread.is_alive())
+        component.collect_power_usage.assert_called_once_with(1)
+        component.shutdown.assert_called_once_with()
+
+
+class TestCarbonTrackerPublicShutdown(unittest.TestCase):
+    def test_stop_leaves_no_live_monitoring_worker(self):
+        component = MagicMock(name="Component")
+        component.name = "component"
+        component.available.return_value = True
+        component.devices.return_value = ["device"]
+        component.power_usages = []
+        initialized = Event()
+        component.init.side_effect = initialized.set
+
+        with patch(
+            "carbontracker.tracker.component.create_components",
+            return_value=[component],
+        ), patch(
+            "carbontracker.tracker.CarbonIntensityThread", return_value=MagicMock()
+        ), patch(
+            "carbontracker.tracker.loggerutil.Logger", return_value=MagicMock()
+        ), patch(
+            "carbontracker.tracker.CarbonTracker._get_pids", return_value=[]
+        ), patch("carbontracker.tracker.CarbonTracker._output_actual"):
+            tracker = CarbonTracker(epochs=2, monitor_epochs=2)
+            worker = tracker.tracker
+            self.assertTrue(initialized.wait(timeout=1))
+
+            tracker.stop()
+
+        self.assertFalse(worker.is_alive())
+        self.assertNotIn(worker, threading.enumerate())
+        self.assertFalse(any(isinstance(thread, CarbonTrackerThread) for thread in threading.enumerate()))
+        component.collect_power_usage.assert_not_called()
+        component.shutdown.assert_called_once_with()
 
 
 class TestCarbonTracker(unittest.TestCase):
@@ -358,6 +563,17 @@ class TestCarbonTracker(unittest.TestCase):
             )
 
     def tearDown(self):
+        monitoring_threads = [thread for thread in threading.enumerate() if isinstance(thread, CarbonTrackerThread)]
+        for thread in monitoring_threads:
+            thread.stop()
+            self.assertFalse(thread.is_alive())
+
+        intensity_threads = [thread for thread in threading.enumerate() if isinstance(thread, CarbonIntensityThread)]
+        for thread in intensity_threads:
+            thread.stop_event.set()
+            thread.join(timeout=1)
+            self.assertFalse(thread.is_alive())
+
         self.mock_logger = None
         self.mock_intensity_thread = None
         self.mock_tracker_thread = None
