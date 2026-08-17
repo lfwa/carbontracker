@@ -31,8 +31,8 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-homepage = "https://github.com/lfwa/carbontracker"
-repository = "https://github.com/lfwa/carbontracker"
+homepage = "https://github.com/saintslab/carbontracker"
+repository = "https://github.com/saintslab/carbontracker"
 
 [tool.setuptools]
 packages = ['carbontracker']
