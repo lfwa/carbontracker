@@ -4,7 +4,7 @@ import requests
 from carbontracker import exceptions
 from carbontracker.emissions.intensity.fetcher import IntensityFetch, IntensityFetcher
 
-API_URL = "https://api-access.electricitymaps.com/free-tier/carbon-intensity/latest"
+API_URL = "https://api.electricitymaps.com/v3/carbon-intensity/latest"
 
 
 class ElectricityMap(IntensityFetcher):
