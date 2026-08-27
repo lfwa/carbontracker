@@ -145,7 +145,7 @@ class IntensityService():
             return
 
         self.logger.err_info(
-            f"Using realtime localized carbon intensity based on location: {self.address}.g"
+            f"Using realtime localized carbon intensity based on location: {self.address}."
         )
             
 
