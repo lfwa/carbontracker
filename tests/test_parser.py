@@ -920,7 +920,7 @@ class TestParser(fake_filesystem_unittest.TestCase):
         log_dir = "/logs"
         print_aggregate(log_dir)
         mock_print.assert_called_once_with(
-            "The training of models in this work is estimated to use 100.0000000000000000 kWh of electricity contributing to 50.0000000000000000 kg of CO2eq. Measured by carbontracker (https://github.com/lfwa/carbontracker)."
+            "The training of models in this work is estimated to use 100.0000000000000000 kWh of electricity contributing to 50.0000000000000000 kg of CO2eq. Measured by carbontracker (https://github.com/saintslab/carbontracker)."
         )
 
     @mock.patch("builtins.print")
@@ -936,7 +936,7 @@ class TestParser(fake_filesystem_unittest.TestCase):
         mock_print.assert_called_once_with(
             "The training of models in this work is estimated to use 100.0000000000000000 kWh of electricity contributing to 5.0000000000000000 kg of CO2eq. "
             "This is equivalent to 200.0000000000000000 km travelled. "
-            "Measured by carbontracker (https://github.com/lfwa/carbontracker)."
+            "Measured by carbontracker (https://github.com/saintslab/carbontracker)."
         )
 
     def test_get_stats_no_equivalents(self):

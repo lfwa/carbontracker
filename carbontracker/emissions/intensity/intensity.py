@@ -1,13 +1,14 @@
 import sys
-import pandas as pd
-from carbontracker.emissions.intensity.fetchers import electricitymaps
-import geocoder
 import traceback
 from typing import List, Optional, Tuple, Type
+
+import geocoder
+import pandas as pd
+
 from carbontracker import constants, exceptions, loggerutil
 from carbontracker.emissions.intensity.fetcher import IntensityFetch, IntensityFetcher
+from carbontracker.emissions.intensity.fetchers import electricitymaps
 from carbontracker.emissions.intensity.location import Location
-
 
 
 class IntensityService():
@@ -15,7 +16,7 @@ class IntensityService():
                  logger : loggerutil.Logger,
                  intensity_fetcher : Optional[IntensityFetcher] = None,
                  ) -> None:
-        self.logger = logger 
+        self.logger = logger
         self.intensity_fetcher = intensity_fetcher
         self.geo_location = self._fetch_geo_location()
         self.address = self._get_address()
@@ -24,7 +25,7 @@ class IntensityService():
         self.default_carbon_intensity = self._get_default_carbon_intensity()
         self._log_state()
 
-                 
+
     def fetch_carbon_intensity(self, time_duration = None) -> IntensityFetch:
         if self.intensity_fetcher is None or self.geo_location is None:
             return self.default_carbon_intensity
@@ -32,16 +33,16 @@ class IntensityService():
             if not self.intensity_fetcher.suitable(self.geo_location):
                 self._log_fetch_failed()
                 return self.default_carbon_intensity
-            else: 
-                try: 
+            else:
+                try:
                     result : IntensityFetch = self.intensity_fetcher.fetch_carbon_intensity(g_location=self.geo_location,time_dur=time_duration)
 
-                    return result; 
+                    return result;
                 except:
-                    
+
                     self._log_fetch_failed()
                     return self.default_carbon_intensity
-        
+
     def _get_default_carbon_intensity(self) -> IntensityFetch:
         """Retrieve static default carbon intensity value based on location."""
         if self.geo_location is None:
@@ -95,8 +96,8 @@ class IntensityService():
                 is_fetched=False,
                 is_prediction=False,
             )
-  
-    def _fetch_geo_location(self) -> Optional[Location]: 
+
+    def _fetch_geo_location(self) -> Optional[Location]:
             try:
                 g_location: Location = geocoder.ip("me")
                 if g_location.ok is False:
@@ -106,14 +107,14 @@ class IntensityService():
                 self.logger.err_debug(f"Geolocation fetch failed. Error; {err}")
                 return None
             return g_location
-    
-    def _get_address(self) -> str: 
+
+    def _get_address(self) -> str:
         if self.geo_location is None or not self.geo_location.ok:
             return "Unknown"
         else:
             return self.geo_location.address
-     
-    def _get_country(self) -> str: 
+
+    def _get_country(self) -> str:
         if self.geo_location is None or not self.geo_location.ok:
             return "Unknown"
         else:
@@ -127,9 +128,9 @@ class IntensityService():
                     f"Defaulting to global average carbon intensity for {constants.WORLD_AVG_CARBON_INTENSITY_YEAR}: "
                     f"{constants.WORLD_AVG_CARBON_INTENSITY:.2f} gCO2eq/kWh."
                 )
-                return 
+                return
             else:
-             
+
                 self.logger.err_warn(
                     f"No carbon intensity provider specified. "
                     f"Using average carbon intensity for {self.default_carbon_intensity.country}: "
@@ -144,9 +145,18 @@ class IntensityService():
                 f"{constants.WORLD_AVG_CARBON_INTENSITY:.2f} gCO2eq/kWh."
             )
             return
+        else:
+            if self.intensity_fetcher is not None:
+                self.logger.err_warn(
+                            f"Using realtime localized carbon intensity based on the location: {self.address, self.country}"
+                )
+            else:
+                self.logger.err_warn(
+                    f"Using localized average carbon intensity for location {self.default_carbon_intensity.country}: "
+                    f"{self.default_carbon_intensity.carbon_intensity:.2f} gCO2eq/kWh."
+                )
 
     def _log_fetch_failed(self):
         self.logger.err_warn(
-            f"Fetcher is unable to retrieve carbon intensity data for your detected location {self.address}. " 
+            f"Fetcher is unable to retrieve carbon intensity data for your detected location {self.address}. "
             f"Carbon emissions calculations will fall back to the average carbon intensity for {self.default_carbon_intensity.country}: {self.default_carbon_intensity.carbon_intensity:.2f} gCO2eq/kWh.")
-

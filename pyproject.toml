@@ -11,6 +11,7 @@ license = { file = "LICENSE" }
 authors = [
     { name = "Lasse F. Wolff Anthony", email = "lfwa@proton.me" },
     { name = "Benjamin Kanding" },
+    { name = "Mikkel Dahl", email = "mikkel.dal@di.ku.dk" },
 ]
 classifiers = [
     "License :: OSI Approved :: MIT License",

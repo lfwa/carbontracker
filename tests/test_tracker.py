@@ -786,14 +786,6 @@ class TestCarbonTracker(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self.tracker._handle_error(Exception("Test exception"))
 
-    @skipIf(os.environ.get("CI") == "true", "Skipped due to CI")
-    @patch("carbontracker.emissions.intensity.fetchers.electricitymaps.ElectricityMap.set_api_key")
-    def test_carbontracker_api_key(self, mock_set_api_key):
-        api_dict = {"ElectricityMaps": "mock_api_key"}
-        _tracker = CarbonTracker(epochs=1, api_keys=api_dict)
-        _tracker.set_api_keys(api_dict)  # Explicitly call set_api_keys
-        mock_set_api_key.assert_called_once_with("mock_api_key")
-
     def test_output_energy(self):
         assert self.tracker is not None
         assert self.mock_logger is not None

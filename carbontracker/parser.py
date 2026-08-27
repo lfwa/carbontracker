@@ -202,7 +202,7 @@ def print_aggregate(log_dir):
     if equivalents_p:
         printable += f"This is equivalent to {equivalents_p}. "
 
-    printable += "Measured by carbontracker (https://github.com/lfwa/carbontracker)."
+    printable += "Measured by carbontracker (https://github.com/saintslab/carbontracker)."
 
     print(printable)
 

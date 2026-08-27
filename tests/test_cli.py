@@ -40,21 +40,21 @@ class TestCLI(unittest.TestCase):
         cli.main()
         self.assertIn("CarbonTracker: The following components", captured_output.getvalue())
 
+    @patch("carbontracker.cli.CarbonTracker")
     @patch("builtins.input", side_effect=mock_password_input)
     @patch("subprocess.run", autospec=True)
     @patch.object(sys, "argv", ["cli.py", "--log_dir", "./logs", "echo 'test'"])
-    def test_main_with_remaining_args(self, mock_subprocess, mock_input):
-        sleep(2)
+    def test_main_with_remaining_args(self, mock_subprocess, mock_input, mock_tracker):
         mock_subprocess.return_value.returncode = 0  # Simulate a successful command execution
 
         cli.main()
         mock_subprocess.assert_called_once_with(["echo 'test'"], check=True)
 
+    @patch("carbontracker.cli.CarbonTracker")
     @patch("builtins.input", side_effect=mock_password_input)
     @patch("subprocess.run", autospec=True)
     @patch.object(sys, "argv", ["cli.py", "--log_dir", "./logs", "echo 'test'"])
-    def test_main_with_remaining_args_failure(self, mock_subprocess, mock_input):
-        sleep(2)
+    def test_main_with_remaining_args_failure(self, mock_subprocess, mock_input, mock_tracker):
         mock_subprocess.side_effect = subprocess.CalledProcessError(0, ["echo 'test'"])
 
         cli.main()

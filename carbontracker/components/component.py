@@ -171,7 +171,7 @@ class Component:
             if not self.power_usages[-1]:
                 self.logger.err_critical(
                     "GPU model does not support retrieval of power usages in NVML."
-                    "\nSee issue: https://github.com/lfwa/carbontracker/issues/36"
+                    "\nSee issue: https://github.com/saintslab/carbontracker/issues/36"
                 )
                 # Append zero measurement to avoid further errors.
                 self.power_usages.append([0])

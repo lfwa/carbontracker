@@ -1,9 +1,9 @@
 # **carbontracker**
-[![Build](https://github.com/lfwa/carbontracker/actions/workflows/publish.yml/badge.svg)](https://github.com/lfwa/carbontracker/actions)
+[![Build](https://github.com/saintslab/carbontracker/actions/workflows/publish.yml/badge.svg)](https://github.com/saintslab/carbontracker/actions)
 [![PyPI](https://img.shields.io/pypi/v/carbontracker?label=PyPI)](https://pypi.org/project/carbontracker/)
 [![Python](https://img.shields.io/badge/python-%3E%3D3.7-blue)](https://www.python.org/downloads/)
-[![Unit Tests](https://github.com/lfwa/carbontracker/actions/workflows/test.yml/badge.svg)](https://github.com/lfwa/carbontracker/actions)
-[![License](https://img.shields.io/github/license/lfwa/carbontracker)](https://github.com/lfwa/carbontracker/blob/master/LICENSE)
+[![Unit Tests](https://github.com/saintslab/carbontracker/actions/workflows/test.yml/badge.svg)](https://github.com/saintslab/carbontracker/actions)
+[![License](https://img.shields.io/github/license/saintslab/carbontracker)](https://github.com/saintslab/carbontracker/blob/master/LICENSE)
 [![Downloads](https://static.pepy.tech/badge/carbontracker)](https://pepy.tech/project/carbontracker)
 
 [Website](https://carbontracker.info)
@@ -158,7 +158,7 @@ parser.print_aggregate(log_dir="./my_log_directory/")
 ```
 #### Example output
 ```
-The training of models in this work is estimated to use 4.494 kWh of electricity contributing to 0.423 kg of CO2eq. This is equivalent to 3.515 km travelled by car. Measured by carbontracker (https://github.com/lfwa/carbontracker).
+The training of models in this work is estimated to use 4.494 kWh of electricity contributing to 0.423 kg of CO2eq. This is equivalent to 3.515 km travelled by car. Measured by carbontracker (https://github.com/saintslab/carbontracker).
 ```
 
 ### Convert logs to dictionary objects

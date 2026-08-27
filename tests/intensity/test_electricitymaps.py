@@ -145,10 +145,10 @@ class TestElectricityMapLiveContract(unittest.TestCase):
         )
         
     def test_latest_carbon_intensity_by_coordinates(self):
-        """This will likely fail unless you """
+        """This will likely fail, unless you have permission for the higher granularity zones (in this case DK-DK2) """
         intensity = self.electricity_map._carbon_intensity_by_location(
-            lon=12.5683,
-            lat=55.6761,
+            lon=END2END_LON,
+            lat=END2END_LAT,
         )
 
         self.assertIsInstance(intensity, (int, float))
