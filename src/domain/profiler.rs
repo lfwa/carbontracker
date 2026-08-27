@@ -7,45 +7,68 @@ use crate::domain::{
     config::FailurePolicy,
     events::{ObserverEvent, ProfilerEvent},
     guard::{Guard, GuardInput},
-    measurements::{MeasurementStore, MeasurementStoreError, SourceKey, Timestamp},
+    measurements::{
+        Measurement, MeasurementStore, MeasurementStoreError, SourceKey, TimeInterval, Timestamp,
+    },
     predictor::{PredictionError, Predictor},
     providers::{ProviderError, ProviderId, ProviderOutput, ProviderRequestState},
     request::{RequestId, RequestsState},
-    source::Source,
-    span::{ActiveSpan, PendingSpan, SpanBoundary, SpanId},
+    source::{Source, SourceKind},
+    span::{ActiveSpan, PendingSpan, SpanBoundary, SpanId, SpanProfile},
     units::{GramsCo2e, GramsCo2ePerKwh, KilowattHours, UnitError, Watts},
 };
 
+#[derive(Debug, Clone)]
+pub struct ProfilerConfig {
+    pub failure_policy: FailurePolicy,
+    pub series_capacity: usize,
+    pub request_capacity: usize,
+    pub max_timestamp_delta: Duration,
+    pub interpolation_epsilon: f64,
+    pub max_ms_before_interpolation: usize,
+}
+
+impl Default for ProfilerConfig {
+    fn default() -> Self {
+        Self {
+            failure_policy: FailurePolicy::default(),
+            series_capacity: 1024,
+            request_capacity: 64,
+            max_timestamp_delta: Duration::milliseconds(100),
+            interpolation_epsilon: 1e-9,
+            max_ms_before_interpolation: 100,
+        }
+    }
+}
+
 pub struct Profiler {
+    config: ProfilerConfig,
     active_spans: HashMap<SpanId, ActiveSpan>,
     pending_spans: HashMap<RequestId, PendingSpan>,
     request_state: RequestsState,
     measurements: MeasurementStore,
     session_stats: SessionStats,
-    failure_policy: FailurePolicy,
     predictor: Option<Predictor>,
     guard: Option<Guard>,
 }
 
 impl Profiler {
     pub fn new(
+        config: ProfilerConfig,
+        sources: Vec<Source>,
         predictor: Option<Predictor>,
         guard: Option<Guard>,
-        failure_policy: FailurePolicy,
-        sources: Vec<Source>,
-        series_capacity: usize,
-        request_capacity: usize,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, ProfilerError> {
+        Ok(Self {
             active_spans: HashMap::new(),
             pending_spans: HashMap::new(),
-            request_state: RequestsState::new(request_capacity),
-            measurements: MeasurementStore::new(sources, series_capacity),
+            request_state: RequestsState::new(config.request_capacity),
+            measurements: MeasurementStore::new(sources, config.series_capacity)?,
             session_stats: SessionStats::default(),
-            failure_policy,
             predictor,
             guard,
-        }
+            config,
+        })
     }
     pub fn process_provider_output(
         &mut self,
@@ -222,7 +245,7 @@ impl Profiler {
             return Ok(Vec::new());
         };
 
-        if matches!(self.failure_policy, FailurePolicy::Strict) {
+        if matches!(self.config.failure_policy, FailurePolicy::Strict) {
             if let Some(error) = self.request_state.first_failure(request_id) {
                 return Err(error.into());
             }
@@ -271,7 +294,7 @@ impl Profiler {
 
         Ok(events)
     }
-    
+
     fn prune_unused_measurements(&mut self) {
         let cutoff = self
             .active_spans
@@ -284,27 +307,160 @@ impl Profiler {
     }
 
     fn profile_span(&self, span: &PendingSpan) -> Result<SpanProfile, ProfilerError> {
-        
+        let started_at = span.started_at;
+        let ended_at = span.ended_at;
+
+        let interval: TimeInterval = TimeInterval::new(started_at, ended_at).map_err(|_| {
+            ProfilerError::InvalidSpanTimeInterval {
+                span_id: span.span_id,
+                started_at,
+                ended_at,
+            }
+        })?;
+        // Get intensity series
+        let intensity_keys = self.measurements.get_sources(SourceKind::Intensity);
+        assert_eq!(
+            intensity_keys.len(),
+            0,
+            "Only single source intensities are supported now"
+        );
+        let intensity_series = self
+            .measurements
+            .view_interval(intensity_keys[0], &interval, true);
+
+        // Get power series
+        let power_keys = self.measurements.get_sources(SourceKind::Power);
+
+        //
+        let measurement_iterator = power_keys
+            .into_iter()
+            .map(|key| self.measurements.view_interval(key, &interval, true));
+
+        /*
+               for key in power_keys {
+                   let power_series = self.measurements.view_interval(key, &interval, true);
+                       if power_series.
+
+               }
+
+        */
+        let result = self.measurements.view_interval(key, &interval, true);
+
         todo!("define the span attribution and integration policy")
         /*
          * Naive approach:
          * get slices for across sources
-         * 
-         * 
-         * 
+         *
+         *
+         *
          */
+    }
+    /// get_aggregate_power_naive, returns an aggregate power measurement. It assumes that all power series, has the
+    /// same amount of measurements, and returns an error if not.
+    /// It also assummes that each index of the measurements across series, are within the epislon of the first series,
+    /// and returns an error if not
+    ///
+    /// interval: Time interval to aggregate over
+    /// max_delta: Maxium duration between the reference measurement and other measurements at timestep t
+    fn get_aggregate_power_naive(
+        &self,
+        interval: TimeInterval,
+    ) -> Result<Vec<Measurement>, ProfilerError> {
+        let power_sources = self.measurements.get_sources(SourceKind::Power);
+        if power_sources.is_empty() {
+            return Ok(Vec::new());
+        }
+        // Collecting iterators for measurement series'
+        let series_iters: Vec<_> = power_sources
+            .iter()
+            .map(|key| self.measurements.view_interval(*key, &interval, true))
+            .collect::<Result<Vec<_>, _>>()?;
 
+        // Validating the same length invariant
+        let ref_source_key = power_sources[0];
+        let ref_len = series_iters[0].size_hint().0;
+        let mut mismatchs = Vec::<(SourceKey, usize)>::new();
+
+        for (idx, series) in series_iters.iter().enumerate().skip(1) {
+            let series_len = series.size_hint().0;
+            if ref_len != series_len {
+                mismatchs.push((power_sources[idx], series_len));
+            }
+        }
+
+        if !mismatchs.is_empty() {
+            return Err(ProfilerError::SeriesMismatch {
+                source_series: mismatchs,
+                agg_series_length: ref_len,
+                agg_series_set_by: ref_source_key,
+            });
+        }
+
+        let mut series_iters_iter = series_iters.into_iter();
+
+        let first_iter = series_iters_iter.next().expect("Non empty checked above");
+        let mut agg_power: Vec<Measurement> = first_iter.copied().collect();
+
+        for (series_idx, iter) in series_iters_iter.enumerate() {
+            for (i, sample) in iter.enumerate() {
+                let delta = (*sample.observed_at() - *agg_power[i].observed_at()).abs();
+                if delta > self.config.max_timestamp_delta {
+                    return Err(ProfilerError::TimestampDeltaExceeded {
+                        source_key: power_sources[series_idx + 1],
+                        index: i,
+                        reference_timestamp: *agg_power[i].observed_at(),
+                        sample_timestamp: *sample.observed_at(),
+                        delta,
+                        max_delta: self.config.max_timestamp_delta,
+                    });
+                }
+                agg_power[i] = Measurement::new(
+                    *agg_power[i].observed_at(),
+                    agg_power[i].value() + sample.value(),
+                );
+            }
+        }
+
+        for observervation in agg_power.iter().
         
+        // Interpolate start_obs
+        if (*agg_power
+            .first()
+            .expect("Non empty measurement checked above")
+            .observed_at()
+            - interval.start())
+        .abs()
+            > self.config.max_timestamp_delta
+        {
+            if ref_len < 2 {
+                todo!();
+            }
+        }
+
+        // Interpolate end_obs
+        if (*agg_power
+            .last()
+            .expect("Non empty measurement checked above")
+            .observed_at()
+            - interval.start())
+        .abs()
+            > self.config.max_timestamp_delta
+        {
+            if ref_len < 2 {
+                todo!();
+            }
+        }
+
+        Ok(agg_power)
     }
 
     pub async fn finish(&mut self) -> Result<Vec<ProfilerEvent>, ProfilerError> {
         todo!("define session finalization and provider draining")
     }
-    
+
     fn update_session_stats(&mut self, profile: &SpanProfile) -> Result<(), ProfilerError> {
         todo!()
     }
-
 }
 
 #[derive(Debug, Clone)]
@@ -346,16 +502,6 @@ pub struct UsageStats {
 }
 
 #[derive(Debug, Clone)]
-pub struct SpanProfile {
-    pub span_id: SpanId,
-    pub parent_span_id: Option<SpanId>,
-    pub name: String,
-    pub started_at: Timestamp,
-    pub ended_at: Timestamp,
-    pub usage: UsageStats,
-}
-
-#[derive(Debug, Clone)]
 pub enum SessionEndReason {
     Completed,
     StoppedEarly,
@@ -375,8 +521,17 @@ pub struct SessionFinalStats {
 
 #[derive(Debug, thiserror::Error)]
 pub enum ProfilerError {
-    #[error("received an invalid span")]
+    #[error("bad span")]
     BadSpan,
+
+    #[error(
+        "invalid span interval for span {span_id:?}. started_at {started_at:?}, ended_at {ended_at:?}"
+    )]
+    InvalidSpanTimeInterval {
+        span_id: SpanId,
+        started_at: Timestamp,
+        ended_at: Timestamp,
+    },
 
     #[error("unknown request {0:?}")]
     UnknownRequest(RequestId),
@@ -385,6 +540,25 @@ pub enum ProfilerError {
     UnknownRequestProvider {
         request_id: RequestId,
         provider_id: ProviderId,
+    },
+
+    #[error("Power aggregation failed")]
+    SeriesMismatch {
+        source_series: Vec<(SourceKey, usize)>,
+        agg_series_length: usize,
+        agg_series_set_by: SourceKey,
+    },
+
+    #[error(
+        "timestamp delta exceeded max delta: source {source_key:?} at index {index} has delta {delta:?} (max: {max_delta:?})"
+    )]
+    TimestampDeltaExceeded {
+        source_key: SourceKey,
+        index: usize,
+        reference_timestamp: Timestamp,
+        sample_timestamp: Timestamp,
+        delta: Duration,
+        max_delta: Duration,
     },
 
     #[error("completed-unit counter overflowed")]
@@ -404,4 +578,160 @@ pub enum ProfilerError {
 
     #[error(transparent)]
     Provider(#[from] ProviderError),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::source::{PowerDomain, PowerMeasurementScope, PowerSource};
+    use chrono::TimeZone;
+
+    fn timestamp(millis: i64) -> Timestamp {
+        Utc.with_ymd_and_hms(2026, 8, 20, 10, 0, 0).unwrap() + Duration::milliseconds(millis)
+    }
+
+    fn power_source(provider_id: usize, device_name: &str) -> Source {
+        Source::Power {
+            source: PowerSource::Static,
+            provider_id: ProviderId::new(provider_id),
+            device_name: device_name.to_owned(),
+            domain: PowerDomain::Cpu,
+            scope: PowerMeasurementScope::DeviceTotal,
+        }
+    }
+
+    #[test]
+    fn test_default_profiler_config() {
+        let config = ProfilerConfig::default();
+        assert_eq!(config.failure_policy, FailurePolicy::default());
+        assert_eq!(config.series_capacity, 1024);
+        assert_eq!(config.request_capacity, 64);
+        assert_eq!(config.max_timestamp_delta, Duration::milliseconds(100));
+        assert_eq!(config.interpolation_epsilon, 1e-9);
+        assert_eq!(config.max_ms_before_interpolation, 100);
+    }
+
+    #[test]
+    fn test_get_aggregate_power_naive_success() {
+        let source1 = power_source(1, "gpu0");
+        let source2 = power_source(2, "gpu1");
+        let sources = vec![source1, source2];
+        let mut profiler = Profiler::new(ProfilerConfig::default(), sources, None, None).unwrap();
+
+        let power_keys = profiler.measurements.get_sources(SourceKind::Power);
+        let key1 = power_keys[0];
+        let key2 = power_keys[1];
+
+        profiler
+            .measurements
+            .insert(MeasurementSample {
+                source_key: key1,
+                measurement: Measurement::new(timestamp(0), 10.0),
+            })
+            .unwrap();
+        profiler
+            .measurements
+            .insert(MeasurementSample {
+                source_key: key1,
+                measurement: Measurement::new(timestamp(100), 20.0),
+            })
+            .unwrap();
+
+        profiler
+            .measurements
+            .insert(MeasurementSample {
+                source_key: key2,
+                measurement: Measurement::new(timestamp(10), 15.0),
+            })
+            .unwrap();
+        profiler
+            .measurements
+            .insert(MeasurementSample {
+                source_key: key2,
+                measurement: Measurement::new(timestamp(110), 25.0),
+            })
+            .unwrap();
+
+        let interval = TimeInterval::new(timestamp(0), timestamp(150)).unwrap();
+        let agg = profiler.get_aggregate_power_naive(interval).unwrap();
+        assert_eq!(agg.len(), 2);
+        assert_eq!(agg[0].value(), 25.0);
+        assert_eq!(agg[1].value(), 45.0);
+        assert_eq!(*agg[0].observed_at(), timestamp(0));
+    }
+
+    #[test]
+    fn test_get_aggregate_power_naive_series_mismatch() {
+        let source1 = power_source(1, "gpu0");
+        let source2 = power_source(2, "gpu1");
+        let sources = vec![source1, source2];
+        let mut profiler = Profiler::new(ProfilerConfig::default(), sources, None, None).unwrap();
+
+        let power_keys = profiler.measurements.get_sources(SourceKind::Power);
+        let key1 = power_keys[0];
+        let key2 = power_keys[1];
+
+        profiler
+            .measurements
+            .insert(MeasurementSample {
+                source_key: key1,
+                measurement: Measurement::new(timestamp(0), 10.0),
+            })
+            .unwrap();
+        profiler
+            .measurements
+            .insert(MeasurementSample {
+                source_key: key1,
+                measurement: Measurement::new(timestamp(100), 20.0),
+            })
+            .unwrap();
+
+        profiler
+            .measurements
+            .insert(MeasurementSample {
+                source_key: key2,
+                measurement: Measurement::new(timestamp(0), 15.0),
+            })
+            .unwrap();
+
+        let interval = TimeInterval::new(timestamp(0), timestamp(150)).unwrap();
+        let result = profiler.get_aggregate_power_naive(interval);
+        assert!(matches!(result, Err(ProfilerError::SeriesMismatch { .. })));
+    }
+
+    #[test]
+    fn test_get_aggregate_power_naive_timestamp_delta_exceeded() {
+        let source1 = power_source(1, "gpu0");
+        let source2 = power_source(2, "gpu1");
+        let sources = vec![source1, source2];
+        let mut profiler = Profiler::new(ProfilerConfig::default(), sources, None, None).unwrap();
+
+        let power_keys = profiler.measurements.get_sources(SourceKind::Power);
+        let key1 = power_keys[0];
+        let key2 = power_keys[1];
+
+        profiler
+            .measurements
+            .insert(MeasurementSample {
+                source_key: key1,
+                measurement: Measurement::new(timestamp(0), 10.0),
+            })
+            .unwrap();
+
+        // 150ms delta exceeds the 100ms default
+        profiler
+            .measurements
+            .insert(MeasurementSample {
+                source_key: key2,
+                measurement: Measurement::new(timestamp(150), 15.0),
+            })
+            .unwrap();
+
+        let interval = TimeInterval::new(timestamp(0), timestamp(200)).unwrap();
+        let result = profiler.get_aggregate_power_naive(interval);
+        assert!(matches!(
+            result,
+            Err(ProfilerError::TimestampDeltaExceeded { .. })
+        ));
+    }
 }

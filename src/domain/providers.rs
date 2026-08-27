@@ -14,7 +14,7 @@ use crate::application::ports::providers::{Provider, ProviderFactory};
 use crate::domain::config::SourceRequest;
 use crate::domain::measurements::{MeasurementSample, SourceKey, Timestamp};
 use crate::domain::request::RequestId;
-use crate::domain::source::{Source, SourceType};
+use crate::domain::source::{Source, SourceKind};
 
 pub type ProviderReceiver = mpsc::Receiver<ProviderOutput>;
 pub type ProviderReciever = ProviderReceiver;
@@ -376,7 +376,7 @@ impl SourceResolutions {
 
     pub fn resolved_sources(
         &self,
-        source_type: Option<SourceType>,
+        source_type: Option<SourceKind>,
     ) -> impl Iterator<Item = &SourceResolution> {
         self.iter().filter(move |resolution| {
             resolution.is_resolved() && source_type_matches(resolution, source_type)
@@ -385,7 +385,7 @@ impl SourceResolutions {
 
     pub fn unresolved_sources(
         &self,
-        source_type: Option<SourceType>,
+        source_type: Option<SourceKind>,
     ) -> impl Iterator<Item = &SourceResolution> {
         self.iter().filter(move |resolution| {
             !resolution.is_resolved() && source_type_matches(resolution, source_type)
@@ -477,11 +477,11 @@ fn describe_source_request(source_request: &SourceRequest) -> String {
     }
 }
 
-fn source_type_matches(resolution: &SourceResolution, source_type: Option<SourceType>) -> bool {
+fn source_type_matches(resolution: &SourceResolution, source_type: Option<SourceKind>) -> bool {
     match source_type {
         None => true,
-        Some(SourceType::Power) => matches!(resolution.source_request(), SourceRequest::Power(_)),
-        Some(SourceType::Intensity) => {
+        Some(SourceKind::Power) => matches!(resolution.source_request(), SourceRequest::Power(_)),
+        Some(SourceKind::Intensity) => {
             matches!(resolution.source_request(), SourceRequest::Intensity(_))
         }
     }

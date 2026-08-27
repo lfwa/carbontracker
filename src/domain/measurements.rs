@@ -1,4 +1,4 @@
-use crate::domain::source::Source;
+use crate::domain::source::{Source, SourceKind};
 use chrono::{DateTime, Utc};
 use std::{
     collections::{HashMap, VecDeque},
@@ -53,9 +53,16 @@ pub enum MeasurementStoreError {
 
     #[error("unknown measurement source key")]
     UnknownSourceKey,
+    
+    #[error("No internal measurements found for the given interval")]
+    NoInternalPoints,
+
 
     #[error("Sources was empty on creation")]
     NoSourcesFoundUponCreation,
+
+    #[error("duplicate measurement source")]
+    DuplicateSource,
 }
 
 impl MeasurementStore {
@@ -71,12 +78,17 @@ impl MeasurementStore {
             sources: HashMap::with_capacity(sources.len()),
             series: Vec::with_capacity(sources.len()),
         };
-        for (key, source) in sources.into_iter().enumerate() {
-            store.sources.insert(source, SourceKey(key));
-            store
-                .series
-                .insert(key, VecDeque::with_capacity(series_capicity));
+
+        for source in sources {
+            if store.sources.contains_key(&source) {
+                return Err(MeasurementStoreError::DuplicateSource);
+            }
+
+            let key = SourceKey(store.series.len());
+            store.sources.insert(source, key);
+            store.series.push(VecDeque::with_capacity(series_capicity));
         }
+
         Ok(store)
     }
 
@@ -108,16 +120,19 @@ impl MeasurementStore {
             .ok_or(MeasurementStoreError::UnknownSourceKey)
     }
 
-    ///
-    ///
-    ///
-    ///
-    ///
-    ///
-    ///
-    ///
-    ///
-    ///
+    pub fn get_sources(&self, source_kind: SourceKind) -> Vec<SourceKey> {
+        self
+            .sources
+            .iter()
+            .filter(|(source, _)| {
+                source.kind() == source_kind             }).map(|(_,source_key)| source_key.clone())
+            .collect()
+    }
+    /// Returns the set of relevant measurements from the store, given the interval. Fails if there is no internal  points
+    /// key: the source key used for the store retrieval
+    /// interval: The timestamp interval of points to include
+    /// include_boundaries: a boolean value which determine whether to include the first points before and after the interval. If toggled true, and no points are found, no error is raised 
+
     pub fn view_interval(
         &self,
         key: SourceKey,
@@ -132,11 +147,17 @@ impl MeasurementStore {
         let start =
             series.partition_point(|measurement| measurement.observed_at() < interval.start());
         let end = series.partition_point(|measurement| measurement.observed_at() <= interval.end());
-        if include_boundaries {
-            Ok(series.range(start - 1..end))
+
+        let (start, end) = if include_boundaries {
+            (
+                start.saturating_sub(1),
+                end.saturating_add(1).min(series.len()),
+            )
         } else {
-            Ok(series.range(start..end))
-        }
+            (start, end)
+        };
+
+        Ok(series.range(start..end))
     }
 
     pub fn delete_before(&mut self, cutoff: Option<&Timestamp>) {
@@ -197,71 +218,5 @@ pub enum TimeIntervalError {
 }
 
 #[cfg(test)]
-#[allow(dead_code)]
-mod tests {
-    use super::*;
-    use crate::domain::source::{GridLocation, IntensitySources};
-    use chrono::TimeZone;
-
-    // time interval
-    #[test]
-    fn time_interval_accepts_very_small_valid_interval() {
-        let start = Utc.with_ymd_and_hms(2026, 8, 20, 10, 0, 0).unwrap();
-        let end = start + chrono::Duration::nanoseconds(1);
-
-        let interval = TimeInterval::new(start, end).unwrap();
-
-        assert_eq!(interval.start(), &start);
-        assert_eq!(interval.end(), &end);
-        assert_eq!(interval.duration(), Duration::from_nanos(1));
-    }
-
-    // Store creation
-    #[test]
-    fn create_store_w_sources() {}
-
-    #[test]
-    fn create_store_w_many_and_different_sources() {}
-
-    #[test]
-    fn create_store_rejects_empty_sources() {
-        let result = MeasurementStore::new(Vec::new(), 10);
-
-        assert!(matches!(
-            result,
-            Err(MeasurementStoreError::NoSourcesFoundUponCreation)
-        ));
-    }
-
-    // Insert
-    #[test]
-    fn insert_adds_measurement() {}
-
-    #[test]
-    fn insert_rejects_out_of_order_measurements() {}
-
-    #[test]
-    fn insert_rejects_unknown_source() {}
-
-    // View
-    #[test]
-    fn view_interval_w_boundaries() {}
-    #[test]
-    fn view_interval() {}
-    #[test]
-    fn view_interval_w_zero_measurements() {}
-
-    // View
-    #[test]
-    fn view_interval_w_boundaries_w_zero_measurements() {}
-
-    #[test]
-    fn view_rejects_unknown_source() {}
-
-    // Delete
-
-    #[test]
-    fn delete_before_w_measurements() {}
-    fn delete_before_w_no_measurements() {}
-    fn delete_before_w_no_source() {}
-}
+#[path = "measurements/tests.rs"]
+mod tests;

@@ -8,7 +8,7 @@ use crate::domain::{
     events::{Event, ObserverEvent},
     guard::Guard,
     predictor::Predictor,
-    profiler::Profiler,
+    profiler::{Profiler, ProfilerError},
     providers::{ProviderRegisterError, ProviderRegistry, UnresolvedSourcesError, spawn_providers},
     source::Source,
 };
@@ -51,7 +51,7 @@ impl TrackerBuilder {
             prediction: prediction_config,
             source_requests,
             guard: guard_config,
-            failure_policy,
+            profiler: mut profiler_config,
         } = config;
 
         let providers = provider_registry.resolve(&source_requests).await?;
@@ -76,14 +76,15 @@ impl TrackerBuilder {
             return Err(TrackerBuilderError::InvalidRequestTimeout);
         }
 
+        profiler_config.series_capacity = series_capacity;
+        profiler_config.request_capacity = request_capacity;
+
         let profiler = Profiler::new(
+            profiler_config,
+            sources,
             predictor,
             guard,
-            failure_policy,
-            sources,
-            series_capacity,
-            request_capacity,
-        );
+        )?;
 
         let (command_tx, command_rx) = mpsc::channel::<ControllerCommand>(command_capacity);
 
@@ -124,4 +125,6 @@ pub enum TrackerBuilderError {
     UnresolvedSources(#[from] UnresolvedSourcesError),
     #[error("provider request timeout must be positive")]
     InvalidRequestTimeout,
+    #[error(transparent)]
+    Profiler(#[from] ProfilerError),
 }

@@ -1,4 +1,4 @@
-use crate::domain::{measurements::Timestamp, request::RequestId};
+use crate::domain::{measurements::Timestamp, profiler::UsageStats, request::RequestId};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct SpanId(usize);
@@ -36,4 +36,14 @@ pub struct PendingSpan {
     pub ended_at: Timestamp,
     pub parent_span_id: Option<SpanId>,
     pub start_boundary_request_id: RequestId,
+}
+
+#[derive(Debug, Clone)]
+pub struct SpanProfile {
+    pub span_id: SpanId,
+    pub parent_span_id: Option<SpanId>,
+    pub name: String,
+    pub started_at: Timestamp,
+    pub ended_at: Timestamp,
+    pub usage: UsageStats,
 }

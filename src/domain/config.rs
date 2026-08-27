@@ -6,6 +6,7 @@ use crate::domain::{
     self,
     guard::GuardConfig,
     predictor::{PredictionStart, PredictionTarget},
+    profiler::ProfilerConfig,
     source::{GridLocation, IntensitySources, PowerDomain, PowerMeasurementScope},
 };
 
@@ -16,7 +17,7 @@ pub struct TrackerConfig {
     pub prediction: Option<PredictionConfig>,
     pub source_requests: Vec<SourceRequest>,
     pub guard: Option<GuardConfig>,
-    pub failure_policy: FailurePolicy,
+    pub profiler: ProfilerConfig,
 }
 
 impl Default for TrackerConfig {
@@ -45,7 +46,7 @@ impl Default for TrackerConfig {
             sampling: SamplingConfig::default(),
             prediction: None,
             guard: None,
-            failure_policy: FailurePolicy::default(),
+            profiler: ProfilerConfig::default(),
         }
     }
 }
@@ -100,7 +101,7 @@ impl Default for SessionConfig {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FailurePolicy {
     Strict,
     BestEffort,

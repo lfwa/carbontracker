@@ -35,8 +35,17 @@ pub enum Source {
     },
 }
 
+impl Source {
+    pub const fn kind(&self) -> SourceKind {
+        match self {
+            Self::Power { .. } => SourceKind::Power,
+            Self::Intensity { .. } => SourceKind::Intensity,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SourceType {
+pub enum SourceKind {
     Power,
     Intensity,
 }
