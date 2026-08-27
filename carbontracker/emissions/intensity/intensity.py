@@ -21,7 +21,6 @@ class IntensityService():
         self.geo_location = self._fetch_geo_location()
         self.address = self._get_address()
         self.country = self._get_country()
-        self.using_global_average = False
         self.default_carbon_intensity = self._get_default_carbon_intensity()
         self._log_state()
 
@@ -37,8 +36,8 @@ class IntensityService():
                 try:
                     result : IntensityFetch = self.intensity_fetcher.fetch_carbon_intensity(g_location=self.geo_location,time_dur=time_duration)
 
-                    return result;
-                except:
+                    return result
+                except Exception:
 
                     self._log_fetch_failed()
                     return self.default_carbon_intensity
@@ -130,7 +129,6 @@ class IntensityService():
                 )
                 return
             else:
-
                 self.logger.err_warn(
                     f"No carbon intensity provider specified. "
                     f"Using average carbon intensity for {self.default_carbon_intensity.country}: "
@@ -145,16 +143,11 @@ class IntensityService():
                 f"{constants.WORLD_AVG_CARBON_INTENSITY:.2f} gCO2eq/kWh."
             )
             return
-        else:
-            if self.intensity_fetcher is not None:
-                self.logger.err_warn(
-                            f"Using realtime localized carbon intensity based on the location: {self.address, self.country}"
-                )
-            else:
-                self.logger.err_warn(
-                    f"Using localized average carbon intensity for location {self.default_carbon_intensity.country}: "
-                    f"{self.default_carbon_intensity.carbon_intensity:.2f} gCO2eq/kWh."
-                )
+
+        self.logger.err_info(
+            f"Using realtime localized carbon intensity based on location: {self.address}.g"
+        )
+            
 
     def _log_fetch_failed(self):
         self.logger.err_warn(

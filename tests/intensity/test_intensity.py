@@ -71,6 +71,9 @@ class TestIntensity(unittest.TestCase):
 
         self.assertEqual(default_intensity_fetch.carbon_intensity, expected_intensity)
         logger.err_warn.assert_not_called()
+        logger.err_info.assert_called_with(
+            "Using realtime localized carbon intensity based on location: Sample Address."
+        )
 
 
 

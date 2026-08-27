@@ -13,8 +13,8 @@ from carbontracker.emissions.intensity.fetchers.electricitymaps import (
 Test constants for doing the end 2 end test. Note, that if you have a free subscription on electricity maps, you must ensure that that the specific locations are supported by the settings on your account. 
 """
 ZONE_NAME_FOR_END2END = "DK"
-END2END_LON=12.5683,
-END2END_LAT=55.6761,
+END2END_LON=12.5683
+END2END_LAT=55.6761
 
 
 class TestElectricityMap(unittest.TestCase):
@@ -146,14 +146,19 @@ class TestElectricityMapLiveContract(unittest.TestCase):
         
     def test_latest_carbon_intensity_by_coordinates(self):
         """This will likely fail, unless you have permission for the higher granularity zones (in this case DK-DK2) """
-        intensity = self.electricity_map._carbon_intensity_by_location(
-            lon=END2END_LON,
-            lat=END2END_LAT,
-        )
-
-        self.assertIsInstance(intensity, (int, float))
-        self.assertGreaterEqual(intensity, 0)
-
+        try:
+            intensity = self.electricity_map._carbon_intensity_by_location(
+                lon=END2END_LON,
+                lat=END2END_LAT,
+            )
+    
+            self.assertIsInstance(intensity, (int, float))
+            self.assertGreaterEqual(intensity, 0)
+        except exceptions.CarbonIntensityFetcherError as err:
+            err_msg = str(err)
+            if "unauthorized" in err_msg.lower():
+                self.skipTest("API key does not have permission for granular sub-zones, necessary for lat/long based intensity")
+                
     def test_latest_carbon_intensity_by_zone(self):
         intensity = self.electricity_map._carbon_intensity_by_location(
             zone=ZONE_NAME_FOR_END2END,

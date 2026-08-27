@@ -171,4 +171,4 @@ cython_debug/
 # local developments
 /test_logs/
 /logs/
-dev_guide.mduv.lock
+dev_guide.md
